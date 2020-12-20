@@ -1,0 +1,6 @@
+numpy
+h5py
+scikit-learn
+scikit-image
+matplotlib
+imageio
