@@ -5,6 +5,10 @@ from analyzer.data import Dataloader
 from analyzer.data.data_raw import readvol, folder2Vol, savelabvol
 from analyzer.data.data_vis import visvol
 
+from analyzer.model import Clustermodel
+
+# RUN THE SCRIPT LIKE: $ python main.py --em datasets/human/human_em_export_8nm/ --gt datasets/human/human_gt_export_8nm/
+
 def create_arg_parser():
 	'''
 	Get arguments from command lines.
@@ -25,12 +29,15 @@ def main():
 	print("Command line arguments:")
 	print(args)
 
-	dl = Dataloader(args.em, args.gt)
-	em, gt = dl.load_chunk()
-	visvol(em, gt)
-
+	dl = Dataloader(args.em, args.gt, chunk_size=(10,4096,4096))
+	em, gt = dl.load_chunk(vol='gt')
+	#visvol(em, gt)
+	print(gt.shape)
 	#em = args.em
 	#gt = args.gt
+
+	model = Clustermodel(em, gt)
+	model.run()
 
 	#h5data = folder2Vol(em)
 	#data = savelabvol(h5data, 'human_em.h5', dataset='main')

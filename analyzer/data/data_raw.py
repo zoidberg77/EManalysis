@@ -52,35 +52,64 @@ def readimgs(filename):
 	return data
 
 
-def folder2Vol(filepath, cv=None, file_format='png', maxF=-1, ratio=[1,1,1], fns=None, dt=np.uint16):
+def folder2Vol(filepath, chunk_size=None, fns=None, file_format='png', dt=np.uint16):
 	'''
 	Convert single image files (2D) to 3D h5 volume.
 	:param filepath: (string) filepath
-	:param cv: (list) defines the crop volume. e.g. [0, 1024, 0, 1024, 0, 100]
+	:param chunk_size: (tuple) that will define the size of different chunks.
+	:param fns: (string) defines the filenames.
 	:param file_format: (string) defines the input dataformat.
+	:param dt: (dataformat) default: np.uint16
+
+	:returns: numpy array that contains the raw data (em & labels).
+			  shape: (500, 496, 4096)
+			  Chunks that part the images will look like this (4, 100, 2048, 2048).
 	'''
 	if fns is None:
 		fns = sorted(glob.glob(filepath + '*.' + file_format))
 
-	numF = len(fns)
-	if maxF > 0:
-		numF = min(numF, maxF)
+	if len(fns) == 0:
+		raise ValueError("Please enter valid filepath.")
 
-	numF = numF // ratio[0]
+	sz = np.array(imageio.imread(fns[0]).shape)[:2]
 
-	sz = np.array(imageio.imread(fns[0]).shape)[:2] // ratio[1:]
-	vol = np.zeros((numF, sz[0], sz[1]), dtype=dt)
+	if chunk_size is None:
+		vol = np.zeros((len(fns), sz[0], sz[1]), dtype=dt)
+		for zi in range(len(fns)):
+			if os.path.exists(fns[zi]):
+				tmp = imageio.imread(fns[zi])
+				if tmp.ndim >= 3:
+					tmp = np.squeeze(tmp)
+				vol[zi] = tmp
+	else:
+		ratio = sz[0] / chunk_size[1]
+		if sz[0] % ratio != 0:
+			raise ValueError("Consider a different chunk size as the ratio does not fit the original image size. Keep it squared.")
 
-	for zi in range(numF):
-		if os.path.exists(fns[zi * ratio[0]]):
-			tmp = imageio.imread(fns[zi * ratio[0]])
-			if tmp.ndim == 3:
-				tmp = tmp[:, :, 0]
-				print(tmp)
-			vol[zi] = tmp[::ratio[1], ::ratio[2]]
+		ratio = int(ratio)
+		if ratio != 1:
+			vol = np.zeros((ratio * 2, chunk_size[0], chunk_size[1], chunk_size[2]), dtype=dt)
+		else:
+			vol = np.zeros((chunk_size[0], chunk_size[1], chunk_size[2]), dtype=dt)
 
-	if cv is not None:
-		vol = vol[cv[4]:cv[5], cv[0]:cv[1], cv[2]:cv[3]]
+		for zi in range(chunk_size[0]):
+			if os.path.exists(fns[zi]):
+				tmp = imageio.imread(fns[zi])
+				if tmp.ndim >= 3:
+					tmp = np.squeeze(tmp)
+
+				if ratio != 1:
+					splitarr = []
+					htmp = np.hsplit(tmp, ratio)
+					for j in range(ratio):
+						vtmp = np.vsplit(htmp[j], ratio)
+						for elements in range(ratio):
+							splitarr.append(vtmp[elements])
+
+					for i in range(ratio * 2):
+						vol[i, zi, :, :] = splitarr[i]
+				else:
+					vol[zi] = tmp
 
 	return vol
 
@@ -94,7 +123,6 @@ def savelabvol(vol, filename, labels=None, dataset='main', format='h5'):
 	:param format: (str) dataformat.
 	'''
 	h5 = h5py.File(filename, 'w')
-	#print(isinstance(dataset, (list, )))
 
 	if isinstance(dataset, (list,)):
 		for i,dd in enumerate(dataset):
