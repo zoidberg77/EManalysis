@@ -9,6 +9,7 @@ import time
 def compute_regions(vol, mode='2d'):
 	'''
 	Compute the region properties of the groundtruth labels.
+
 	:param vol: volume (np.array) that contains the labels. (2d || 3d)
 	:param mode: (string)
 
@@ -56,7 +57,7 @@ def compute_regions(vol, mode='2d'):
 
 def recompute_from_res(labels, result, mode='2d'):
 	'''
-	Take the result labels from clustering algorithm and adjust the old labels.
+	Take the result labels from clustering algorithm and adjust the old labels. NOTE: '3d' mode is way faster.
 	:param labels: (np.array) old labels just want to adjust.
 	:param result: (np.array)
 	'''
