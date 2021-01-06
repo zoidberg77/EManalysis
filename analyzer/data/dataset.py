@@ -40,6 +40,7 @@ class Dataloader():
 		self.mode = mode
 		self.file_format = file_format
 
+
 	def load_chunk(self, vol='both'):
 		'''
 		Load chunk of em and groundtruth data for further processing.
@@ -55,16 +56,20 @@ class Dataloader():
 			if (vol == 'em') or (vol == 'both'):
 				emdata = readvol(emfns[0])
 				emdata = np.squeeze(emdata)
+				print('EM data loaded: ', emdata.shape)
 			if (vol == 'gt') or (vol == 'both'):
 				gt = readvol(gtfns[0])
 				gt = np.squeeze(gt)
+				print('gt data loaded: ', gt.shape)
 
 		if self.mode == '3d':
 			if (vol == 'em') or (vol == 'both'):
 				if self.volume is None:
 					emdata = folder2Vol(self.volpath, self.chunk_size)
+					print('EM data loaded: ', emdata.shape)
 			if (vol == 'gt') or (vol == 'both'):
 				if self.label is None:
 					gt = folder2Vol(self.gtpath, self.chunk_size)
+					print('gt data loaded: ', gt.shape)
 
 		return (emdata, gt)

@@ -1,7 +1,8 @@
 import numpy as np
 from sklearn.cluster import KMeans
-from analyzer.model.utils.measuring import compute_regions
+from analyzer.model.utils.measuring import compute_regions, recompute_from_res
 from analyzer.data.data_vis import visvol
+from analyzer.utils.eval import clusteravg
 
 class Clustermodel():
 	'''
@@ -14,10 +15,19 @@ class Clustermodel():
 		self.gtvol = gtvol
 		self.alg = alg
 
+		print('model is set.')
+
 	def run(self):
 		if self.alg == 'bysize':
 			labels, areas = compute_regions(self.gtvol)
-			kmeans = KMeans()
-			new_labels = kmeans.fit_predict(areas)
+			kmeans = KMeans(n_clusters=5)
+			res_labels = kmeans.fit_predict(areas.reshape(-1,1))
 
-			#visvol()
+			labeled = recompute_from_res(labels, res_labels)
+
+			clmeans = clusteravg(areas, res_labels)
+
+			print('means: ', clmeans)
+
+			for k in range(labeled.shape[0]):
+				visvol(self.emvol[k], labeled[k])

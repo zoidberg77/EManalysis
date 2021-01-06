@@ -7,8 +7,21 @@ def visvol(vol, gt=None):
 	:param vol: (np.array) em data volume.
 	:param vol: (np.array) groundtruth data volume.
 	'''
-	plt.figure()
-	plt.imshow(vol, cmap = plt.cm.gray)
-	if gt is not None:
-		plt.imshow(gt, cmap='Reds', alpha=0.4)
-	plt.show()
+	if vol.ndim >= 3:
+		raise ValueError('The input volume is higher than 2 dimensions.')
+	else:
+		plt.figure()
+		plt.imshow(vol, cmap = plt.cm.gray)
+		if gt is not None:
+			gt = zero_to_nan(gt)
+			#plt.imshow(gt, cmap='terrain', alpha=0.9)
+			plt.imshow(gt, cmap='gist_ncar', alpha=1.0)
+		plt.show()
+
+
+### HELPER SECTION ###
+
+def zero_to_nan(values):
+	"""Replace every 0 with 'nan' and return a copy."""
+	values[ values==0 ] = np.nan
+	return values

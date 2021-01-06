@@ -29,20 +29,12 @@ def main():
 	print("Command line arguments:")
 	print(args)
 
-	dl = Dataloader(args.em, args.gt, chunk_size=(10,4096,4096))
-	em, gt = dl.load_chunk(vol='gt')
+	dl = Dataloader(args.em, args.gt, chunk_size=(2,4096,4096))
+	em, gt = dl.load_chunk(vol='both')
 	#visvol(em, gt)
-	print(gt.shape)
-	#em = args.em
-	#gt = args.gt
 
 	model = Clustermodel(em, gt)
 	model.run()
-
-	#h5data = folder2Vol(em)
-	#data = savelabvol(h5data, 'human_em.h5', dataset='main')
-
-	#print(data)
 
 
 if __name__ == "__main__":
