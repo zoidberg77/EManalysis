@@ -3,6 +3,9 @@ import matplotlib.pyplot as plt
 from skimage.measure import label, regionprops
 from analyzer.data.data_vis import visvol
 
+import time
+
+
 def compute_regions(vol, mode='2d'):
 	'''
 	Compute the region properties of the groundtruth labels.
@@ -51,24 +54,41 @@ def compute_regions(vol, mode='2d'):
 
 	return (labels, areas)
 
-def recompute_from_res(labels, result):
+def recompute_from_res(labels, result, mode='2d'):
 	'''
 	Take the result labels from clustering algorithm and adjust the old labels.
 	:param labels: (np.array) old labels just want to adjust.
 	:param result: (np.array)
 	'''
-	### TODO: # OPTIMIZE: on runtime.
-	
-	new = np.zeros(shape=labels.shape)
+	tic = time.perf_counter()
 
-	for r in range(labels.shape[0]):
-		tmp = labels[r]
-		for idx in range(np.amin(tmp[np.nonzero(tmp)]), np.amax(tmp) + 1):
-			tmp[tmp == idx] = result[idx - 1] + 1 # + 1 in order to secure that label 0 is not missed.
+	if mode == '2d':
+		cld_labels = np.zeros(shape=labels.shape)
 
-		new[r] = tmp
+		for r in range(labels.shape[0]):
+			tmp = labels[r]
+			for idx in range(np.amin(tmp[np.nonzero(tmp)]), np.amax(tmp) + 1):
+				tmp[tmp == idx] = result[idx - 1] + 1 # + 1 in order to secure that label 0 is not missed.
 
-	return new
+			cld_labels[r] = tmp
+	else:
+		tmp = np.arange(start=np.amin(labels[np.nonzero(labels)]), stop=np.amax(labels) + 1, step=1)
+		ldict = {}
+		for k, v in zip(tmp, result):
+			ldict[k] = v + 1  # + 1 in order to secure that label 0 is not missed.
+
+		k = np.array(list(ldict.keys()))
+		v = np.array(list(ldict.values()))
+
+		mapv = np.zeros(k.max() + 1)
+		mapv[k] = v
+		cld_labels = mapv[labels]
+
+	toc = time.perf_counter()
+	#print(f"function needed {toc - tic:0.4f} seconds")
+
+	return cld_labels
+
 
 ### HELPER SECTION ###
 def plot_stats(data, x_label='x', y_label='y'):

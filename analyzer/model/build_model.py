@@ -24,10 +24,9 @@ class Clustermodel():
 			kmeans = KMeans(n_clusters=5)
 			res_labels = kmeans.fit_predict(areas.reshape(-1,1))
 
-			labeled = recompute_from_res(labels, res_labels)
-
+			labeled = recompute_from_res(labels, res_labels, mode='3d')
+			
 			clmeans = clusteravg(areas, res_labels)
-
 			print('means: ', clmeans)
 
 			for k in range(labeled.shape[0]):
