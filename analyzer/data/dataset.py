@@ -5,9 +5,15 @@ from analyzer.data.data_raw import readvol, folder2Vol
 
 class Dataloader():
 	'''
-	Dataloader class for handling the em dataset.
+	Dataloader class for handling the em dataset and the related labels.
 
-	:param
+	:param volpath:
+	:param gtpath:
+	:param volume:
+	:param label:
+	:param chunk_size: (tuple) defines the chunks in which the data is loaded. Can help to overcome Memory errors.
+	:param mode:
+	:param ff: (string) defines the file format that you want to work with. (default: png)
 	'''
 	def __init__(self,
 				 volpath,
@@ -15,10 +21,7 @@ class Dataloader():
 				 volume=None,
 				 label=None,
 				 chunk_size=(100,4096,4096),
-				 sample_volume_size=(8, 64, 64),
-				 sample_label_size=(8, 64, 64),
-				 mode='3d',
-				 file_format='png'
+				 mode='3d', ff='png'
 				 ):
 
 		if volume is not None:
@@ -34,11 +37,8 @@ class Dataloader():
 			self.label = label
 
 		self.chunk_size = chunk_size
-		self.sample_volume_size = sample_volume_size
-		self.sample_label_size = sample_label_size
-
 		self.mode = mode
-		self.file_format = file_format
+		self.ff = ff
 
 
 	def load_chunk(self, vol='both'):
@@ -47,8 +47,8 @@ class Dataloader():
 		:param vol: (string) choose between -> 'both', 'em', 'gt' in order to specify
 					 with volume you want to load.
 		'''
-		emfns = sorted(glob.glob(self.volpath + '*.' + self.file_format))
-		gtfns = sorted(glob.glob(self.gtpath + '*.' + self.file_format))
+		emfns = sorted(glob.glob(self.volpath + '*.' + self.ff))
+		gtfns = sorted(glob.glob(self.gtpath + '*.' + self.ff))
 		emdata = 0
 		gt = 0
 
@@ -56,7 +56,7 @@ class Dataloader():
 			if (vol == 'em') or (vol == 'both'):
 				emdata = readvol(emfns[0])
 				emdata = np.squeeze(emdata)
-				print('EM data loaded: ', emdata.shape)
+				print('em data loaded: ', emdata.shape)
 			if (vol == 'gt') or (vol == 'both'):
 				gt = readvol(gtfns[0])
 				gt = np.squeeze(gt)
@@ -65,11 +65,11 @@ class Dataloader():
 		if self.mode == '3d':
 			if (vol == 'em') or (vol == 'both'):
 				if self.volume is None:
-					emdata = folder2Vol(self.volpath, self.chunk_size)
-					print('EM data loaded: ', emdata.shape)
+					emdata = folder2Vol(self.volpath, self.chunk_size, file_format=self.ff)
+					print('em data loaded: ', emdata.shape)
 			if (vol == 'gt') or (vol == 'both'):
 				if self.label is None:
-					gt = folder2Vol(self.gtpath, self.chunk_size)
+					gt = folder2Vol(self.gtpath, self.chunk_size, file_format=self.ff)
 					print('gt data loaded: ', gt.shape)
 
 		return (emdata, gt)

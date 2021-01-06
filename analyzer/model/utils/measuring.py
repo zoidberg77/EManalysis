@@ -17,24 +17,33 @@ def compute_regions(vol, mode='2d'):
 	label_cnt = 0
 
 	if mode == '2d':
-		if vol.ndim >= 3:
-			for idx in range(vol.shape[0]):
-				image = vol[idx, :, :]
-				label2d, num_label = label(image, return_num=True)
-				regions = regionprops(label2d, cache=False)
+		for idx in range(vol.shape[0]):
+			image = vol[idx, :, :]
+			label2d, num_label = label(image, return_num=True)
+			regions = regionprops(label2d, cache=False)
 
-				for props in regions:
-					area_values.append(props.area)
+			for props in regions:
+				area_values.append(props.area)
 
-				tmp = np.zeros(shape=image.shape, dtype=np.uint16)
-				if idx == 0:
-					labels[idx, :, :] = label2d
-				else:
-					tmp = label2d
-					tmp[tmp != 0] += label_cnt
-					labels[idx, :, :] = tmp
+			tmp = np.zeros(shape=image.shape, dtype=np.uint16)
+			if idx == 0:
+				labels[idx, :, :] = label2d
+			else:
+				tmp = label2d
+				tmp[tmp != 0] += label_cnt
+				labels[idx, :, :] = tmp
 
-				label_cnt += num_label
+			label_cnt += num_label
+
+	if mode == '3d':
+		if vol.ndim <= 2:
+			raise ValueError('Volume is lacking on dimensionality(at least 3d): {}'.format(vol.shape))
+
+		labels, num_label = label(vol, return_num=True)
+		regions = regionprops(labels, cache=False)
+
+		for props in regions:
+			area_values.append(props.area)
 
 	areas = np.array(area_values, dtype=np.uint16)
 
@@ -48,6 +57,8 @@ def recompute_from_res(labels, result):
 	:param labels: (np.array) old labels just want to adjust.
 	:param result: (np.array)
 	'''
+	### TODO: # OPTIMIZE: on runtime.
+	
 	new = np.zeros(shape=labels.shape)
 
 	for r in range(labels.shape[0]):

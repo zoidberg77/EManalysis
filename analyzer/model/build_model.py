@@ -19,7 +19,8 @@ class Clustermodel():
 
 	def run(self):
 		if self.alg == 'bysize':
-			labels, areas = compute_regions(self.gtvol)
+			labels, areas = compute_regions(self.gtvol, mode='3d')
+
 			kmeans = KMeans(n_clusters=5)
 			res_labels = kmeans.fit_predict(areas.reshape(-1,1))
 
