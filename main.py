@@ -29,11 +29,11 @@ def main():
 	print("Command line arguments:")
 	print(args)
 
-	dl = Dataloader(args.em, args.gt, chunk_size=(2,4096,4096))
+	dl = Dataloader(args.em, args.gt, chunk_size=(1,4096,4096))
 	em, gt = dl.load_chunk(vol='both')
 	#visvol(em, gt)
 
-	model = Clustermodel(em, gt)
+	model = Clustermodel(em, gt, alg='bytext')
 	model.run()
 
 

@@ -15,7 +15,7 @@ def visvol(vol, gt=None):
 		if gt is not None:
 			gt = zero_to_nan(gt)
 			#plt.imshow(gt, cmap='terrain', alpha=0.9)
-			plt.imshow(gt, cmap='gist_ncar', alpha=1.0)
+			plt.imshow(gt, cmap='gist_ncar', alpha=0.1)
 		plt.show()
 
 

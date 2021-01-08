@@ -55,7 +55,7 @@ def compute_regions(vol, mode='2d'):
 
 	return (labels, areas)
 
-def recompute_from_res(labels, result, mode='2d'):
+def recompute_from_res(labels, result, mode='3d'):
 	'''
 	Take the result labels from clustering algorithm and adjust the old labels. NOTE: '3d' mode is way faster.
 	:param labels: (np.array) old labels just want to adjust.
@@ -89,6 +89,39 @@ def recompute_from_res(labels, result, mode='2d'):
 	#print(f"function needed {toc - tic:0.4f} seconds")
 
 	return cld_labels
+
+
+def compute_intentsity(vol, gt, mode='2d'):
+	'''
+	This function takes both em and gt in order to compute the intensities from each segment.
+	:param vol: volume (np.array) that contains the bare em data. (2d || 3d)
+	:param gt: volume (np.array) that contains the groundtruth. (2d || 3d)
+
+	:returns labels: (np.array) same shape as volume with all the labels.
+	:returns intns: (np.array) is a vetor that contains the intensity values for every label.
+	'''
+	intns_values = []
+	labels = np.zeros(shape=vol.shape, dtype=np.uint16)
+	label_cnt = 0
+
+	if mode == '2d':
+		raise NotImplementedError('no 2d mode in this function yet.')
+	else:
+		if vol.ndim <= 2:
+			raise ValueError('Volume is lacking on dimensionality(at least 3d): {}'.format(vol.shape))
+
+		labels, num_label = label(gt, return_num=True)
+		regions = regionprops(labels, cache=False)
+
+		for props in regions:
+			areat = props.area
+			sumt = np.sum(vol[labels == props.label])
+			intns_values.append(sumt / areat)
+
+	intns = np.array(intns_values, dtype=np.float16)
+
+	return (labels, intns)
+
 
 
 ### HELPER SECTION ###
