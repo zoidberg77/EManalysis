@@ -1,7 +1,8 @@
 import numpy as np
 from sklearn.cluster import KMeans, AffinityPropagation, SpectralClustering, DBSCAN
 from analyzer.model.utils.measuring import compute_regions, recompute_from_res, compute_intentsity
-from analyzer.data.data_vis import visvol
+from analyzer.model.utils.superpixel import superpixel_segment
+from analyzer.data.data_vis import visvol, vissegments
 from analyzer.utils.eval import clusteravg
 
 class Clustermodel():
@@ -31,7 +32,7 @@ class Clustermodel():
 
 		self.model = self.set_model(mn=self.alg)
 
-		print(' --- model is set. --- ')
+		print(' --- model is set. algorithm: {}, clustering: {} --- '.format(self.alg, self.clstby))
 
 	def set_model(self, mn='kmeans'):
 		'''
@@ -56,7 +57,6 @@ class Clustermodel():
 		if self.clstby == 'bysize':
 			labels, areas = compute_regions(self.gtvol, mode=self.mode)
 
-			#kmeans = KMeans(n_clusters=5)
 			res_labels = self.model.fit_predict(areas.reshape(-1,1))
 
 			labeled = recompute_from_res(labels, res_labels, mode=self.mode)
@@ -70,16 +70,18 @@ class Clustermodel():
 		elif self.clstby == 'bytext':
 			labels, intns = compute_intentsity(self.emvol, self.gtvol, mode='3d')
 
-			#kmeans = KMeans(n_clusters=5)
 			res_labels = self.model.fit_predict(intns.reshape(-1,1))
 
-			labeled = recompute_from_res(labels, res_labels, mode=self.mode)
+			segments = superpixel_segment(self.emvol, self.gtvol)
 
-			clmeans = clusteravg(intns, res_labels)
-			print('means: ', clmeans)
+			#labeled = recompute_from_res(labels, res_labels, mode=self.mode)
 
-			for k in range(labeled.shape[0]):
-				visvol(self.emvol[k], labeled[k])
+			#clmeans = clusteravg(intns, res_labels)
+			#print('means: ', clmeans)
+
+			#for k in range(self.emvol.shape[0]):
+				#visvol(self.emvol[k], labeled[k])
+				#vissegments(self.emvol[k], segments[k])
 
 		else:
 			raise Exception('Please state according to which property should be clustered.')

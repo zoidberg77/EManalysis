@@ -7,12 +7,12 @@ class Dataloader():
 	'''
 	Dataloader class for handling the em dataset and the related labels.
 
-	:param volpath:
-	:param gtpath:
+	:param volpath: (string) path to the directory that contains the em volume(s).
+	:param gtpath: (string) path to the directory that contains the groundtruth volume(s).
 	:param volume:
 	:param label:
 	:param chunk_size: (tuple) defines the chunks in which the data is loaded. Can help to overcome Memory errors.
-	:param mode:
+	:param mode: (string) Sets the mode in which the volume should be clustered (3d || 2d).
 	:param ff: (string) defines the file format that you want to work with. (default: png)
 	'''
 	def __init__(self,
@@ -73,3 +73,29 @@ class Dataloader():
 					print('gt data loaded: ', gt.shape)
 
 		return (emdata, gt)
+
+	def list_segments(self, vol, label, mode='2d'):
+		'''
+		This function creats a list of arrays that contain the unique segments.
+		:param vol: (np.array) volume that contains the bare em data. (2d || 3d)
+		:param label: (np.array) volume that contains the groundtruth. (2d || 3d)
+		:returns: list of (np.array) objects that contain the segments.
+		'''
+		if mode == '2d':
+			mask = np.zeros(shape=vol.shape, dtype=np.uint16)
+		    mask[label > 0] = 1
+		    vol[mask == 0] = 0
+
+			for idx in range(vol.shape[0]):
+				image = vol[idx, :, :]
+				label2d, num_label = label(image, return_num=True)
+				regions = regionprops(label2d, cache=False)
+
+				for props in regions:
+					boundbox = props.bbox
+
+
+		elif mode == '3d':
+			raise NotImplementedError('no 3d mode in this function yet.')
+		else:
+			raise ValueError('No valid dimensionality mode in function list_segments.')

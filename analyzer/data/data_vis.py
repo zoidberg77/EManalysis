@@ -1,5 +1,6 @@
 import numpy as np
 from matplotlib import pyplot as plt
+from skimage.segmentation import mark_boundaries
 
 def visvol(vol, gt=None):
 	'''
@@ -19,8 +20,28 @@ def visvol(vol, gt=None):
 		plt.show()
 
 
-### HELPER SECTION ###
+def vissegments(image, segments, mask=None):
+	'''
+	Visualize volume and the overlaying segments created by a superpixels algorithm.
+	:param image: (np.array) em data volume slice.
+	:param segments: (np.array)
+	'''
+	fig, ax_arr = plt.subplots(2, 2, sharex=True, sharey=True, figsize=(10, 10))
+	ax1, ax2, ax3, ax4 = ax_arr.ravel()
+	ax1.imshow(image, cmap="gray")
+	ax1.set_title("EM data image")
 
+	if mask is not None:
+		ax2.imshow(mask, cmap="gray")
+		ax2.set_title("Mask")
+
+	ax3.imshow(mark_boundaries(image, segments))
+	ax3.set_title("SLIC segments")
+
+	plt.show()
+
+
+### HELPER SECTION ###
 def zero_to_nan(values):
 	"""Replace every 0 with 'nan' and return a copy."""
 	values[ values==0 ] = np.nan
