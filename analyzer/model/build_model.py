@@ -1,5 +1,5 @@
 import numpy as np
-from sklearn.cluster import KMeans
+from sklearn.cluster import KMeans, AffinityPropagation, SpectralClustering, DBSCAN
 from analyzer.model.utils.measuring import compute_regions, recompute_from_res, compute_intentsity
 from analyzer.data.data_vis import visvol
 from analyzer.utils.eval import clusteravg
@@ -7,17 +7,29 @@ from analyzer.utils.eval import clusteravg
 class Clustermodel():
 	'''
 	Setups up the model for running a clustering algoritm on the loaded data.
-	:param alg: choose how you want to cluster and label the segments.
+	:param emvol & gtvol: (np.array) Both are the data volumes.
+	:param alg: sets the clustering algorithm that should be used. (default: KMeans)
+				- 'kmeans': KMeans
+				- 'affprop': AffinityPropagation
+				- 'specCl': SpectralClustering
+				- 'dbscan': DBSCAN
+
+	:param clstby: choose how you want to cluster and label the segments.
 				- 'bysize': cluster segements by their size.
 				- 'bytext': cluster segments by texture. EM needed.
 
+	:param n_cluster: (int) sets the number of cluster that should be found.
 	:param mode: (string) Analyze either by 2d or 3d slizes.
 	'''
-	def __init__(self, emvol, gtvol, alg='bysize', mode='3d'):
+	def __init__(self, emvol, gtvol, alg='kmeans', clstby='bysize', n_cluster=5, mode='3d'):
 		self.emvol = emvol
 		self.gtvol = gtvol
 		self.alg = alg
+		self.clstby = clstby
+		self.n_cluster = n_cluster
 		self.mode = mode
+
+		self.model = self.set_model(mn=self.alg)
 
 		print(' --- model is set. --- ')
 
@@ -26,15 +38,26 @@ class Clustermodel():
 		This function enables the usage of different algoritms when setting the model overall.
 		:param mn: (string) that is the name of the algoritm to go with.
 		'''
-		pass
+		if mn == 'kmeans':
+			model = KMeans(n_clusters=self.n_cluster)
+		elif mn == 'affprop':
+			model = AffinityPropagation()
+		elif mn == 'specCl':
+			model = SpectralClustering(n_clusters=self.n_cluster)
+		elif mn == 'dbscan':
+			model = DBSCAN()
+		else:
+			raise ValueError('Please enter a valid clustering algorithm. -- \'kmeans\', \'affprop\', \'specCl\', \'dbscan\'')
+
+		return model
 
 
 	def run(self):
-		if self.alg == 'bysize':
+		if self.clstby == 'bysize':
 			labels, areas = compute_regions(self.gtvol, mode=self.mode)
 
-			kmeans = KMeans(n_clusters=5)
-			res_labels = kmeans.fit_predict(areas.reshape(-1,1))
+			#kmeans = KMeans(n_clusters=5)
+			res_labels = self.model.fit_predict(areas.reshape(-1,1))
 
 			labeled = recompute_from_res(labels, res_labels, mode=self.mode)
 
@@ -44,11 +67,11 @@ class Clustermodel():
 			for k in range(labeled.shape[0]):
 				visvol(self.emvol[k], labeled[k])
 
-		elif self.alg == 'bytext':
+		elif self.clstby == 'bytext':
 			labels, intns = compute_intentsity(self.emvol, self.gtvol, mode='3d')
 
-			kmeans = KMeans(n_clusters=5)
-			res_labels = kmeans.fit_predict(intns.reshape(-1,1))
+			#kmeans = KMeans(n_clusters=5)
+			res_labels = self.model.fit_predict(intns.reshape(-1,1))
 
 			labeled = recompute_from_res(labels, res_labels, mode=self.mode)
 

@@ -33,7 +33,7 @@ def main():
 	em, gt = dl.load_chunk(vol='both')
 	#visvol(em, gt)
 
-	model = Clustermodel(em, gt, alg='bytext')
+	model = Clustermodel(em, gt, alg='kmeans', clstby='bytext')
 	model.run()
 
 
