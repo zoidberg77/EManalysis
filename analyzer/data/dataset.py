@@ -1,5 +1,7 @@
 import numpy as np
 import glob
+from skimage.measure import label, regionprops
+from analyzer.data.data_vis import visvol
 from analyzer.data.data_raw import readvol, folder2Vol
 
 
@@ -74,28 +76,58 @@ class Dataloader():
 
 		return (emdata, gt)
 
-	def list_segments(self, vol, label, mode='2d'):
+	def list_segments(self, vol, labels, min_size=2000, os=0, mode='2d'):
 		'''
 		This function creats a list of arrays that contain the unique segments.
 		:param vol: (np.array) volume that contains the bare em data. (2d || 3d)
 		:param label: (np.array) volume that contains the groundtruth. (2d || 3d)
+		:param min_size: (int) this sets the minimum size of mitochondria region in order to be safed to the list. Used only in 2d.
+		:param os: (int) defines the offset that should be used for cutting the bounding box. Be careful with offset as it can lead to additional regions in the chunks.
+		:param mode: (string) 2d || 3d --> 2d gives you 2d arrays of each slice (same mitochondria are treated differently as they loose their touch after slicing)
+									   --> 3d gives you the whole mitochondria in a 3d volume.
+
 		:returns: list of (np.array) objects that contain the segments.
 		'''
-		if mode == '2d':
-			mask = np.zeros(shape=vol.shape, dtype=np.uint16)
-		    mask[label > 0] = 1
-		    vol[mask == 0] = 0
+		bbox_list = []
 
+		mask = np.zeros(shape=vol.shape, dtype=np.uint16)
+		mask[labels > 0] = 1
+		vol[mask == 0] = 0
+
+		if mode == '2d':
 			for idx in range(vol.shape[0]):
 				image = vol[idx, :, :]
-				label2d, num_label = label(image, return_num=True)
+				gt_img = labels[idx, :, :]
+				label2d, num_label = label(gt_img, return_num=True)
 				regions = regionprops(label2d, cache=False)
 
 				for props in regions:
 					boundbox = props.bbox
+					if props.bbox_area > min_size:
+						if ((boundbox[0] - os) < 0) or ((boundbox[2] + os) > image.shape[0]) or ((boundbox[1] - os) < 0) or ((boundbox[3] + os) > image.shape[1]):
+							tmparr = image[boundbox[0]:boundbox[2], boundbox[1]:boundbox[3]]
+						else:
+							tmparr = image[(boundbox[0] - os):(boundbox[2] + os), (boundbox[1] - os):(boundbox[3] + os)]
 
+						bbox_list.append(tmparr)
 
 		elif mode == '3d':
-			raise NotImplementedError('no 3d mode in this function yet.')
+			chunk_dict = {}
+
+			label3d, num_label = label(labels, return_num=True)
+			regions = regionprops(label3d, cache=False)
+
+			for props in regions:
+				boundbox = props.bbox
+
+				if ((boundbox[1] - os) < 0) or ((boundbox[4] + os) > vol.shape[1]) or ((boundbox[2] - os) < 0) or ((boundbox[5] + os) > vol.shape[2]):
+					tmparr = vol[boundbox[0]:boundbox[3], boundbox[1]:boundbox[4], boundbox[2]:boundbox[5]]
+				else:
+					tmparr = vol[boundbox[0]:boundbox[3], (boundbox[1] - os):(boundbox[4] + os), (boundbox[2] - os):(boundbox[5] + os)]
+
+				bbox_list.append(tmparr)
+
 		else:
 			raise ValueError('No valid dimensionality mode in function list_segments.')
+
+		return (bbox_list)

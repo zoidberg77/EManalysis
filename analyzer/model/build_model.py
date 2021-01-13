@@ -72,7 +72,8 @@ class Clustermodel():
 
 			res_labels = self.model.fit_predict(intns.reshape(-1,1))
 
-			segments = superpixel_segment(self.emvol, self.gtvol)
+			#segments = superpixel_segment(self.emvol, self.gtvol)
+
 
 			#labeled = recompute_from_res(labels, res_labels, mode=self.mode)
 

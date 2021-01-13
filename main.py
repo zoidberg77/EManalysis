@@ -29,12 +29,14 @@ def main():
 	print("Command line arguments:")
 	print(args)
 
-	dl = Dataloader(args.em, args.gt, chunk_size=(1,4096,4096))
+	dl = Dataloader(args.em, args.gt, chunk_size=(5,4096,4096))
 	em, gt = dl.load_chunk(vol='both')
+
+	dl.list_segments(em, gt, mode='3d')
 	#visvol(em, gt)
 
 	model = Clustermodel(em, gt, alg='kmeans', clstby='bytext')
-	model.run()
+	#model.run()
 
 
 if __name__ == "__main__":
