@@ -1,7 +1,7 @@
 import numpy as np
 from sklearn.cluster import KMeans, AffinityPropagation, SpectralClustering, DBSCAN
 from analyzer.model.utils.measuring import compute_regions, recompute_from_res, compute_intentsity
-from analyzer.model.utils.superpixel import superpixel_segment
+from analyzer.model.utils.superpixel import superpixel_segment, superpixel_image
 from analyzer.data.data_vis import visvol, vissegments
 from analyzer.utils.eval import clusteravg
 
@@ -9,6 +9,7 @@ class Clustermodel():
 	'''
 	Setups up the model for running a clustering algoritm on the loaded data.
 	:param emvol & gtvol: (np.array) Both are the data volumes.
+	:param dl: (class object) This is the dataloader class object.
 	:param alg: sets the clustering algorithm that should be used. (default: KMeans)
 				- 'kmeans': KMeans
 				- 'affprop': AffinityPropagation
@@ -22,9 +23,10 @@ class Clustermodel():
 	:param n_cluster: (int) sets the number of cluster that should be found.
 	:param mode: (string) Analyze either by 2d or 3d slizes.
 	'''
-	def __init__(self, emvol, gtvol, alg='kmeans', clstby='bysize', n_cluster=5, mode='3d'):
+	def __init__(self, emvol, gtvol, dl=None, alg='kmeans', clstby='bysize', n_cluster=5, mode='3d'):
 		self.emvol = emvol
 		self.gtvol = gtvol
+		self.dl = dl
 		self.alg = alg
 		self.clstby = clstby
 		self.n_cluster = n_cluster
@@ -68,12 +70,18 @@ class Clustermodel():
 				visvol(self.emvol[k], labeled[k])
 
 		elif self.clstby == 'bytext':
-			labels, intns = compute_intentsity(self.emvol, self.gtvol, mode='3d')
 
-			res_labels = self.model.fit_predict(intns.reshape(-1,1))
+			if self.dl is not None:
+				segments = self.dl.list_segments(self.emvol, self.gtvol, mode='3d')
+				superpixel_segment(segments)
+			else:
+				raise ValueError('No dataloader functionality useable as (dl == None).')
 
-			#segments = superpixel_segment(self.emvol, self.gtvol)
+			#labels, intns = compute_intentsity(self.emvol, self.gtvol, mode='3d')
 
+			#res_labels = self.model.fit_predict(intns.reshape(-1,1))
+
+			#segments = superpixel_image(self.emvol, self.gtvol)
 
 			#labeled = recompute_from_res(labels, res_labels, mode=self.mode)
 

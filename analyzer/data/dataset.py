@@ -86,7 +86,7 @@ class Dataloader():
 		:param mode: (string) 2d || 3d --> 2d gives you 2d arrays of each slice (same mitochondria are treated differently as they loose their touch after slicing)
 									   --> 3d gives you the whole mitochondria in a 3d volume.
 
-		:returns: list of (np.array) objects that contain the segments.
+		:returns: (list) of (np.array) objects that contain the segments.
 		'''
 		bbox_list = []
 

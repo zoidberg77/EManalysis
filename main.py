@@ -32,11 +32,8 @@ def main():
 	dl = Dataloader(args.em, args.gt, chunk_size=(5,4096,4096))
 	em, gt = dl.load_chunk(vol='both')
 
-	dl.list_segments(em, gt, mode='3d')
-	#visvol(em, gt)
-
-	model = Clustermodel(em, gt, alg='kmeans', clstby='bytext')
-	#model.run()
+	model = Clustermodel(em, gt, dl=dl, alg='kmeans', clstby='bytext')
+	model.run()
 
 
 if __name__ == "__main__":

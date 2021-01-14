@@ -35,7 +35,8 @@ def vissegments(image, segments, mask=None):
 		ax2.imshow(mask, cmap="gray")
 		ax2.set_title("Mask")
 
-	ax3.imshow(mark_boundaries(image, segments))
+	ax3.imshow(image, cmap="gray")
+	ax3.imshow(mark_boundaries(image, segments), alpha=0.4)
 	ax3.set_title("SLIC segments")
 
 	plt.show()
