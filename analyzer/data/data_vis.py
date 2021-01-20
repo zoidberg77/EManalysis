@@ -1,6 +1,9 @@
 import numpy as np
 from matplotlib import pyplot as plt
 from skimage.segmentation import mark_boundaries
+import matplotlib.patches as patches
+
+import cv2
 
 def visvol(vol, gt=None):
 	'''
@@ -38,6 +41,25 @@ def vissegments(image, segments, mask=None):
 	ax3.imshow(image, cmap="gray")
 	ax3.imshow(mark_boundaries(image, segments), alpha=0.4)
 	ax3.set_title("SLIC segments")
+
+	plt.show()
+
+def visbbox(image, bbox):
+	'''
+	Draw bounding box in order to check if it is correct.
+	:param image: (np.array) data volume slice.
+	:param bbox: (tuple) rmin, rmax, cmin, cmax
+	'''
+	fig,ax = plt.subplots()
+
+	rect = patches.Rectangle((bbox[1],bbox[2]), (bbox[3] - bbox[2]), (bbox[1] - bbox[0]), linewidth=1, edgecolor='r', facecolor='none')
+
+	print(bbox)
+	points = [[bbox[1],bbox[2]],[bbox[0],bbox[2]],[bbox[0],bbox[3]],[bbox[1],bbox[3]]]
+	print(points)
+	plt.plot(*zip(*points), marker='o', color='r', ls='')
+	ax.imshow(image, cmap="gray")
+	#ax.add_patch(rect)
 
 	plt.show()
 
