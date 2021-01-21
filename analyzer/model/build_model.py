@@ -73,8 +73,8 @@ class Clustermodel():
 
 			if self.dl is not None:
 				segments = self.dl.list_segments(self.emvol, self.gtvol, mode='3d')
-				#texture_analysis(segments)
-				superpixel_segment(segments)
+				texture_analysis(segments)
+				#superpixel_segment(segments)
 			else:
 				raise ValueError('No dataloader functionality useable as (dl == None).')
 

@@ -38,6 +38,8 @@ def superpixel_segment(segments, n_seg=10):
     This function computes superpixels within every segment.
     :param segments: (list) object containing (np.array)s that are the mitochondria segments.
     :param n_seg: (int) defines the approximate number of segments the slic should find.
+
+    :returns slic_res
     '''
 
     if segments[0].ndim == 2:
@@ -51,12 +53,11 @@ def superpixel_segment(segments, n_seg=10):
 
             slice = seg[0]
             slic_res = slic(slice, n_segments=n_seg, compactness=0.01, mask=mask[0], start_label=1)
-
             vissegments(slice, slic_res, mask=mask[0])
 
-    #return segments
+    return slic_res
 
-def texture_analysis(segments, mode='3d', method='fast'):
+def texture_analysis(segments, mode='3d', method='slic'):
     '''
     This function analysis the texture in the segments.
     :param segments: (list) object containing (np.array)s that are the mitochondria segments.
@@ -64,6 +65,11 @@ def texture_analysis(segments, mode='3d', method='fast'):
     :param method: (string) Differentiate between the amount of information you want to extract.
                             - 'fast':
                             - 'sliding_window':
+                            - 'slic':
+
+    :returns texts: (list) of (np.array)s that contain the correlation values of each segments.
+                    Correlation values are extracted from a GLCM.
+                    Check https://scikit-image.org/docs/dev/api/skimage.feature.html#skimage.feature.greycomatrix
     '''
     # bunch of parameters
     pad = 3
@@ -78,26 +84,13 @@ def texture_analysis(segments, mode='3d', method='fast'):
 
             for d in range(vol.shape[0]):
                 image = vol[d]
+
+                # padded image.
                 padded = np.pad(image, pad, mode='constant', constant_values=0)
 
-                # Creating a patch
-                center = (int(image.shape[0] / 2), int(image.shape[1] / 2))
-                bbox = compute_bbox(image)
-                visbbox(image, bbox)
-
-                if d == 5:
-                    break
-                print(center)
-                #patch_x = int(patch_center[0] - patch_size / 2.)
-                #patch_y = int(patch_center[1] - patch_size / 2.)
-                #patch_image = image[patch_x:patch_x + patch_size, patch_y:patch_y + patch_size]
-                #print(padded)
-
                 if method == 'fast':
+                    # very fast but probably not sufficient enough.
                     glcm = greycomatrix(image, [1], [0], levels=256, symmetric = True, normed = True)
-
-
-
                     # Extract all values for the whole image.
                     cont_value = greycoprops(glcm, prop='contrast').item()
                     corr_value = greycoprops(glcm, prop='correlation').item()
@@ -106,7 +99,7 @@ def texture_analysis(segments, mode='3d', method='fast'):
                     print(cont_value, ' ', corr_value, ' ', homo_value)
 
                 elif method == 'sliding_window':
-
+                    # Very slow and not efficient. (kind of the first try)
                     for row in range(image.shape[0]):
                         for column in range(image.shape[1]):
                             if image[row][column] == 0:
@@ -122,24 +115,38 @@ def texture_analysis(segments, mode='3d', method='fast'):
                             glcm = greycomatrix(glcm_window, [1], [0], levels=256, symmetric = False, normed = False)
                             corr_value = greycoprops(glcm, prop='correlation').item()
                             corr_value_list.append(corr_value)
-                            #print(tmp)
 
-                            #sliding_window = rolling_window(image, 7, 1)
+                elif method == 'slic':
+                    # best method to stick to.
+                    n_seg = 10
+                    offset = 1
 
-                            #print(sliding_window.shape)
-                    #print("\n")
-                    #print(len(corr_value_list))
+                    mask = np.zeros(shape=image.shape, dtype=np.uint16)
+                    mask[image > 0] = 1
 
+                    slic_res = slic(image, n_segments=n_seg, compactness=0.01, mask=mask, start_label=1)
+
+                    for s in range(np.amax(slic_res)):
+                        index_list = np.argwhere(slic_res == s + 1).T
+                        bbox = np.amin(index_list[0]) + offset, np.amax(index_list[0]) - offset, np.amin(index_list[1]) + offset, np.amax(index_list[1]) - offset #BBOX: rmin, rmax, cmin, cmax
+
+                        tmpimg = image[bbox[0]:bbox[1], bbox[2]:bbox[3]]
+                        if tmpimg.size == 0:
+                            continue
+
+                        glcm = greycomatrix(tmpimg, [1], [0], levels=256, symmetric = True, normed = True)
+                        corr_value = greycoprops(glcm, prop='correlation').item()
+                        corr_value_list.append(corr_value)
                 else:
                     raise ValueError('No method defined. Please enter \'fast\' or \'sliding_window\'.')
 
-            print(idx)
-            texts.append(np.array(corr_value_list))
+            if idx % 50 == 0:
+                print('Number of segments analysed: ', idx)
 
+            texts.append(np.array(corr_value_list))
     else:
         raise ValueError('Please enter valid dimensionality mode like 2d || 3d.')
 
-    print(texts)
     return (texts)
 
 
@@ -164,3 +171,13 @@ def compute_bbox(image):
     cmin, cmax = np.where(cols)[0][[0, -1]]
 
     return (rmin, rmax, cmin, cmax)
+
+def compute_bbox(image, label):
+    '''
+    Compute smallest boundingbox within an object.
+    :param image: (np.array) 2d image
+    :param label: (int)
+    '''
+    a = np.where(image == label)
+    bbox = np.min(a[0]), np.max(a[0]), np.min(a[1]), np.max(a[1])
+    return bbox
