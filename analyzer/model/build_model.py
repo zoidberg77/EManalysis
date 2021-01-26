@@ -1,4 +1,5 @@
 import numpy as np
+from skimage.measure import label
 from sklearn.cluster import KMeans, AffinityPropagation, SpectralClustering, DBSCAN
 from analyzer.model.utils.measuring import compute_regions, recompute_from_res, compute_intentsity
 from analyzer.model.utils.superpixel import superpixel_segment, superpixel_image, texture_analysis
@@ -59,7 +60,6 @@ class Clustermodel():
 	def run(self):
 		if self.clstby == 'bysize':
 			labels, areas = compute_regions(self.gtvol, mode=self.mode)
-
 			res_labels = self.model.fit_predict(areas.reshape(-1,1))
 
 			labeled = recompute_from_res(labels, res_labels, mode=self.mode)
@@ -71,34 +71,22 @@ class Clustermodel():
 				visvol(self.emvol[k], labeled[k])
 
 		elif self.clstby == 'bytext':
-
+			volume = self.emvol.copy()
 			if self.dl is not None:
+				labels = label(self.gtvol)
 				segments = self.dl.list_segments(self.emvol, self.gtvol, mode='3d')
-				texture_dict = texture_analysis(segments)
 
+				texture_dict = texture_analysis(segments)
 				sparse = convert_to_sparse(texture_dict)
-				'''
-				for l in range(len(texture_list)):
-					print(texture_list[l].shape)
-				'''
-				#superpixel_segment(segments)
+
+				res_labels = self.model.fit_predict(sparse)
+				labeled = recompute_from_res(labels, res_labels, mode=self.mode)
+
+				for k in range(self.emvol.shape[0]):
+					visvol(volume[k], labeled[k])
+
 			else:
 				raise ValueError('No dataloader functionality useable as (dl == None).')
-
-			#labels, intns = compute_intentsity(self.emvol, self.gtvol, mode='3d')
-
-			#res_labels = self.model.fit_predict(intns.reshape(-1,1))
-
-			#segments = superpixel_image(self.emvol, self.gtvol)
-
-			#labeled = recompute_from_res(labels, res_labels, mode=self.mode)
-
-			#clmeans = clusteravg(intns, res_labels)
-			#print('means: ', clmeans)
-
-			#for k in range(self.emvol.shape[0]):
-				#visvol(self.emvol[k], labeled[k])
-				#vissegments(self.emvol[k], segments[k])
 
 		else:
 			raise Exception('Please state according to which property should be clustered.')

@@ -83,7 +83,7 @@ def texture_analysis(segments, mode='3d', method='slic'):
     elif mode == '3d':
         texts = {}
         for idx in range(len(segments)):
-            vol = segments[idx]
+            vol = segments[idx + 1] # Plus 1 as dict starts with 1 as key label 1 instead of 0.
             corr_value_list = []
 
             for d in range(vol.shape[0]):
