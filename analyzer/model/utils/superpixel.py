@@ -1,4 +1,5 @@
 import numpy as np
+from skimage.measure import label, regionprops
 from skimage.segmentation import slic
 from skimage.exposure import equalize_hist
 from skimage.feature import greycomatrix, greycoprops
@@ -67,17 +68,20 @@ def texture_analysis(segments, mode='3d', method='slic'):
                             - 'sliding_window':
                             - 'slic':
 
-    :returns texts: (list) of (np.array)s that contain the correlation values of each segments.
+    :returns texts: (dict) of (np.array)s that contain the correlation values of each segments.
+                    Keys represent the labels. Values represent the corr values vector.
                     Correlation values are extracted from a GLCM.
                     Check https://scikit-image.org/docs/dev/api/skimage.feature.html#skimage.feature.greycomatrix
     '''
     # bunch of parameters
     pad = 3
 
+    print('number of segemnts: ', len(segments))
+
     if mode == '2d':
         raise NotImplementedError('no 2d mode in this function yet.')
     elif mode == '3d':
-        texts = []
+        texts = {}
         for idx in range(len(segments)):
             vol = segments[idx]
             corr_value_list = []
@@ -97,6 +101,8 @@ def texture_analysis(segments, mode='3d', method='slic'):
                     homo_value = greycoprops(glcm, prop='homogeneity').item()
 
                     print(cont_value, ' ', corr_value, ' ', homo_value)
+
+                    corr_value_list.append(corr_value)
 
                 elif method == 'sliding_window':
                     # Very slow and not efficient. (kind of the first try)
@@ -143,7 +149,7 @@ def texture_analysis(segments, mode='3d', method='slic'):
             if idx % 50 == 0:
                 print('Number of segments analysed: ', idx)
 
-            texts.append(np.array(corr_value_list))
+            texts[idx + 1] = np.array(corr_value_list)
     else:
         raise ValueError('Please enter valid dimensionality mode like 2d || 3d.')
 

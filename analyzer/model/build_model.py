@@ -2,6 +2,7 @@ import numpy as np
 from sklearn.cluster import KMeans, AffinityPropagation, SpectralClustering, DBSCAN
 from analyzer.model.utils.measuring import compute_regions, recompute_from_res, compute_intentsity
 from analyzer.model.utils.superpixel import superpixel_segment, superpixel_image, texture_analysis
+from analyzer.model.utils.helper import convert_to_sparse
 from analyzer.data.data_vis import visvol, vissegments
 from analyzer.utils.eval import clusteravg
 
@@ -73,7 +74,13 @@ class Clustermodel():
 
 			if self.dl is not None:
 				segments = self.dl.list_segments(self.emvol, self.gtvol, mode='3d')
-				texture_analysis(segments)
+				texture_dict = texture_analysis(segments)
+
+				sparse = convert_to_sparse(texture_dict)
+				'''
+				for l in range(len(texture_list)):
+					print(texture_list[l].shape)
+				'''
 				#superpixel_segment(segments)
 			else:
 				raise ValueError('No dataloader functionality useable as (dl == None).')

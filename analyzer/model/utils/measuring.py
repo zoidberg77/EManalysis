@@ -3,8 +3,6 @@ import matplotlib.pyplot as plt
 from skimage.measure import label, regionprops
 from analyzer.data.data_vis import visvol
 
-import time
-
 
 def compute_regions(vol, mode='2d'):
 	'''
@@ -61,8 +59,6 @@ def recompute_from_res(labels, result, mode='3d'):
 	:param labels: (np.array) old labels just want to adjust.
 	:param result: (np.array)
 	'''
-	tic = time.perf_counter()
-
 	if mode == '2d':
 		cld_labels = np.zeros(shape=labels.shape)
 
@@ -84,9 +80,6 @@ def recompute_from_res(labels, result, mode='3d'):
 		mapv = np.zeros(k.max() + 1)
 		mapv[k] = v
 		cld_labels = mapv[labels]
-
-	toc = time.perf_counter()
-	#print(f"function needed {toc - tic:0.4f} seconds")
 
 	return cld_labels
 
@@ -121,7 +114,6 @@ def compute_intentsity(vol, gt, mode='2d'):
 	intns = np.array(intns_values, dtype=np.float16)
 
 	return (labels, intns)
-
 
 
 ### HELPER SECTION ###
