@@ -37,24 +37,29 @@ def superpixel_image(vol, gt, mode='2d'):
 def superpixel_segment(segments, n_seg=10):
     '''
     This function computes superpixels within every segment.
-    :param segments: (list) object containing (np.array)s that are the mitochondria segments.
+    :param segments: (dict) object containing (np.array)s that are the mitochondria segments + labels as keys.
     :param n_seg: (int) defines the approximate number of segments the slic should find.
 
     :returns slic_res
     '''
-
-    if segments[0].ndim == 2:
+    if segments.get(1).ndim == 2:
         raise NotImplementedError('no 2d mode in this function yet.')
     else:
         for idx in range(len(segments)):
-            seg = segments[idx]
+            seg = segments[idx + 1]
             # create a mask.
             mask = np.zeros(seg.shape, dtype=np.uint16)
             mask[seg > 0] = 1
 
-            slice = seg[0]
-            slic_res = slic(slice, n_segments=n_seg, compactness=0.01, mask=mask[0], start_label=1)
-            vissegments(slice, slic_res, mask=mask[0])
+            print('seg: ', seg.shape)
+            print('mask: ', mask.shape)
+
+            #slice = seg
+            #slic_res = slic(slice, n_segments=n_seg, compactness=0.01, mask=mask[0], start_label=1)
+            slic_res = slic(seg, n_segments=n_seg, compactness=0.01, start_label=1)
+            for i in range(seg.shape[0]):
+                slice = seg[i]
+                vissegments(slice, slic_res[i], mask=mask[i])
 
     return slic_res
 
@@ -73,10 +78,8 @@ def texture_analysis(segments, mode='3d', method='slic'):
                     Correlation values are extracted from a GLCM.
                     Check https://scikit-image.org/docs/dev/api/skimage.feature.html#skimage.feature.greycomatrix
     '''
-    # bunch of parameters
-    pad = 3
-
-    print('number of segemnts: ', len(segments))
+    #TODO: For the 3d mode --> Make it truly 3d as you are doing slic in 2d and just expand it to 3d.
+    print('number of segments (mitochondria): ', len(segments))
 
     if mode == '2d':
         raise NotImplementedError('no 2d mode in this function yet.')
@@ -90,6 +93,7 @@ def texture_analysis(segments, mode='3d', method='slic'):
                 image = vol[d]
 
                 # padded image.
+                pad = 3
                 padded = np.pad(image, pad, mode='constant', constant_values=0)
 
                 if method == 'fast':

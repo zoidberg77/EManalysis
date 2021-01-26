@@ -1,11 +1,12 @@
 import numpy as np
 from skimage.measure import label
 from sklearn.cluster import KMeans, AffinityPropagation, SpectralClustering, DBSCAN
-from analyzer.model.utils.measuring import compute_regions, recompute_from_res, compute_intentsity
+from analyzer.model.utils.analyze import compute_regions, compute_intentsity
 from analyzer.model.utils.superpixel import superpixel_segment, superpixel_image, texture_analysis
-from analyzer.model.utils.helper import convert_to_sparse
+from analyzer.model.utils.helper import convert_to_sparse, recompute_from_res
 from analyzer.data.data_vis import visvol, vissegments
 from analyzer.utils.eval import clusteravg
+
 
 class Clustermodel():
 	'''
@@ -59,6 +60,7 @@ class Clustermodel():
 
 	def run(self):
 		if self.clstby == 'bysize':
+			# RUN the clustering by size parameters.
 			labels, areas = compute_regions(self.gtvol, mode=self.mode)
 			res_labels = self.model.fit_predict(areas.reshape(-1,1))
 
@@ -71,6 +73,7 @@ class Clustermodel():
 				visvol(self.emvol[k], labeled[k])
 
 		elif self.clstby == 'bytext':
+			# RUN the clustering by texture parameters.
 			volume = self.emvol.copy()
 			if self.dl is not None:
 				labels = label(self.gtvol)
@@ -84,7 +87,6 @@ class Clustermodel():
 
 				for k in range(self.emvol.shape[0]):
 					visvol(volume[k], labeled[k])
-
 			else:
 				raise ValueError('No dataloader functionality useable as (dl == None).')
 
