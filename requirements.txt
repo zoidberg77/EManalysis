@@ -4,4 +4,7 @@ scikit-learn
 scikit-image
 matplotlib
 imageio
-glob
+torch
+torchvision
+torchaudio
+tqdm
