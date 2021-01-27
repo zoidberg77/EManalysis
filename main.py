@@ -32,7 +32,7 @@ def main():
 	dl = Dataloader(args.em, args.gt, chunk_size=(5,4096,4096))
 	em, gt = dl.load_chunk(vol='both')
 
-	model = Clustermodel(em, gt, dl=dl, alg='kmeans', clstby='bytext')
+	model = Clustermodel(em, gt, dl=dl, alg='kmeans', clstby='bydist')
 	model.run()
 
 

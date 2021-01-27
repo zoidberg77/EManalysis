@@ -1,7 +1,7 @@
 import numpy as np
 from skimage.measure import label
 from sklearn.cluster import KMeans, AffinityPropagation, SpectralClustering, DBSCAN
-from analyzer.model.utils.analyze import compute_regions, compute_intentsity
+from analyzer.model.utils.analyze import compute_regions, compute_intentsity, compute_dist_graph
 from analyzer.model.utils.superpixel import superpixel_segment, superpixel_image, texture_analysis
 from analyzer.model.utils.helper import convert_to_sparse, recompute_from_res
 from analyzer.data.data_vis import visvol, vissegments
@@ -77,7 +77,7 @@ class Clustermodel():
 			volume = self.emvol.copy()
 			if self.dl is not None:
 				labels = label(self.gtvol)
-				segments = self.dl.list_segments(self.emvol, self.gtvol, mode='3d')
+				segments = self.dl.list_segments(self.emvol, self.gtvol, mode=self.mode)
 
 				texture_dict = texture_analysis(segments)
 				sparse = convert_to_sparse(texture_dict)
@@ -89,6 +89,18 @@ class Clustermodel():
 					visvol(volume[k], labeled[k])
 			else:
 				raise ValueError('No dataloader functionality useable as (dl == None).')
+
+		elif self.clstby == 'bydist':
+			# RUN the clustering by distance graph parameters.
+			labels = label(self.gtvol)
+			dist_m = compute_dist_graph(self.gtvol, mode=self.mode)
+			print(dist_m.shape)
+			res_labels = self.model.fit_predict(dist_m)
+			labeled = recompute_from_res(labels, res_labels, mode=self.mode)
+
+			for k in range(self.emvol.shape[0]):
+				visvol(self.emvol[k], labeled[k])
+
 
 		else:
 			raise Exception('Please state according to which property should be clustered.')

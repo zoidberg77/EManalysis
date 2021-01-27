@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from skimage.measure import label, regionprops
+from scipy.spatial import distance
 from analyzer.data.data_vis import visvol
 
 def compute_regions(vol, mode='2d'):
@@ -53,7 +54,7 @@ def compute_regions(vol, mode='2d'):
 	return (labels, areas)
 
 
-def compute_intentsity(vol, gt, mode='2d'):
+def compute_intentsity(vol, gt, mode='3d'):
 	'''
 	This function takes both em and gt in order to compute the intensities from each segment.
 	:param vol: volume (np.array) that contains the bare em data. (2d || 3d)
@@ -83,6 +84,32 @@ def compute_intentsity(vol, gt, mode='2d'):
 	intns = np.array(intns_values, dtype=np.float16)
 
 	return (labels, intns)
+
+
+def compute_dist_graph(gt, mode='3d'):
+	'''
+	This function computes a graph matrix that represents the distances from each segment to all others.
+	:param gt: volume (np.array) that contains the groundtruth. (2d || 3d)
+
+	:returns: (np.array) (N x N) matrix gives you the feature vector--> N: number of segments
+	'''
+	#dist = numpy.linalg.norm(a-b)
+	if mode == '2d':
+		raise NotImplementedError('no 2d mode in this function yet.')
+	else:
+		if gt.ndim <= 2:
+			raise ValueError('Volume is lacking on dimensionality(at least 3d): {}'.format(vol.shape))
+
+		labels, num_label = label(gt, return_num=True)
+		regions = regionprops(labels, cache=False)
+		centerpts = []
+		for props in regions:
+			centerpts.append(props.centroid)
+
+		centerpts = np.array(centerpts, dtype=np.int16)
+		dist_m = distance.cdist(centerpts, centerpts, 'euclidean')
+
+	return dist_m
 
 
 ### HELPER SECTION ###
