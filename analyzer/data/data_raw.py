@@ -62,7 +62,7 @@ def folder2Vol(filepath, chunk_size=None, fns=None, file_format='png', dt=np.uin
 	:param dt: (dataformat) default: np.uint16
 
 	:returns: numpy array that contains the raw data (em & labels).
-			  shape: (500, 496, 4096)
+			  shape: (500, 4096, 4096)
 			  Chunks that part the images will look like this (4, 100, 2048, 2048).
 	'''
 	if fns is None:

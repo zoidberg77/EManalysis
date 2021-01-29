@@ -29,7 +29,7 @@ def main():
 	print("Command line arguments:")
 	print(args)
 
-	dl = Dataloader(args.em, args.gt, chunk_size=(5,4096,4096))
+	dl = Dataloader(args.em, args.gt, chunk_size=(25,4096,4096))
 	em, gt = dl.load_chunk(vol='both')
 
 	model = Clustermodel(em, gt, dl=dl, alg='kmeans', clstby='bydist')
