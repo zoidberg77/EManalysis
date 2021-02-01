@@ -5,5 +5,11 @@ __pycache__/
 
 datasets/
 
+.ipynb_checkpoints
+notebooks/analyzer
+notebooks/vae
+
 # jetbrains
 .idea
+#macos
+.DS_Store
