@@ -135,6 +135,28 @@ class Dataloader():
 
 		return (bbox_dict)
 
+	def prep_isotropic_seg(self, vol, gt):
+		'''
+		This function prepars the input segments for the autoencoder. Isotropic and equal size.
+		'''
+		label3d, num_label = label(gt, return_num=True)
+		regions = regionprops(label3d, cache=False)
+
+		c_x_max = 0
+		c_y_max = 0
+		c_z_max = 0
+		for props in regions:
+			boundbox = props.bbox
+
+			if boundbox[4] - boundbox[1] >= c_x_max:
+				c_x_max = boundbox[4] - boundbox[1]
+			if boundbox[3] - boundbox[0] >= c_y_max:
+				c_y_max = boundbox[3] - boundbox[0]
+			if boundbox[5] - boundbox[2] >= c_z_max:
+				c_z_max = boundbox[5] - boundbox[2]
+
+		print(c_x_max, ' ', c_y_max, ' ', c_z_max)
+
 	def __len__(self):
 		'''
 		required by torch to return the length of the dataset.

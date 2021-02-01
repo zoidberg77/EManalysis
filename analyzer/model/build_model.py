@@ -92,15 +92,17 @@ class Clustermodel():
 
 		elif self.clstby == 'bydist':
 			# RUN the clustering by distance graph parameters.
+			self.dl.prep_isotropic_seg(self.emvol, self.gtvol)
+			'''
 			labels = label(self.gtvol)
 			dist_m = compute_dist_graph(self.gtvol, mode=self.mode)
-			print(dist_m.shape)
+
 			res_labels = self.model.fit_predict(dist_m)
 			labeled = recompute_from_res(labels, res_labels, mode=self.mode)
 
 			for k in range(self.emvol.shape[0]):
 				visvol(self.emvol[k], labeled[k])
-
+			'''
 
 		else:
 			raise Exception('Please state according to which property should be clustered.')
