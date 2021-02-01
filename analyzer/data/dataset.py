@@ -134,3 +134,19 @@ class Dataloader():
 			raise ValueError('No valid dimensionality mode in function list_segments.')
 
 		return (bbox_dict)
+
+	def __len__(self):
+		'''
+		required by torch to return the length of the dataset.
+		:return: integer
+		'''
+		return self.volume.shape[0]
+
+	def __getitem__(self, idx):
+		'''
+		required by torch to return one item of the dataset.
+		:type idx: index of the object
+		:return: object from the volume
+		'''
+		return self.volume[idx]
+
