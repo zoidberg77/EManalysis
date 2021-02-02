@@ -92,7 +92,8 @@ class Clustermodel():
 
 		elif self.clstby == 'bydist':
 			# RUN the clustering by distance graph parameters.
-			self.dl.prep_isotropic_seg(self.emvol, self.gtvol)
+			self.dl.prep_data_info()
+			#self.dl.prep_isotropic_seg(self.emvol, self.gtvol)
 			'''
 			labels = label(self.gtvol)
 			dist_m = compute_dist_graph(self.gtvol, mode=self.mode)
