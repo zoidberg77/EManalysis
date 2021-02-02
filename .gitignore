@@ -7,7 +7,6 @@ datasets/
 
 .ipynb_checkpoints
 notebooks/analyzer
-notebooks/vae
 
 # jetbrains
 .idea
