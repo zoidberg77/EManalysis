@@ -3,11 +3,11 @@ import torch.nn as nn
 
 
 class Conv3dVAE_simple(nn.Module):
-    def __init__(self):
+    def __init__(self, kernel_size=4, stride=1, padding=0):
         super(Conv3dVAE_simple, self).__init__()
-        kernel_size = 4
-        stride = 1
-        padding = 0
+        self.kernel_size = kernel_size
+        self.stride = stride
+        self.padding = padding
         hidden_dims = [16, 32, 64]
         modules = []
         in_channels = 1
