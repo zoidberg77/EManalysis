@@ -1,5 +1,8 @@
 import numpy as np
+import os, sys
 import glob
+import imageio
+import multiprocessing
 from skimage.measure import label, regionprops
 from analyzer.data.data_vis import visvol
 from analyzer.data.data_raw import readvol, folder2Vol
@@ -42,6 +45,20 @@ class Dataloader():
 		self.mode = mode
 		self.ff = ff
 
+	def __len__(self):
+		'''
+		Required by torch to return the length of the dataset.
+		:returns: integer
+		'''
+		return self.volume.shape[0]
+
+	def __getitem__(self, idx):
+		'''
+		Required by torch to return one item of the dataset.
+		:param idx: index of the object
+		:returns: object from the volume
+		'''
+		return self.volume[idx]
 
 	def load_chunk(self, vol='both'):
 		'''
@@ -157,18 +174,58 @@ class Dataloader():
 
 		print(c_x_max, ' ', c_y_max, ' ', c_z_max)
 
-	def __len__(self):
+	def prep_data_info(self, volopt='gt', kernel_n=8):
 		'''
-		required by torch to return the length of the dataset.
-		:return: integer
-		'''
-		return self.volume.shape[0]
+		This function aims as an inbetween function iterating over the whole dataset in efficient
+		and memory proof fashion in order to preserve information that is needed for further steps.
+		:param volopt: (string) this sets the volume you want to use for the operation. default: gt
+		:param kernel_n: (int) number of CPU kernels you want to use for multiprocessing.
 
-	def __getitem__(self, idx):
+		:returns added: (dict) that contains the labels with respective information as (list): [pixelsize, [slice_index(s)]]
 		'''
-		required by torch to return one item of the dataset.
-		:type idx: index of the object
-		:return: object from the volume
-		'''
-		return self.volume[idx]
+		if volopt == 'gt':
+			fns = sorted(glob.glob(self.gtpath + '*.' + self.ff))
+		elif volopt == 'em':
+			fns = sorted(glob.glob(self.volpath + '*.' + self.ff))
+		else:
+			raise ValueError('Please enter the volume on which \'prep_data_info\' should run on.')
 
+		with multiprocessing.Pool(processes=kernel_n) as pool:
+			result = pool.starmap(self.calc_props, enumerate(fns))
+
+		added = {}
+		for dicts in result:
+			for key, value in dicts.items():
+				print(value)
+				if key in added:
+					added[key][0] += value[0]
+					added[key][1].append(value[1])
+				else:
+					added.setdefault(key, [])
+					added[key].append(value[0])
+					added[key].append([value[1]])
+
+		#print("Max values: ", max([x[0] for x in added.values()]))
+		return (added)
+
+	def calc_props(self, idx, fns):
+		'''
+		Helper function for 'prep_data_info'
+		:param idx: (int) this is the slice index that correspondes to the image slice. E.g. idx 100 belongs to image 100.
+		:param fns: (string) list of filenames.
+		:returns result: (dict) with each segment. key: idx of segment -- value: [number of pixels in segment, idx of slice].
+		'''
+		result = {}
+		idx_list = []
+		if os.path.exists(fns):
+			tmp = imageio.imread(fns)
+			labels, num_labels = np.unique(tmp, return_counts=True)
+
+			for l in range(labels.shape[0]):
+				if labels[l] == 0:
+					continue
+				result.setdefault(labels[l], [])
+				result[labels[l]].append(num_labels[l])
+				result[labels[l]].append(idx)
+
+		return result
