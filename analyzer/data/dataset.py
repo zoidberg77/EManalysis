@@ -1,3 +1,4 @@
+import h5py
 import numpy as np
 import os, sys
 import glob
@@ -6,6 +7,8 @@ import multiprocessing
 from skimage.measure import label, regionprops
 from analyzer.data.data_vis import visvol
 from analyzer.data.data_raw import readvol, folder2Vol
+import torch
+import torchio as tio
 
 
 class Dataloader():
@@ -174,7 +177,7 @@ class Dataloader():
 
 		print(c_x_max, ' ', c_y_max, ' ', c_z_max)
 
-	def prep_data_info(self, volopt='gt', kernel_n=8):
+	def prep_data_info(self, volopt='gt', kernel_n=multiprocessing.cpu_count()):
 		'''
 		This function aims as an inbetween function iterating over the whole dataset in efficient
 		and memory proof fashion in order to preserve information that is needed for further steps.
@@ -196,7 +199,7 @@ class Dataloader():
 		added = {}
 		for dicts in result:
 			for key, value in dicts.items():
-				print(value)
+				#print(value)
 				if key in added:
 					added[key][0] += value[0]
 					added[key][1].append(value[1])
@@ -205,8 +208,16 @@ class Dataloader():
 					added[key].append(value[0])
 					added[key].append([value[1]])
 
+		result_array = []
+		for result in added.keys():
+			result_array.append({
+				'id': result,
+				'size': added[result][0],
+				'slices': added[result][1]
+			})
+
 		#print("Max values: ", max([x[0] for x in added.values()]))
-		return (added)
+		return (result_array)
 
 	def calc_props(self, idx, fns):
 		'''
@@ -229,3 +240,56 @@ class Dataloader():
 				result[labels[l]].append(idx)
 
 		return result
+
+	def get_mito_volume(self, region, target=(1, 64, 64, 64)):
+		'''
+		Preprocessing function to extract and scale the mitochondria as volume
+		:param region: (dict) one region object provided by Dataloader.prep_data_info
+		:param target: (int,int,int,int) these are the target dimensions e.g. (1,64,64,64)
+		:returns result: (numpy.array) a numpy array with the target dimensions and the mitochondria in it
+		'''
+		all_fn = sorted(glob.glob(self.gtpath + '*.' + self.ff))
+		target = tio.ScalarImage(tensor=torch.rand(target))
+		fns = [all_fn[id] for id in region['slices']]
+		first_image_slice = imageio.imread(fns[0])
+		mask = np.zeros(shape=first_image_slice.shape, dtype=np.uint16)
+		mask[first_image_slice == region['id']] = 1
+		volume = mask
+		for fn in fns[1:]:
+			image_slice = imageio.imread(fn)
+			mask = np.zeros(shape=image_slice.shape, dtype=np.uint16)
+			mask[first_image_slice == region['id']] = 1
+			volume = np.dstack((volume, mask))
+		volume = np.moveaxis(volume,-1,0)
+
+		mito_regions = regionprops(volume, cache=False)
+		if len(mito_regions) != 1:
+			print("something went wrong during volume building. region count: {}".format(len(mito_regions)))
+
+		mito_region = mito_regions[0]
+		mito_volume = volume[mito_region.bbox[0]:mito_region.bbox[3]+1,
+					 mito_region.bbox[1]:mito_region.bbox[4]+1,
+					 mito_region.bbox[2]:mito_region.bbox[5]+1].astype(np.float32)
+
+		mito_volume = np.expand_dims(mito_volume, 0)
+		transform = tio.Resample(target=target, image_interpolation='bspline')
+		transformed_mito = transform(mito_volume)
+		return transformed_mito
+
+	def save_mito_volume_to_h5(self, volume, filename="mito.h5", dset_name="mito_volumes"):
+		f = None
+		dset = None
+		dims = volume.shape
+
+		if os.path.exists(filename):
+			f = h5py.File('mito.h5', 'a')
+		else:
+			f = h5py.File('mito.h5', 'w')
+
+		if dset_name in f.keys():
+			dset = f[dset_name]
+		else:
+			dset = f.create_dataset(dset_name, (0, dims[0], dims[1], dims[2], dims[3]), maxshape=(None, dims[0], dims[1], dims[2], dims[3]))
+
+		dset.resize((dset.shape[0] + 1, dset.shape[1], dset.shape[2], dset.shape[3], dset.shape[4]))
+		dset[-1] = volume

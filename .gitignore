@@ -12,3 +12,4 @@ notebooks/analyzer
 .idea
 #macos
 .DS_Store
+.h5
