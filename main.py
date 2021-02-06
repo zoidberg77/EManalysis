@@ -30,7 +30,7 @@ def main():
 	print("Command line arguments:")
 	print(args)
 
-	dl = Dataloader(args.em, args.gt, chunk_size=(2,4096,4096))
+	dl = Dataloader(args.em, args.gt, chunk_size=(2,4096,4096), mito_slice_limit=40)
 	em, gt = dl.load_chunk(vol='both')
 	if args.mode == "autoencoder":
 		dl.extract_scale_mitos()
