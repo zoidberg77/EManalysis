@@ -16,6 +16,7 @@ def create_arg_parser():
 	parser = argparse.ArgumentParser(description="Model for clustering mitochondria.")
 	parser.add_argument('--em', type=str, help='input directory em (path)')
 	parser.add_argument('--gt', type=str, help='input directory gt (path)')
+	parser.add_argument('--mode', type=str, help='cluster or autoencoder mode', default='cluster')
 
 	return parser
 
@@ -31,6 +32,9 @@ def main():
 
 	dl = Dataloader(args.em, args.gt, chunk_size=(2,4096,4096))
 	em, gt = dl.load_chunk(vol='both')
+	if args.mode == "autoencoder":
+		dl.extract_scale_mitos()
+		exit()
 
 	model = Clustermodel(em, gt, dl=dl, alg='kmeans', clstby='bydist')
 	model.run()

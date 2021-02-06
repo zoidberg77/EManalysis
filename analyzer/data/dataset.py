@@ -5,6 +5,8 @@ import glob
 import imageio
 import multiprocessing
 from skimage.measure import label, regionprops
+from tqdm import tqdm
+
 from analyzer.data.data_vis import visvol
 from analyzer.data.data_raw import readvol, folder2Vol
 import torch
@@ -241,13 +243,13 @@ class Dataloader():
 
 		return result
 
-	def get_mito_volume(self, region, target=(1, 64, 64, 64)):
+	def get_mito_volume(self, region):
 		'''
 		Preprocessing function to extract and scale the mitochondria as volume
 		:param region: (dict) one region object provided by Dataloader.prep_data_info
-		:param target: (int,int,int,int) these are the target dimensions e.g. (1,64,64,64)
 		:returns result: (numpy.array) a numpy array with the target dimensions and the mitochondria in it
 		'''
+		target = self.target_size
 		all_fn = sorted(glob.glob(self.gtpath + '*.' + self.ff))
 		target = tio.ScalarImage(tensor=torch.rand(target))
 		fns = [all_fn[id] for id in region['slices']]
@@ -258,7 +260,7 @@ class Dataloader():
 		for fn in fns[1:]:
 			image_slice = imageio.imread(fn)
 			mask = np.zeros(shape=image_slice.shape, dtype=np.uint16)
-			mask[first_image_slice == region['id']] = 1
+			mask[image_slice == region['id']] = 1
 			volume = np.dstack((volume, mask))
 		volume = np.moveaxis(volume,-1,0)
 
@@ -276,20 +278,31 @@ class Dataloader():
 		transformed_mito = transform(mito_volume)
 		return transformed_mito
 
-	def save_mito_volume_to_h5(self, volume, filename="mito.h5", dset_name="mito_volumes"):
-		f = None
-		dset = None
-		dims = volume.shape
+	def save_mito_volume_to_h5(self, volumes, filename="mito.h5", dset_name="mito_volumes"):
+		dims = volumes[0].shape
 
-		if os.path.exists(filename):
-			f = h5py.File('mito.h5', 'a')
-		else:
-			f = h5py.File('mito.h5', 'w')
+		with h5py.File(self.gtpath+filename, 'a') as f:
+			dset = None
+			if dset_name in f.keys():
+				dset = f[dset_name]
+			else:
+				dset = f.create_dataset(dset_name, (0, dims[0], dims[1], dims[2], dims[3]), maxshape=(None, dims[0], dims[1], dims[2], dims[3]))
 
-		if dset_name in f.keys():
-			dset = f[dset_name]
-		else:
-			dset = f.create_dataset(dset_name, (0, dims[0], dims[1], dims[2], dims[3]), maxshape=(None, dims[0], dims[1], dims[2], dims[3]))
+			for volume in volumes:
+				dset.resize((dset.shape[0] + 1, dset.shape[1], dset.shape[2], dset.shape[3], dset.shape[4]))
+				dset[-1] = volume
 
-		dset.resize((dset.shape[0] + 1, dset.shape[1], dset.shape[2], dset.shape[3], dset.shape[4]))
-		dset[-1] = volume
+	def extract_scale_mitos(self, target=(1, 64, 64, 64), filename="mito.h5", dset_name="mito_volumes", cpus=multiprocessing.cpu_count()):
+		regions = self.prep_data_info()
+		start = 0
+		self.target_size = target
+		if os.path.exists(self.gtpath+filename):
+			with h5py.File(self.gtpath+filename, 'r') as f:
+				if dset_name in f.keys():
+					start = f[dset_name].shape[0]
+		with multiprocessing.Pool(processes=cpus) as pool:
+			for i in tqdm(range(0, len(regions), cpus)):
+				mitos = pool.map(self.get_mito_volume, regions[i:i+cpus])
+				self.save_mito_volume_to_h5(mitos, filename, dset_name)
+
+
