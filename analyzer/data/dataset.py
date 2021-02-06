@@ -296,12 +296,26 @@ class Dataloader():
                             cpus=multiprocessing.cpu_count(), chunk_size=200):
         regions = self.prep_data_info()
         print("{} mitochondira found, within slice limit {}".format(len(regions), self.mito_slice_limit))
+        mode = 'w'
+        start = 0
+        if os.path.exists(self.gtpath + filename):
+            mode = 'a'
 
-        with h5py.File(self.gtpath + filename, 'w') as f:
-            dset = f.create_dataset(dset_name, (len(regions), self.scale_output[0], self.scale_output[1], self.scale_output[2], self.scale_output[3]),
-                                    maxshape=(None, self.scale_output[0], self.scale_output[1], self.scale_output[2], self.scale_output[3]))
+        dset = None
+
+        with h5py.File(self.gtpath + filename, mode) as f:
+            if mode == 'w':
+                dset = f.create_dataset(dset_name, (len(regions), self.scale_output[0], self.scale_output[1], self.scale_output[2], self.scale_output[3]),
+                                        maxshape=(None, self.scale_output[0], self.scale_output[1], self.scale_output[2], self.scale_output[3]))
+            else:
+                dset = f[dset_name]
+                for i, mito in enumerate(dset):
+                    if np.max(mito) == 0:
+                        start = i
+                        print('found file with {} volumes in it'.format(i))
+                        break
 
             with multiprocessing.Pool(processes=cpus) as pool:
-                    for i in tqdm(range(0,len(regions),chunk_size)):
+                    for i in tqdm(range(start,len(regions),chunk_size)):
                         results = pool.map(self.get_mito_volume, regions[i:i+chunk_size])
                         dset[i:i+chunk_size] = results
