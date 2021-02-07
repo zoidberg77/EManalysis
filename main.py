@@ -33,10 +33,10 @@ def main():
 	dl = Dataloader(args.em, args.gt, chunk_size=(2,4096,4096), mito_slice_limit=40)
 	em, gt = dl.load_chunk(vol='both')
 	if args.mode == "autoencoder":
-		dl.extract_scale_mitos()
+		dl.extract_scale_mitos(chunk_size=12)
 		exit()
 
-	model = Clustermodel(em, gt, dl=dl, alg='kmeans', clstby='bydist')
+	model = Clustermodel(em, gt, dl=dl, alg='kmeans', clstby='bysize')
 	model.run()
 
 

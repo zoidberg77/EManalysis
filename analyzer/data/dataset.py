@@ -286,14 +286,15 @@ class Dataloader():
             print("something went wrong during volume building. region count: {}".format(len(mito_regions)))
 
         mito_region = mito_regions[0]
-
-
         mito_volume = volume[mito_region.bbox[0]:mito_region.bbox[3] + 1,
-                    mito_region.bbox[1]:mito_region.bbox[4] + 1,
-                    mito_region.bbox[2]:mito_region.bbox[5] + 1].astype(np.float32)
+                      mito_region.bbox[1]:mito_region.bbox[4] + 1,
+                      mito_region.bbox[2]:mito_region.bbox[5] + 1].astype(np.float32)
         mito_volume = np.expand_dims(mito_volume, 0)
-        transform = tio.Resample(target=target, image_interpolation='bspline')
+
+        transform = tio.Resample(target=target, image_interpolation='nearest')
         transformed_mito = transform(mito_volume)
+        if transformed_mito.sum() <= 1:
+            return None
 
         return transformed_mito
 
@@ -324,4 +325,6 @@ class Dataloader():
             with multiprocessing.Pool(processes=cpus) as pool:
                     for i in tqdm(range(start,len(regions),chunk_size)):
                         results = pool.map(self.get_mito_volume, regions[i:i+chunk_size])
-                        dset[i:i+chunk_size] = results
+                        for j, result in enumerate(results):
+                            if result is not None:
+                                dset[i+j] = result
