@@ -11,7 +11,8 @@ class MitoDataset():
         Required by torch to return the length of the dataset.
         :returns: integer
         '''
-        return self.volume[self.dataset_name].shape[0]
+        with h5py.File(self.volume, 'r') as f:
+            return f[self.dataset_name].shape[0]
 
     def __getitem__(self, idx):
         '''
@@ -19,4 +20,5 @@ class MitoDataset():
         :param idx: index of the object
         :returns: object from the volume
         '''
-        return self.volume[self.dataset_name][idx]
+        with h5py.File(self.volume, 'r') as f:
+            return f[self.dataset_name][idx]
