@@ -13,3 +13,5 @@ notebooks/analyzer
 #macos
 .DS_Store
 .h5
+
+.vscode
