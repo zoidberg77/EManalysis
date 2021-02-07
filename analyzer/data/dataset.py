@@ -38,7 +38,8 @@ class Dataloader():
                  mode='3d', ff='png',
                  mito_slice_limit=5000,
                  scale_output=(1,64,64,64),
-                 mito_volume_name="mito.h5"
+                 mito_volume_file_name="mito.h5",
+                 mito_volume_dataset_name="mito_volumes"
                  ):
         if volume is not None:
             pass
@@ -57,15 +58,16 @@ class Dataloader():
         self.ff = ff
         self.mito_slice_limit = mito_slice_limit
         self.scale_output = scale_output
-        self.mito_volume_name = mito_volume_name
+        self.mito_volume_file_name = mito_volume_file_name
+        self.mito_volume_dataset_name = mito_volume_dataset_name
 
     def __len__(self):
         '''
         Required by torch to return the length of the dataset.
         :returns: integer
         '''
-        with h5py.File(self.gtpath + self.mito_volume_name, 'r') as f:
-            return f[self.mito_volume_name].shape[0]
+        with h5py.File(self.gtpath + self.mito_volume_file_name, 'r') as f:
+            return f[self.mito_volume_dataset_name].shape[0]
 
     def __getitem__(self, idx):
         '''
@@ -73,8 +75,8 @@ class Dataloader():
         :param idx: index of the object
         :returns: object from the volume
         '''
-        with h5py.File(self.gtpath + self.mito_volume_name, 'r') as f:
-            return f[self.mito_volume_name][idx]
+        with h5py.File(self.gtpath + self.mito_volume_file_name, 'r') as f:
+            return f[self.mito_volume_dataset_name][idx]
 
     def load_chunk(self, vol='both'):
         '''
@@ -296,23 +298,23 @@ class Dataloader():
         return transformed_mito
 
 
-    def extract_scale_mitos(self, filename="mito.h5",
+    def extract_scale_mitos(self,
                             cpus=multiprocessing.cpu_count(), chunk_size=200):
         regions = self.prep_data_info()
         print("{} mitochondira found, within slice limit {}".format(len(regions), self.mito_slice_limit))
         mode = 'w'
         start = 0
-        if os.path.exists(self.gtpath + filename):
+        if os.path.exists(self.gtpath + self.mito_volume_file_name):
             mode = 'a'
 
         dset = None
 
-        with h5py.File(self.gtpath + filename, mode) as f:
+        with h5py.File(self.gtpath + self.mito_volume_file_name, mode) as f:
             if mode == 'w':
-                dset = f.create_dataset(self.mito_volume_name, (len(regions), self.scale_output[0], self.scale_output[1], self.scale_output[2], self.scale_output[3]),
+                dset = f.create_dataset(self.mito_volume_dataset_name, (len(regions), self.scale_output[0], self.scale_output[1], self.scale_output[2], self.scale_output[3]),
                                         maxshape=(None, self.scale_output[0], self.scale_output[1], self.scale_output[2], self.scale_output[3]))
             else:
-                dset = f[self.mito_volume_name]
+                dset = f[self.mito_volume_dataset_name]
                 for i, mito in enumerate(dset):
                     if np.max(mito) == 0:
                         start = i
