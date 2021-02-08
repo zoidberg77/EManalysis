@@ -62,3 +62,13 @@ def recompute_from_res(labels, result, mode='3d'):
 		cld_labels = mapv[labels]
 
 	return cld_labels
+
+def convert_dict_mtx(input):
+	'''
+	This function converts a dict with labels as keys and values to 2 separate matrices that represent
+	feature vectors/matrix and labels vector.
+	'''
+	labels, values = zip(* input.items())
+	labels = np.array(labels, dtype=np.uint16)
+	values = np.array(values, dtype=np.uint16)
+	return (labels, values)

@@ -1,57 +1,71 @@
+import json
+
 import numpy as np
 import matplotlib.pyplot as plt
 from skimage.measure import label, regionprops
 from scipy.spatial import distance
 from analyzer.data.data_vis import visvol
 
-def compute_regions(vol, mode='2d'):
+def compute_regions(vol, dprc='full', fns=None, mode='3d'):
 	'''
 	Compute the region properties of the groundtruth labels.
 
 	:param vol: volume (np.array) that contains the labels. (2d || 3d)
+	:param dprc: (string)
+	:param fns: (list) list of filenames that should be used for iterating over.
 	:param mode: (string)
 
-	:returns labels: (np.array) same shape as volume with all the labels.
-	:returns areas: (np.array) is a vetor that contains a area for every label.
+	:returns result_dict: (dict) where the label is the key and the size of the segment is the corresponding value.
 	'''
-	area_values = []
-	labels = np.zeros(shape=vol.shape, dtype=np.uint16)
-	label_cnt = 0
+	result_dict = {}
 
-	if mode == '2d':
-		for idx in range(vol.shape[0]):
-			image = vol[idx, :, :]
-			label2d, num_label = label(image, return_num=True)
-			regions = regionprops(label2d, cache=False)
+	if dprc == 'full':
+		labels = np.zeros(shape=vol.shape, dtype=np.uint16)
+		label_cnt = 0
+		if mode == '2d':
+			### NOTE: For now this is depracted and will disappear in the future (probably).
+			### Use 3d instead!
+			for idx in range(vol.shape[0]):
+				image = vol[idx, :, :]
+				label2d, num_label = label(image, return_num=True)
+				regions = regionprops(label2d, cache=False)
 
+				for props in regions:
+					area_values.append(props.area)
+
+				tmp = np.zeros(shape=image.shape, dtype=np.uint16)
+				if idx == 0:
+					labels[idx, :, :] = label2d
+				else:
+					tmp = label2d
+					tmp[tmp != 0] += label_cnt
+					labels[idx, :, :] = tmp
+
+				label_cnt += num_label
+
+		if mode == '3d':
+			if vol.ndim <= 2:
+				raise ValueError('Volume is lacking on dimensionality(at least 3d): {}'.format(vol.shape))
+
+			regions = regionprops(vol, cache=False)
 			for props in regions:
-				area_values.append(props.area)
+				try_label = props.label
+				area = props.area
+				result_dict[try_label] = area
 
-			tmp = np.zeros(shape=image.shape, dtype=np.uint16)
-			if idx == 0:
-				labels[idx, :, :] = label2d
-			else:
-				tmp = label2d
-				tmp[tmp != 0] += label_cnt
-				labels[idx, :, :] = tmp
+	if dprc == 'iter':
+		with multiprocessing.Pool(processes=kernel_n) as pool:
+			tmp = pool.starmap(self.calc_props, enumerate(fns))
 
-			label_cnt += num_label
+		for dicts in tmp:
+			for key, value in dicts.items():
+				if key in result_dict:
+					result_dict[key][0] += value[0]
+				else:
+					result_dict.setdefault(key, [])
+					result_dict[key].append(value[0])
 
-	if mode == '3d':
-		if vol.ndim <= 2:
-			raise ValueError('Volume is lacking on dimensionality(at least 3d): {}'.format(vol.shape))
-
-		labels, num_label = label(vol, return_num=True)
-		regions = regionprops(labels, cache=False)
-
-		for props in regions:
-			area_values.append(props.area)
-
-	areas = np.array(area_values, dtype=np.uint16)
-
-	#plot_stats(area_values, 'number of labels', 'areasize')
-
-	return (labels, areas)
+	return (result_dict)
 
 
 def compute_intentsity(vol, gt, mode='3d'):
@@ -113,6 +127,25 @@ def compute_dist_graph(gt, mode='3d'):
 
 
 ### HELPER SECTION ###
+def calc_props(idx, fns):
+	'''
+	Helper function for 'compute_regions'
+	:param fns: (string) list of filenames. sorted.
+	:returns result: (dict) with each segment. key: idx of segment -- value: [number of pixels in segment, idx of slice].
+	'''
+	result = {}
+	if os.path.exists(fns):
+		tmp = imageio.imread(fns)
+		labels, num_labels = np.unique(tmp, return_counts=True)
+
+		for l in range(labels.shape[0]):
+			if labels[l] == 0:
+				continue
+			result.setdefault(labels[l], [])
+			result[labels[l]].append(num_labels[l])
+
+	return result
+
 def plot_stats(data, x_label='x', y_label='y'):
 	'''
 	Plotting statistical data in order to get an impression.

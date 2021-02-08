@@ -173,28 +173,6 @@ class Dataloader():
 
         return (bbox_dict)
 
-    def prep_isotropic_seg(self, vol, gt):
-        '''
-        This function prepars the input segments for the autoencoder. Isotropic and equal size.
-        '''
-        label3d, num_label = label(gt, return_num=True)
-        regions = regionprops(label3d, cache=False)
-
-        c_x_max = 0
-        c_y_max = 0
-        c_z_max = 0
-        for props in regions:
-            boundbox = props.bbox
-
-            if boundbox[4] - boundbox[1] >= c_x_max:
-                c_x_max = boundbox[4] - boundbox[1]
-            if boundbox[3] - boundbox[0] >= c_y_max:
-                c_y_max = boundbox[3] - boundbox[0]
-            if boundbox[5] - boundbox[2] >= c_z_max:
-                c_z_max = boundbox[5] - boundbox[2]
-
-        print(c_x_max, ' ', c_y_max, ' ', c_z_max)
-
     def prep_data_info(self, volopt='gt', kernel_n=multiprocessing.cpu_count()):
         '''
         This function aims as an inbetween function iterating over the whole dataset in efficient
@@ -217,7 +195,6 @@ class Dataloader():
         added = {}
         for dicts in result:
             for key, value in dicts.items():
-                # print(value)
                 if key in added:
                     added[key][0] += value[0]
                     added[key][1].append(value[1])
@@ -235,7 +212,6 @@ class Dataloader():
                     'slices': added[result][1]
                 })
 
-        # print("Max values: ", max([x[0] for x in added.values()]))
         return (result_array)
 
     def calc_props(self, idx, fns):
@@ -266,7 +242,7 @@ class Dataloader():
         :param region: (dict) one region object provided by Dataloader.prep_data_info
         :returns result: (numpy.array) a numpy array with the target dimensions and the mitochondria in it
         '''
-        
+
         all_fn = sorted(glob.glob(self.gtpath + '*.' + self.ff))
         target = tio.ScalarImage(tensor=torch.rand(self.scale_output))
         fns = [all_fn[id] for id in region['slices']]

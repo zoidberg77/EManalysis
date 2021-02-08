@@ -1,12 +1,12 @@
+import os, sys
 import numpy as np
 from skimage.measure import label
 from sklearn.cluster import KMeans, AffinityPropagation, SpectralClustering, DBSCAN
-from analyzer.model.utils.analyze import compute_regions, compute_intentsity, compute_dist_graph
+from analyzer.model.utils.extracting import compute_regions, compute_intentsity, compute_dist_graph
 from analyzer.model.utils.superpixel import superpixel_segment, superpixel_image, texture_analysis
-from analyzer.model.utils.helper import convert_to_sparse, recompute_from_res
+from analyzer.model.utils.helper import convert_to_sparse, recompute_from_res, convert_dict_mtx
 from analyzer.data.data_vis import visvol, vissegments
 from analyzer.utils.eval import clusteravg
-
 
 class Clustermodel():
 	'''
@@ -57,11 +57,22 @@ class Clustermodel():
 
 		return model
 
+	def load_features(self, fpath=os.path.join(os.getcwd(), 'features/')):
+		'''
+		This function will load different features vectors that were extracted and saved to be used for clustering.
+		'''
+		if os.path.exists(fpath) is False:
+			raise ValueError('Please enter a valid path to the folder where the feature vectors are stored.')
+
+		print(fpath)
+
 
 	def run(self):
 		if self.clstby == 'bysize':
 			# RUN the clustering by size parameters.
-			labels, areas = compute_regions(self.gtvol, mode=self.mode)
+			rst_dict = compute_regions(self.gtvol, mode=self.mode)
+			labels, areas = convert_dict_mtx(rst_dict)
+
 			res_labels = self.model.fit_predict(areas.reshape(-1,1))
 
 			labeled = recompute_from_res(labels, res_labels, mode=self.mode)
@@ -92,8 +103,11 @@ class Clustermodel():
 
 		elif self.clstby == 'bydist':
 			# RUN the clustering by distance graph parameters.
-			self.dl.prep_data_info()
+
+			#self.dl.prep_data_info()
 			#self.dl.prep_isotropic_seg(self.emvol, self.gtvol)
+
+			self.load_features()
 			'''
 			labels = label(self.gtvol)
 			dist_m = compute_dist_graph(self.gtvol, mode=self.mode)
