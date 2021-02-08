@@ -2,10 +2,8 @@ import os, sys
 import argparse
 
 from analyzer.data import Dataloader
-from analyzer.data.data_raw import readvol, folder2Vol, savelabvol
-from analyzer.data.data_vis import visvol
-
 from analyzer.model import Clustermodel
+from analyzer.model import FeatureExtractor
 
 # RUN THE SCRIPT LIKE: $ python main.py --em datasets/human/human_em_export_8nm/ --gt datasets/human/human_gt_export_8nm/
 
@@ -32,6 +30,10 @@ def main():
 
 	dl = Dataloader(args.em, args.gt, chunk_size=(2,4096,4096), mito_slice_limit=40)
 	em, gt = dl.load_chunk(vol='both')
+
+	fex = FeatureExtractor(em, gt)
+	fex.get_seg_size()
+	
 	if args.mode == "autoencoder":
 		dl.extract_scale_mitos(chunk_size=12)
 		exit()

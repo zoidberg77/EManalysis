@@ -10,3 +10,4 @@ torchaudio
 tqdm
 opencv-python
 torchio
+numpyencoder
