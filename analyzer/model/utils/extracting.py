@@ -11,7 +11,7 @@ def compute_regions(vol, dprc='full', fns=None, mode='3d'):
 	Compute the region properties of the groundtruth labels.
 
 	:param vol: volume (np.array) that contains the labels. (2d || 3d)
-	:param dprc: (string)
+	:param dprc: (string) data processing mode that sets how your data should be threated down the pipe.
 	:param fns: (list) list of filenames that should be used for iterating over.
 	:param mode: (string)
 

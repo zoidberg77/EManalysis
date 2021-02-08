@@ -12,10 +12,8 @@ def convert_to_sparse(inputs):
 	'''
 	if type(inputs) is dict:
 		in_list = list(inputs.values())
-
 	elif type(inputs) is list:
 		in_list = inputs
-
 	else:
 		raise ValueError('Input type is not supported for \'convert_to_sparse\' function.')
 
@@ -33,33 +31,41 @@ def convert_to_sparse(inputs):
 	return (sparse)
 
 
-def recompute_from_res(labels, result, mode='3d'):
+def recompute_from_res(vol, labels, result, dprc='full', mode='3d'):
 	'''
 	Take the result labels from clustering algorithm and adjust the old labels. NOTE: '3d' mode is way faster.
-	:param labels: (np.array) old labels just want to adjust.
-	:param result: (np.array)
+	:param vol: (np.array) matrix that is the groundtruth mask.
+	:param labels: (np.array) vector that contains old labels that you want to adjust.
+	:param result: (np.array) vector that contains the new labels.
+	:param dprc: (string)
+	:returns cld_labels: (np.array) vol matrix that is the same shape as vol mask. But with adjusted labels.
 	'''
-	if mode == '2d':
-		cld_labels = np.zeros(shape=labels.shape)
+	if dprc == 'full':
+		if mode == '2d':
+			cld_labels = np.zeros(shape=labels.shape)
 
-		for r in range(labels.shape[0]):
-			tmp = labels[r]
-			for idx in range(np.amin(tmp[np.nonzero(tmp)]), np.amax(tmp) + 1):
-				tmp[tmp == idx] = result[idx - 1] + 1 # + 1 in order to secure that label 0 is not missed.
+			for r in range(labels.shape[0]):
+				tmp = labels[r]
+				for idx in range(np.amin(tmp[np.nonzero(tmp)]), np.amax(tmp) + 1):
+					tmp[tmp == idx] = result[idx - 1] + 1 # + 1 in order to secure that label 0 is not missed.
 
-			cld_labels[r] = tmp
+				cld_labels[r] = tmp
+		else:
+			ldict = {}
+			for k, v in zip(labels, result):
+				ldict[k] = v + 1  # + 1 in order to secure that label 0 is not missed.
+
+			k = np.array(list(ldict.keys()))
+			v = np.array(list(ldict.values()))
+
+			mapv = np.zeros(k.max() + 1)
+			mapv[k] = v
+			cld_labels = mapv[vol]
+	elif dprc == 'iter':
+		#TODO!
+		raise NotImplementedError('no iterative option in this function yet.')
 	else:
-		tmp = np.arange(start=np.amin(labels[np.nonzero(labels)]), stop=np.amax(labels) + 1, step=1)
-		ldict = {}
-		for k, v in zip(tmp, result):
-			ldict[k] = v + 1  # + 1 in order to secure that label 0 is not missed.
-
-		k = np.array(list(ldict.keys()))
-		v = np.array(list(ldict.values()))
-
-		mapv = np.zeros(k.max() + 1)
-		mapv[k] = v
-		cld_labels = mapv[labels]
+		raise ValueError('No valid data processing option choosen. Please choose \'full\' or \'iter\'.')
 
 	return cld_labels
 
@@ -67,6 +73,9 @@ def convert_dict_mtx(input):
 	'''
 	This function converts a dict with labels as keys and values to 2 separate matrices that represent
 	feature vectors/matrix and labels vector.
+	:param input: (dict)
+	:returns labels: (np.array) same shape as volume with all the labels.
+	:returns values: (np.array) is a vetor that contains the corresponding values for every label.
 	'''
 	labels, values = zip(* input.items())
 	labels = np.array(labels, dtype=np.uint16)

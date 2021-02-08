@@ -74,8 +74,9 @@ class Clustermodel():
 			labels, areas = convert_dict_mtx(rst_dict)
 
 			res_labels = self.model.fit_predict(areas.reshape(-1,1))
+			print(res_labels)
 
-			labeled = recompute_from_res(labels, res_labels, mode=self.mode)
+			labeled = recompute_from_res(self.gtvol, labels, res_labels, mode=self.mode)
 
 			clmeans = clusteravg(areas, res_labels)
 			print('means: ', clmeans)
