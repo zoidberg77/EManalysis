@@ -13,17 +13,19 @@ from tqdm import tqdm
 import analyzer.data
 
 
-class MitoDataset():
-    def __init__(self, gtpath, empath, mito_volume_file_name="mito.h5", mito_volume_dataset_name="mito_volumes",
-                 target_size=(1, 64, 64, 64), lower_limit=10, upper_limit=200, chunks_per_cpu=2):
+class MitoDataset:
+    def __init__(self, gt_path, em_path, mito_volume_file_name="features/mito.h5",
+                 mito_volume_dataset_name="mito_volumes",
+                 target_size=(1, 64, 64, 64), lower_limit=10, upper_limit=200, chunks_per_cpu=2, ff="png"):
         self.chunks_per_cpu = chunks_per_cpu
         self.upper_limit = upper_limit
         self.lower_limit = lower_limit
         self.mito_volume_file_name = mito_volume_file_name
         self.mito_volume_dataset_name = mito_volume_dataset_name
-        self.gtpath = gtpath
-        self.empath = empath
+        self.gt_path = gt_path
+        self.em_path = em_path
         self.target_size = target_size
+        self.ff = ff
 
     def __len__(self):
         '''
@@ -48,7 +50,7 @@ class MitoDataset():
         :param region: (dict) one region object provided by Dataloader.prep_data_info
         :returns result: (numpy.array) a numpy array with the target dimensions and the mitochondria in it
         '''
-        all_fn = sorted(glob.glob(self.gtpath + '*.' + self.ff))
+        all_fn = sorted(glob.glob(self.gt_path + '*.' + self.ff))
         target = tio.ScalarImage(tensor=torch.rand(self.target_size))
         fns = [all_fn[id] for id in region['slices']]
         first_image_slice = imageio.imread(fns[0])
@@ -82,19 +84,19 @@ class MitoDataset():
 
     def extract_scale_mitos(self,
                             cpus=multiprocessing.cpu_count()):
-        dl = analyzer.data.Dataloader(gtpath=self.gtpath, volpath=self.empath)
+        dl = analyzer.data.Dataloader(gtpath=self.gt_path, volpath=self.em_path)
         regions = dl.prep_data_info()
         print("{} mitochondira found in the ground truth".format(len(regions)))
         mode = 'w'
         start = 0
-        if os.path.exists(self.gtpath + self.mito_volume_file_name):
+        if os.path.exists(self.mito_volume_file_name):
             mode = 'a'
 
         dset = None
-        with h5py.File(self.gtpath + self.mito_volume_file_name, mode) as f:
+        with h5py.File(self.mito_volume_file_name, mode) as f:
             if mode == 'w':
                 dset = f.create_dataset(self.mito_volume_dataset_name, (
-                len(regions), self.target_size[0], self.target_size[1], self.target_size[2], self.target_size[3]),
+                    len(regions), self.target_size[0], self.target_size[1], self.target_size[2], self.target_size[3]),
                                         maxshape=(None, self.target_size[0], self.target_size[1], self.target_size[2],
                                                   self.target_size[3]))
             else:
