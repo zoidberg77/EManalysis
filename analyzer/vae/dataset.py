@@ -16,7 +16,7 @@ import analyzer.data
 class MitoDataset:
     def __init__(self, em_path, gt_path, mito_volume_file_name="features/mito.h5",
                  mito_volume_dataset_name="mito_volumes",
-                 target_size=(1, 64, 64, 64), lower_limit=100, upper_limit=100000, chunks_per_cpu=4, ff="png",
+                 target_size=(1, 128, 128, 128), lower_limit=1000, upper_limit=100000, chunks_per_cpu=4, ff="png",
                  region_limit=None):
         self.region_limit = region_limit
         self.chunks_per_cpu = chunks_per_cpu
@@ -119,4 +119,4 @@ class MitoDataset:
                         if result is not None:
                             dset[i + j] = result
                             mito_counter += 1
-                        print()
+                        print("{} mitos of {}".format(mito_counter, len(regions)))
