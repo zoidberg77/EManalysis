@@ -1,0 +1,12 @@
+SYSTEM:
+  NUM_CPUS: 8
+AUTOENCODER:
+  ARCHITECTURE: 'vae_3d'
+  REGION_LIMIT: None
+  CHUNKS_CPU: 4
+  UPPER_BOUND: 100000
+  LOWER_BOUND: 100
+  TARGET: [1, 64, 64, 64]
+DATASET:
+  EM_PATH: 'datasets/human/human_em_export_8nm/'
+  LABEL_PATH: 'datasets/human/human_gt_export_8nm/'

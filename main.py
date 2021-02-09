@@ -1,12 +1,13 @@
 import sys
 import argparse
 
+from analyzer.config import get_cfg_defaults, save_all_cfg, update_inference_cfg
 from analyzer.data import Dataloader
 from analyzer.model import Clustermodel
 from analyzer.model import FeatureExtractor
 from analyzer.vae.dataset import MitoDataset
 
-# RUN THE SCRIPT LIKE: $ python main.py --em datasets/human/human_em_export_8nm/ --gt datasets/human/human_gt_export_8nm/
+# RUN THE SCRIPT LIKE: $ python main.py --em datasets/human/human_em_export_8nm/ --gt datasets/human/human_gt_export_8nm/ --cfg configs/process.yaml
 
 def create_arg_parser():
 	'''
@@ -15,6 +16,7 @@ def create_arg_parser():
 	parser = argparse.ArgumentParser(description="Model for clustering mitochondria.")
 	parser.add_argument('--em', type=str, help='input directory em (path)')
 	parser.add_argument('--gt', type=str, help='input directory gt (path)')
+	parser.add_argument('--cfg', type=str, help='configuration file (path)')
 	parser.add_argument('--mode', type=str, help='cluster or autoencoder mode', default='cluster')
 
 	return parser
@@ -29,6 +31,14 @@ def main():
 	print("Command line arguments:")
 	print(args)
 
+	# configurations
+    cfg = get_cfg_defaults()
+    cfg.merge_from_file(args.cfg)
+    cfg.freeze()
+    print("Configuration details:")
+    print(cfg)
+
+
 	if args.mode == "autoencoder":
 		dataset = MitoDataset(args.em, args.gt)
 		dataset.get_mito_volume()
@@ -38,7 +48,8 @@ def main():
 	em, gt = dl.load_chunk(vol='both')
 
 	fex = FeatureExtractor(em, gt)
-	fex.compute_seg_size()
+	tmp = fex.compute_seg_size()
+	fex.save_feat_dict(tmp, 'sizef.json')
 
 	model = Clustermodel(em, gt, dl=dl, alg='kmeans', clstby='bydist')
 	model.run()
