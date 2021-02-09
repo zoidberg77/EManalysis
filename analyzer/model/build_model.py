@@ -57,7 +57,7 @@ class Clustermodel():
 
 		return model
 
-	def load_features(self, fpath=os.path.join(os.getcwd(), 'features/')):
+	def load_features(self, fpath=os.path.join(os.path.dirname(os.path.abspath(sys.modules['__main__'].__file__)), 'features/')):
 		'''
 		This function will load different features vectors that were extracted and saved to be used for clustering.
 		'''
@@ -76,7 +76,7 @@ class Clustermodel():
 	def run(self):
 		if self.clstby == 'bysize':
 			# RUN the clustering by size parameters.
-			rst_dict = compute_regions(self.gtvol, mode=self.mode)
+			rst_dict = compute_region_size(self.gtvol, mode=self.mode)
 			labels, areas = convert_dict_mtx(rst_dict)
 
 			res_labels = self.model.fit_predict(areas.reshape(-1,1))
@@ -112,17 +112,14 @@ class Clustermodel():
 			#self.dl.prep_data_info()
 			#self.dl.prep_isotropic_seg(self.emvol, self.gtvol)
 
-			self.load_features()
-			'''
-			labels = label(self.gtvol)
-			dist_m = compute_dist_graph(self.gtvol, mode=self.mode)
+			rst_dict = compute_dist_graph(self.gtvol, mode=self.mode)
+			labels, dist_m = convert_dict_mtx(rst_dict)
 
 			res_labels = self.model.fit_predict(dist_m)
-			labeled = recompute_from_res(labels, res_labels, mode=self.mode)
+			labeled = recompute_from_res(self.gtvol, labels, res_labels, mode=self.mode)
 
 			for k in range(self.emvol.shape[0]):
 				visvol(self.emvol[k], labeled[k])
-			'''
 
 		else:
 			raise Exception('Please state according to which property should be clustered.')

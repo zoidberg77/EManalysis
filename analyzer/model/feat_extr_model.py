@@ -12,13 +12,21 @@ class FeatureExtractor():
 	:param dprc: (string) data processing mode that sets how your data should be threated down the pipe.
 				This is important as you might face memory problems loading the whole dataset into your RAM. Distinguish between two setups:
 				- 'full': This enables reading the whole stack at once. Or at least the 'chunk_size' you set.
-				- 'iter': This iterates over each slice/image and extracts information one by one. This might help you to process the whole dataset without running into memory error.
+				- 'iter': This iterates over each slice/image and extracts information one by one.
+						  This might help you to process the whole dataset without running into memory error.
 	'''
-	def __init__(self, emvol, gtvol, dprc='full', mode='3d', fpath=os.path.join(os.getcwd(), 'features/')):
+	def __init__(self, emvol, gtvol, empath=None, gtpath=None, dprc='full', mode='3d',
+				 ff='png', fpath=os.path.join(os.path.dirname(os.path.abspath(sys.modules['__main__'].__file__)), 'features/')):
 		self.emvol = emvol
 		self.gtvol = gtvol
-		self.fns = None
 		self.dprc = dprc
+		if self.dprc == 'iter':
+			self.emfns = sorted(glob.glob(self.empath + '*.' + self.ff))
+			self.gtfns = sorted(glob.glob(self.gtpath + '*.' + self.ff))
+		else:
+			self.emfns = None
+			self.gtfns = None
+		self.ff = ff
 		self.mode = mode
 		self.fpath = fpath
 
@@ -27,12 +35,18 @@ class FeatureExtractor():
 		Extract the size of each mitochondria segment.
 		:returns result_dict: (dict) where the label is the key and the size of the segment is the corresponding value.
 		'''
-		return compute_region_size(self.gtvol, fns=self.fns, dprc=self.dprc, mode=self.mode)
+		return compute_region_size(self.gtvol, fns=self.gtfns, dprc=self.dprc, mode=self.mode)
 
 	def compute_seg_dist(self):
 		'''
 		Compute the distances of mitochondria to each other and extract it as a graph matrix.
 		:returns
+		'''
+		raise NotImplementedError
+
+	def run_vae(self):
+		'''
+		Function runs the vae option.
 		'''
 		raise NotImplementedError
 

@@ -38,7 +38,7 @@ def main():
 		dl.extract_scale_mitos(chunk_size=12)
 		exit()
 
-	model = Clustermodel(em, gt, dl=dl, alg='kmeans', clstby='bysize')
+	model = Clustermodel(em, gt, dl=dl, alg='kmeans', clstby='bydist')
 	model.run()
 
 

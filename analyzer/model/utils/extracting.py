@@ -100,30 +100,35 @@ def compute_intentsity(vol, gt, mode='3d'):
 	return (labels, intns)
 
 
-def compute_dist_graph(gt, mode='3d'):
+def compute_dist_graph(vol, dprc='full', fns=None, mode='3d'):
 	'''
 	This function computes a graph matrix that represents the distances from each segment to all others.
-	:param gt: volume (np.array) that contains the groundtruth. (2d || 3d)
-
+	:param vol: volume (np.array) that contains the groundtruth mask (= labels). (2d || 3d)
+	:param dprc: (string) data processing mode that sets how your data should be threated down the pipe.
 	:returns: (np.array) (N x N) matrix gives you the feature vector--> N: number of segments
 	'''
-	#dist = numpy.linalg.norm(a-b)
-	if mode == '2d':
-		raise NotImplementedError('no 2d mode in this function yet.')
-	else:
-		if gt.ndim <= 2:
+	result_dict = {}
+	if dprc == 'full':
+		if vol.ndim <= 2:
 			raise ValueError('Volume is lacking on dimensionality(at least 3d): {}'.format(vol.shape))
 
-		labels, num_label = label(gt, return_num=True)
-		regions = regionprops(labels, cache=False)
+		regions = regionprops(vol, cache=False)
+		labels = []
 		centerpts = []
 		for props in regions:
+			labels.append(props.label)
 			centerpts.append(props.centroid)
 
 		centerpts = np.array(centerpts, dtype=np.int16)
 		dist_m = distance.cdist(centerpts, centerpts, 'euclidean')
 
-	return dist_m
+		for idx in range(len(labels)):
+			result_dict[labels[idx]] = dist_m[idx]
+
+	if dprc == 'iter':
+		raise NotImplementedError('no iter option yet.')
+
+	return (result_dict)
 
 
 ### HELPER SECTION ###
