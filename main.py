@@ -32,11 +32,11 @@ def main():
 	print(args)
 
 	# configurations
-    cfg = get_cfg_defaults()
-    cfg.merge_from_file(args.cfg)
-    cfg.freeze()
-    print("Configuration details:")
-    print(cfg)
+	cfg = get_cfg_defaults()
+	cfg.merge_from_file(args.cfg)
+	cfg.freeze()
+	print("Configuration details:")
+	print(cfg)
 
 
 	if args.mode == "autoencoder":
