@@ -32,8 +32,8 @@ def main():
 	em, gt = dl.load_chunk(vol='both')
 
 	fex = FeatureExtractor(em, gt)
-	fex.get_seg_size()
-	
+	fex.compute_seg_size()
+
 	if args.mode == "autoencoder":
 		dl.extract_scale_mitos(chunk_size=12)
 		exit()

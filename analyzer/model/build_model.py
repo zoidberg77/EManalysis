@@ -2,7 +2,7 @@ import os, sys
 import numpy as np
 from skimage.measure import label
 from sklearn.cluster import KMeans, AffinityPropagation, SpectralClustering, DBSCAN
-from analyzer.model.utils.extracting import compute_regions, compute_intentsity, compute_dist_graph
+from analyzer.model.utils.extracting import compute_region_size, compute_intentsity, compute_dist_graph
 from analyzer.model.utils.superpixel import superpixel_segment, superpixel_image, texture_analysis
 from analyzer.model.utils.helper import convert_to_sparse, recompute_from_res, convert_dict_mtx
 from analyzer.data.data_vis import visvol, vissegments
@@ -65,6 +65,12 @@ class Clustermodel():
 			raise ValueError('Please enter a valid path to the folder where the feature vectors are stored.')
 
 		print(fpath)
+
+	def stack_features(self):
+		'''
+		This function takes different features and stacks them togehter for further clustering.
+		'''
+		raise NotImplementedError
 
 
 	def run(self):

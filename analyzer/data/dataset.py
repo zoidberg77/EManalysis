@@ -124,7 +124,6 @@ class Dataloader():
         :returns: (dict) of (np.array) objects that contain the segments with labels as keys.
         '''
         bbox_dict = {}
-
         mask = np.zeros(shape=vol.shape, dtype=np.uint16)
         mask[labels > 0] = 1
         vol[mask == 0] = 0
@@ -145,7 +144,6 @@ class Dataloader():
                             tmparr = image[boundbox[0]:boundbox[2], boundbox[1]:boundbox[3]]
                         else:
                             tmparr = image[(boundbox[0] - os):(boundbox[2] + os), (boundbox[1] - os):(boundbox[3] + os)]
-
                         bbox_list.append(tmparr)
 
             bbox_dict = {i: bbox_list[i] for i in range(len(bbox_list))}
@@ -158,7 +156,6 @@ class Dataloader():
 
             for props in regions:
                 boundbox = props.bbox
-
                 if ((boundbox[1] - os) < 0) or ((boundbox[4] + os) > vol.shape[1]) or ((boundbox[2] - os) < 0) or (
                         (boundbox[5] + os) > vol.shape[2]):
                     tmparr = vol[boundbox[0]:boundbox[3], boundbox[1]:boundbox[4], boundbox[2]:boundbox[5]]
@@ -242,7 +239,6 @@ class Dataloader():
         :param region: (dict) one region object provided by Dataloader.prep_data_info
         :returns result: (numpy.array) a numpy array with the target dimensions and the mitochondria in it
         '''
-
         all_fn = sorted(glob.glob(self.gtpath + '*.' + self.ff))
         target = tio.ScalarImage(tensor=torch.rand(self.scale_output))
         fns = [all_fn[id] for id in region['slices']]
@@ -250,6 +246,7 @@ class Dataloader():
         mask = np.zeros(shape=first_image_slice.shape, dtype=np.uint16)
         mask[first_image_slice == region['id']] = 1
         volume = mask
+
         for fn in fns[1:]:
             image_slice = imageio.imread(fn)
             mask = np.zeros(shape=image_slice.shape, dtype=np.uint16)
@@ -285,7 +282,6 @@ class Dataloader():
             mode = 'a'
 
         dset = None
-
         with h5py.File(self.gtpath + self.mito_volume_file_name, mode) as f:
             if mode == 'w':
                 dset = f.create_dataset(self.mito_volume_dataset_name, (len(regions), self.scale_output[0], self.scale_output[1], self.scale_output[2], self.scale_output[3]),

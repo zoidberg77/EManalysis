@@ -6,7 +6,7 @@ from skimage.measure import label, regionprops
 from scipy.spatial import distance
 from analyzer.data.data_vis import visvol
 
-def compute_regions(vol, dprc='full', fns=None, mode='3d'):
+def compute_region_size(vol, dprc='full', fns=None, mode='3d'):
 	'''
 	Compute the region properties of the groundtruth labels.
 

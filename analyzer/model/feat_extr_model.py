@@ -3,7 +3,7 @@ import numpy as np
 import json
 from numpyencoder import NumpyEncoder
 
-from analyzer.model.utils.extracting import compute_regions, compute_intentsity, compute_dist_graph
+from analyzer.model.utils.extracting import compute_region_size, compute_intentsity, compute_dist_graph
 
 class FeatureExtractor():
 	'''
@@ -22,13 +22,26 @@ class FeatureExtractor():
 		self.mode = mode
 		self.fpath = fpath
 
-	def get_seg_size(self, save=True):
+	def compute_seg_size(self):
 		'''
 		Extract the size of each mitochondria segment.
-		:param save: (bool) if true you save the extracted features to a .json file and store it for further clustering.
+		:returns result_dict: (dict) where the label is the key and the size of the segment is the corresponding value.
 		'''
-		result_dict = compute_regions(self.gtvol, fns=self.fns, dprc=self.dprc, mode=self.mode)
-		if save:
-			with open(os.path.join(self.fpath, 'sizef.json'), 'w') as f:
-				json.dump(result_dict, f, cls=NumpyEncoder)
-				f.close()
+		return compute_region_size(self.gtvol, fns=self.fns, dprc=self.dprc, mode=self.mode)
+
+	def compute_seg_dist(self):
+		'''
+		Compute the distances of mitochondria to each other and extract it as a graph matrix.
+		:returns
+		'''
+		raise NotImplementedError
+
+	def save_feat_dict(self, rsl_dict, filen='feature_vector.json'):
+		'''
+		Saving dict that contains the features to the designated folder.
+		:param rsl_dict: (dict) that contains features.
+		:param filen: (string) filename.
+		'''
+		with open(os.path.join(self.fpath, filen), 'w') as f:
+			json.dump(rsl_dict, f, cls=NumpyEncoder)
+			f.close()
