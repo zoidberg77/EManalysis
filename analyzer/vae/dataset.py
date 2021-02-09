@@ -14,9 +14,11 @@ import analyzer.data
 
 
 class MitoDataset:
-    def __init__(self, gt_path, em_path, mito_volume_file_name="features/mito.h5",
+    def __init__(self, em_path, gt_path, mito_volume_file_name="features/mito.h5",
                  mito_volume_dataset_name="mito_volumes",
-                 target_size=(1, 64, 64, 64), lower_limit=10, upper_limit=200, chunks_per_cpu=2, ff="png"):
+                 target_size=(1, 64, 64, 64), lower_limit=100, upper_limit=100000, chunks_per_cpu=2, ff="png",
+                 region_limit=None):
+        self.region_limit = region_limit
         self.chunks_per_cpu = chunks_per_cpu
         self.upper_limit = upper_limit
         self.lower_limit = lower_limit
@@ -74,11 +76,11 @@ class MitoDataset:
                       mito_region.bbox[1]:mito_region.bbox[4] + 1,
                       mito_region.bbox[2]:mito_region.bbox[5] + 1].astype(np.float32)
         mito_volume = np.expand_dims(mito_volume, 0)
+        if self.lower_limit > mito_volume.sum() > self.upper_limit:
+            return None
 
         transform = tio.Resample(target=target, image_interpolation='nearest')
         transformed_mito = transform(mito_volume)
-        if self.lower_limit > transformed_mito.sum() > self.upper_limit:
-            return None
 
         return transformed_mito
 
@@ -86,6 +88,8 @@ class MitoDataset:
                             cpus=multiprocessing.cpu_count()):
         dl = analyzer.data.Dataloader(gtpath=self.gt_path, volpath=self.em_path)
         regions = dl.prep_data_info()
+        if self.region_limit is not None:
+            regions = regions[:self.region_limit]
         print("{} mitochondira found in the ground truth".format(len(regions)))
         mode = 'w'
         start = 0
@@ -108,8 +112,11 @@ class MitoDataset:
                         break
 
             with multiprocessing.Pool(processes=cpus) as pool:
+                mito_counter = 0
                 for i in tqdm(range(start, len(regions), cpus * self.chunks_per_cpu)):
                     results = pool.map(self.get_mito_volume, regions[i:i + cpus * self.chunks_per_cpu])
                     for j, result in enumerate(results):
                         if result is not None:
                             dset[i + j] = result
+                            mito_counter += 1
+                        print()

@@ -1,9 +1,10 @@
-import os, sys
+import sys
 import argparse
 
 from analyzer.data import Dataloader
 from analyzer.model import Clustermodel
 from analyzer.model import FeatureExtractor
+from analyzer.vae.dataset import MitoDataset
 
 # RUN THE SCRIPT LIKE: $ python main.py --em datasets/human/human_em_export_8nm/ --gt datasets/human/human_gt_export_8nm/
 
@@ -28,15 +29,15 @@ def main():
 	print("Command line arguments:")
 	print(args)
 
-	dl = Dataloader(args.em, args.gt, chunk_size=(2,4096,4096), mito_slice_limit=40)
+	if args.mode == "autoencoder":
+		dataset = MitoDataset(args.em, args.gt)
+		exit()
+
+	dl = Dataloader(args.em, args.gt, chunk_size=(2, 4096, 4096))
 	em, gt = dl.load_chunk(vol='both')
 
 	fex = FeatureExtractor(em, gt)
 	fex.compute_seg_size()
-
-	if args.mode == "autoencoder":
-		dl.extract_scale_mitos(chunk_size=12)
-		exit()
 
 	model = Clustermodel(em, gt, dl=dl, alg='kmeans', clstby='bydist')
 	model.run()
