@@ -119,4 +119,4 @@ class MitoDataset:
                         if result is not None:
                             dset[i + j] = result
                             mito_counter += 1
-                        print()
+                        print("{} mitos of {}".format(mito_counter, len(regions)))
