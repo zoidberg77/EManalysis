@@ -1,19 +1,12 @@
-import math
-
-import h5py
-import numpy as np
-import os, sys
 import glob
-import imageio
 import multiprocessing
-from skimage.measure import label, regionprops
-from tqdm import tqdm
+import os
 
-from analyzer.data.data_vis import visvol
+import imageio
+import numpy as np
+from skimage.measure import label, regionprops
+
 from analyzer.data.data_raw import readvol, folder2Vol
-import torch
-import torchio as tio
-from scipy.ndimage import affine_transform
 
 
 class Dataloader():
@@ -35,11 +28,7 @@ class Dataloader():
                  volume=None,
                  label=None,
                  chunk_size=(100, 4096, 4096),
-                 mode='3d', ff='png',
-                 mito_slice_limit=5000,
-                 scale_output=(1,64,64,64),
-                 mito_volume_file_name="mito.h5",
-                 mito_volume_dataset_name="mito_volumes"
+                 mode='3d', ff='png'
                  ):
         if volume is not None:
             pass
@@ -56,27 +45,6 @@ class Dataloader():
         self.chunk_size = chunk_size
         self.mode = mode
         self.ff = ff
-        self.mito_slice_limit = mito_slice_limit
-        self.scale_output = scale_output
-        self.mito_volume_file_name = mito_volume_file_name
-        self.mito_volume_dataset_name = mito_volume_dataset_name
-
-    def __len__(self):
-        '''
-        Required by torch to return the length of the dataset.
-        :returns: integer
-        '''
-        with h5py.File(self.gtpath + self.mito_volume_file_name, 'r') as f:
-            return f[self.mito_volume_dataset_name].shape[0]
-
-    def __getitem__(self, idx):
-        '''
-        Required by torch to return one item of the dataset.
-        :param idx: index of the object
-        :returns: object from the volume
-        '''
-        with h5py.File(self.gtpath + self.mito_volume_file_name, 'r') as f:
-            return f[self.mito_volume_dataset_name][idx]
 
     def load_chunk(self, vol='both'):
         '''
@@ -202,12 +170,11 @@ class Dataloader():
 
         result_array = []
         for result in added.keys():
-            if self.mito_slice_limit > len(added[result][1]) > 1:
-                result_array.append({
-                    'id': result,
-                    'size': added[result][0],
-                    'slices': added[result][1]
-                })
+            result_array.append({
+                'id': result,
+                'size': added[result][0],
+                'slices': added[result][1]
+            })
 
         return (result_array)
 
@@ -232,71 +199,3 @@ class Dataloader():
                 result[labels[l]].append(idx)
 
         return result
-
-    def get_mito_volume(self, region):
-        '''
-        Preprocessing function to extract and scale the mitochondria as volume
-        :param region: (dict) one region object provided by Dataloader.prep_data_info
-        :returns result: (numpy.array) a numpy array with the target dimensions and the mitochondria in it
-        '''
-        all_fn = sorted(glob.glob(self.gtpath + '*.' + self.ff))
-        target = tio.ScalarImage(tensor=torch.rand(self.scale_output))
-        fns = [all_fn[id] for id in region['slices']]
-        first_image_slice = imageio.imread(fns[0])
-        mask = np.zeros(shape=first_image_slice.shape, dtype=np.uint16)
-        mask[first_image_slice == region['id']] = 1
-        volume = mask
-
-        for fn in fns[1:]:
-            image_slice = imageio.imread(fn)
-            mask = np.zeros(shape=image_slice.shape, dtype=np.uint16)
-            mask[image_slice == region['id']] = 1
-            volume = np.dstack((volume, mask))
-        volume = np.moveaxis(volume, -1, 0)
-
-        mito_regions = regionprops(volume, cache=False)
-        if len(mito_regions) != 1:
-            print("something went wrong during volume building. region count: {}".format(len(mito_regions)))
-
-        mito_region = mito_regions[0]
-        mito_volume = volume[mito_region.bbox[0]:mito_region.bbox[3] + 1,
-                      mito_region.bbox[1]:mito_region.bbox[4] + 1,
-                      mito_region.bbox[2]:mito_region.bbox[5] + 1].astype(np.float32)
-        mito_volume = np.expand_dims(mito_volume, 0)
-
-        transform = tio.Resample(target=target, image_interpolation='nearest')
-        transformed_mito = transform(mito_volume)
-        if transformed_mito.sum() <= 1:
-            return None
-
-        return transformed_mito
-
-
-    def extract_scale_mitos(self,
-                            cpus=multiprocessing.cpu_count(), chunk_size=200):
-        regions = self.prep_data_info()
-        print("{} mitochondira found, within slice limit {}".format(len(regions), self.mito_slice_limit))
-        mode = 'w'
-        start = 0
-        if os.path.exists(self.gtpath + self.mito_volume_file_name):
-            mode = 'a'
-
-        dset = None
-        with h5py.File(self.gtpath + self.mito_volume_file_name, mode) as f:
-            if mode == 'w':
-                dset = f.create_dataset(self.mito_volume_dataset_name, (len(regions), self.scale_output[0], self.scale_output[1], self.scale_output[2], self.scale_output[3]),
-                                        maxshape=(None, self.scale_output[0], self.scale_output[1], self.scale_output[2], self.scale_output[3]))
-            else:
-                dset = f[self.mito_volume_dataset_name]
-                for i, mito in enumerate(dset):
-                    if np.max(mito) == 0:
-                        start = i
-                        print('found file with {} volumes in it'.format(i))
-                        break
-
-            with multiprocessing.Pool(processes=cpus) as pool:
-                    for i in tqdm(range(start,len(regions),chunk_size)):
-                        results = pool.map(self.get_mito_volume, regions[i:i+chunk_size])
-                        for j, result in enumerate(results):
-                            if result is not None:
-                                dset[i+j] = result
