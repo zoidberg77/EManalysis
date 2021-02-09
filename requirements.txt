@@ -12,3 +12,4 @@ opencv-python
 torchio
 numpyencoder
 tensorboardX
+yacs
