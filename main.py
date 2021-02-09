@@ -31,6 +31,7 @@ def main():
 
 	if args.mode == "autoencoder":
 		dataset = MitoDataset(args.em, args.gt)
+		dataset.get_mito_volume()
 		exit()
 
 	dl = Dataloader(args.em, args.gt, chunk_size=(2, 4096, 4096))
