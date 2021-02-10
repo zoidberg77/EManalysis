@@ -139,10 +139,21 @@ def compute_dist_graph(vol, dprc='full', fns=None, mode='3d'):
 		for idx in range(len(labels)):
 			result_dict[labels[idx]] = dist_m[idx]
 
+		result_array = []
+		for result in result_dict.keys():
+			result_array.append({
+				'id': result,
+				'dist': result_dict[result],
+			})
+
 	if dprc == 'iter':
 		raise NotImplementedError('no iter option yet.')
 
-	return (result_dict)
+		#if
+		#with multiprocessing.Pool(processes=cpus) as pool:
+			#print("test")
+
+	return (result_array)
 
 
 ### HELPER SECTION ###

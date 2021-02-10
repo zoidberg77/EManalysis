@@ -1,5 +1,6 @@
 import os, sys
 import numpy as np
+import pandas as pd
 from skimage.measure import label
 from sklearn.cluster import KMeans, AffinityPropagation, SpectralClustering, DBSCAN
 from analyzer.model.utils.extracting import compute_region_size, compute_intentsity, compute_dist_graph
@@ -76,15 +77,12 @@ class Clustermodel():
 	def run(self):
 		if self.clstby == 'bysize':
 			# RUN the clustering by size parameters.
-			rst_dict = compute_region_size(self.gtvol, mode=self.mode)
-			labels, areas = convert_dict_mtx(rst_dict)
+			rst = compute_region_size(self.gtvol, mode=self.mode)
+			labels, areas = convert_dict_mtx(rst, 'size')
+			res_labels = self.model.fit_predict(np.array(areas).reshape(-1,1))
+			#res_labels = self.model.fit_predict(pd.DataFrame(rst))
 
-			res_labels = self.model.fit_predict(areas.reshape(-1,1))
 			labeled = recompute_from_res(self.gtvol, labels, res_labels, mode=self.mode)
-
-			clmeans = clusteravg(areas, res_labels)
-			print('means: ', clmeans)
-
 			for k in range(labeled.shape[0]):
 				visvol(self.emvol[k], labeled[k])
 
@@ -108,12 +106,9 @@ class Clustermodel():
 
 		elif self.clstby == 'bydist':
 			# RUN the clustering by distance graph parameters.
-
-			#test = self.dl.prep_data_info()
-			#print(test)
-
-			rst_dict = compute_dist_graph(self.gtvol, mode=self.mode)
-			labels, dist_m = convert_dict_mtx(rst_dict)
+			rst = compute_dist_graph(self.gtvol, mode=self.mode)
+			labels = [seg['id'] for seg in rst]
+			dist_m = np.vstack([seg['dist'] for seg in rst])
 
 			res_labels = self.model.fit_predict(dist_m)
 			labeled = recompute_from_res(self.gtvol, labels, res_labels, mode=self.mode)

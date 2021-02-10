@@ -69,15 +69,23 @@ def recompute_from_res(vol, labels, result, dprc='full', mode='3d'):
 
 	return cld_labels
 
-def convert_dict_mtx(input):
+def convert_dict_mtx(input, valn):
 	'''
 	This function converts a dict with labels as keys and values to 2 separate matrices that represent
 	feature vectors/matrix and labels vector.
-	:param input: (dict)
+	:param input: (dict) or (list)
+	:param valn: (string) name of value parameter in dict.
 	:returns labels: (np.array) same shape as volume with all the labels.
 	:returns values: (np.array) is a vetor that contains the corresponding values for every label.
 	'''
-	labels, values = zip(* input.items())
-	labels = np.array(labels, dtype=np.uint16)
-	values = np.array(values, dtype=np.uint16)
+	if (type(input) is list):
+		labels = [seg['id'] for seg in input]
+		values = [seg[valn] for seg in input]
+	elif (type(input) is dict):
+		labels, values = zip(* input.items())
+		labels = np.array(labels, dtype=np.uint16)
+		values = np.array(values, dtype=np.uint16)
+	else:
+		raise TypeError('input type {} can not be processed.'.format(type(input)))
+
 	return (labels, values)

@@ -39,7 +39,6 @@ def main():
 		print("Configuration details:")
 		print(cfg)
 
-
 	if args.mode == "autoencoder":
 		dataset = MitoDataset(args.em, args.gt, region_limit=1000)
 		dataset.extract_scale_mitos()
@@ -52,7 +51,7 @@ def main():
 	tmp = fex.compute_seg_size()
 	fex.save_feat_dict(tmp, 'sizef.json')
 
-	model = Clustermodel(em, gt, dl=dl, alg='kmeans', clstby='bydist')
+	model = Clustermodel(em, gt, dl=dl, alg='kmeans', clstby='bysize')
 	model.run()
 
 
