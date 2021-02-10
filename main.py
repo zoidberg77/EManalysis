@@ -1,7 +1,7 @@
-import sys
+import os, sys
 import argparse
 
-from analyzer.config import get_cfg_defaults, save_all_cfg, update_inference_cfg
+from analyzer.config import get_cfg_defaults
 from analyzer.data import Dataloader
 from analyzer.model import Clustermodel
 from analyzer.model import FeatureExtractor
@@ -32,11 +32,12 @@ def main():
 	print(args)
 
 	# configurations
-	cfg = get_cfg_defaults()
-	cfg.merge_from_file(args.cfg)
-	cfg.freeze()
-	print("Configuration details:")
-	print(cfg)
+	if args.cfg is not None:
+		cfg = get_cfg_defaults()
+		cfg.merge_from_file(args.cfg)
+		cfg.freeze()
+		print("Configuration details:")
+		print(cfg)
 
 
 	if args.mode == "autoencoder":

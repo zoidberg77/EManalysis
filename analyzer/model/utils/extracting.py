@@ -15,7 +15,7 @@ def compute_region_size(vol, dprc='full', fns=None, mode='3d'):
 	:param fns: (list) list of filenames that should be used for iterating over.
 	:param mode: (string)
 
-	:returns result_dict: (dict) where the label is the key and the size of the segment is the corresponding value.
+	:returns result_array: (np.array) which contains (dicts) where the label is the key and the size of the segment is the corresponding value.
 	'''
 	result_dict = {}
 
@@ -53,6 +53,13 @@ def compute_region_size(vol, dprc='full', fns=None, mode='3d'):
 				area = props.area
 				result_dict[try_label] = area
 
+			result_array = []
+			for result in result_dict.keys():
+				result_array.append({
+					'id': result,
+					'size': result_dict[result],
+				})
+
 	if dprc == 'iter':
 		with multiprocessing.Pool(processes=kernel_n) as pool:
 			tmp = pool.starmap(self.calc_props, enumerate(fns))
@@ -65,7 +72,14 @@ def compute_region_size(vol, dprc='full', fns=None, mode='3d'):
 					result_dict.setdefault(key, [])
 					result_dict[key].append(value[0])
 
-	return (result_dict)
+		result_array = []
+		for result in result_dict.keys():
+			result_array.append({
+				'id': result,
+				'size': result_dict[result],
+			})
+
+	return (result_array)
 
 
 def compute_intentsity(vol, gt, mode='3d'):

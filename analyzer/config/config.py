@@ -16,17 +16,17 @@ _C.SYSTEM.NUM_CPUS = 4
 # -----------------------------------------------------------------------------
 _C.AUTOENCODER = CN()
 _C.AUTOENCODER.ARCHITECTURE = 'vae_3d'
-_C.REGION_LIMIT = ''
-_C.CHUNKS_CPU = 4
-_C.UPPER_BOUND = 0
-_C.LOWER_BOUND = 100
-_C.TARGET = [1, 64, 64, 64]
+_C.AUTOENCODER.REGION_LIMIT = ''
+_C.AUTOENCODER.CHUNKS_CPU = 4
+_C.AUTOENCODER.UPPER_BOUND = 0
+_C.AUTOENCODER.LOWER_BOUND = 100
+_C.AUTOENCODER.TARGET = [1, 64, 64, 64]
 # -----------------------------------------------------------------------------
 # Dataset
 # -----------------------------------------------------------------------------
 _C.DATASET = CN()
-_C.EM_PATH = ''
-_C.LABEL_PATH = ''
+_C.DATASET.EM_PATH = ''
+_C.DATASET.LABEL_PATH = ''
 # -----------------------------------------------------------------------------
 # Feature Extration
 # -----------------------------------------------------------------------------
