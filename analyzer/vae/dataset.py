@@ -75,8 +75,8 @@ class MitoDataset:
 
             with multiprocessing.Pool(processes=cpus) as pool:
                 mito_counter = 0
-                for i in tqdm(range(start, len(regions), cpus * self.chunks_per_cpu)):
-                    results = pool.map(self.get_mito_volume, regions[i:i + cpus * self.chunks_per_cpu])
+                for i in tqdm(range(start, len(regions), int(cpus * self.chunks_per_cpu))):
+                    results = pool.map(self.get_mito_volume, regions[i:i + int(cpus * self.chunks_per_cpu)])
                     for j, result in enumerate(results):
                         if result is not None:
                             dset[i + j] = result
