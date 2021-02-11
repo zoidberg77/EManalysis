@@ -16,3 +16,4 @@ notebooks/analyzer
 .h5
 
 .vscode
+configs/vae.yaml

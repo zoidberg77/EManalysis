@@ -5,6 +5,7 @@ import os
 import h5py
 import imageio
 import numpy as np
+import pandas as pd
 from skimage.measure import regionprops
 from skimage.transform import resize
 from tqdm import tqdm
@@ -49,9 +50,14 @@ class MitoDataset:
     def extract_scale_mitos(self):
         dl = analyzer.data.Dataloader(gtpath=self.gt_path, volpath=self.em_path)
         regions = dl.prep_data_info()
+        print("{} objects found in the ground truth".format(len(regions)))
+        regions = pd.DataFrame(regions)
+        regions = regions[(self.upper_limit > regions['size']) & (self.lower_limit < regions['size'])]
+        filtered_length = len(regions)
+        print("{} within limits {} and {}".format(filtered_length, self.lower_limit, self.upper_limit))
         if self.region_limit is not None:
             regions = regions[:self.region_limit]
-        print("{} mitochondira found in the ground truth".format(len(regions)))
+            print("{} will be extracted due to set region_limit".format(self.region_limit))
         mode = 'w'
         start = 0
         if os.path.exists(self.mito_volume_file_name):
@@ -73,15 +79,10 @@ class MitoDataset:
                         break
 
             with multiprocessing.Pool(processes=self.cpus) as pool:
-                mito_counter = 0
                 for i in tqdm(range(start, len(regions), int(self.cpus * self.chunks_per_cpu))):
                     results = pool.map(self.get_mito_volume, regions[i:i + int(self.cpus * self.chunks_per_cpu)])
                     for j, result in enumerate(results):
-                        if result is not None:
-                            dset[mito_counter] = result
-                            mito_counter += 1
-                dset.resize(size=(mito_counter, 1, self.target_size[0], self.target_size[1], self.target_size[2]))
-                print("{} mitos of {}".format(mito_counter, len(regions)))
+                        dset[i + j] = result
 
     def get_mito_volume(self, region):
         '''
@@ -108,8 +109,6 @@ class MitoDataset:
             print("something went wrong during volume building. region count: {}".format(len(mito_regions)))
 
         mito_region = mito_regions[0]
-        if self.lower_limit > mito_region.area > self.upper_limit:
-            return None
 
         mito_volume = volume[mito_region.bbox[0]:mito_region.bbox[3] + 1,
                       mito_region.bbox[1]:mito_region.bbox[4] + 1,
