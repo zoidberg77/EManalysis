@@ -1,9 +1,9 @@
 SYSTEM:
-  NUM_CPUS: 8
+  NUM_CPUS: 4
 AUTOENCODER:
   ARCHITECTURE: 'vae_3d'
-  REGION_LIMIT: None
-  CHUNKS_CPU: 4
+  REGION_LIMIT: 10
+  CHUNKS_CPU: 1
   UPPER_BOUND: 100000
   LOWER_BOUND: 100
   TARGET: (128, 128, 128)
@@ -11,6 +11,6 @@ AUTOENCODER:
   DATASET_NAME: 'mito_volumes'
 
 DATASET:
-  EM_PATH: 'datasets/human/human_em_export_8nm/'
-  LABEL_PATH: 'datasets/human/human_gt_export_8nm/'
+  EM_PATH: 'datasets/r_em/'
+  LABEL_PATH: 'datasets/r_gt/'
   FILE_FORMAT: 'png'

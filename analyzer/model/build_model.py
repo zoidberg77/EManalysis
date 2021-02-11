@@ -58,7 +58,7 @@ class Clustermodel():
 
 		return model
 
-	def load_features(self, fpath=os.path.join(os.path.dirname(os.path.abspath(sys.modules['__main__'].__file__)), 'features/')):
+	def load_features(self, fpath='features/'):
 		'''
 		This function will load different features vectors that were extracted and saved to be used for clustering.
 		'''

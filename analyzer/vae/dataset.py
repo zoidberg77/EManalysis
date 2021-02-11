@@ -5,9 +5,8 @@ import os
 import h5py
 import imageio
 import numpy as np
-import torch
-import torchio as tio
 from skimage.measure import regionprops
+from skimage.transform import resize
 from tqdm import tqdm
 
 import analyzer.data
@@ -16,8 +15,8 @@ import analyzer.data
 class MitoDataset:
     def __init__(self, em_path, gt_path, mito_volume_file_name="features/mito.h5",
                  mito_volume_dataset_name="mito_volumes",
-                 target_size=(1, 128, 128, 128), lower_limit=1000, upper_limit=100000, chunks_per_cpu=4, ff="png",
-                 region_limit=None):
+                 target_size=(64, 64, 64), lower_limit=1000, upper_limit=100000, chunks_per_cpu=4, ff="png",
+                 region_limit=None, cpus=multiprocessing.cpu_count()):
         self.region_limit = region_limit
         self.chunks_per_cpu = chunks_per_cpu
         self.upper_limit = upper_limit
@@ -28,6 +27,7 @@ class MitoDataset:
         self.em_path = em_path
         self.target_size = target_size
         self.ff = ff
+        self.cpus = cpus
 
     def __len__(self):
         '''
@@ -46,8 +46,7 @@ class MitoDataset:
         with h5py.File(self.mito_volume_file_name, 'r') as f:
             return f[self.mito_volume_dataset_name][idx]
 
-    def extract_scale_mitos(self,
-                            cpus=multiprocessing.cpu_count()):
+    def extract_scale_mitos(self):
         dl = analyzer.data.Dataloader(gtpath=self.gt_path, volpath=self.em_path)
         regions = dl.prep_data_info()
         if self.region_limit is not None:
@@ -62,9 +61,9 @@ class MitoDataset:
         with h5py.File(self.mito_volume_file_name, mode) as f:
             if mode == 'w':
                 dset = f.create_dataset(self.mito_volume_dataset_name, (
-                    len(regions), self.target_size[0], self.target_size[1], self.target_size[2], self.target_size[3]),
-                                        maxshape=(None, self.target_size[0], self.target_size[1], self.target_size[2],
-                                                  self.target_size[3]))
+                    len(regions), 1, self.target_size[0], self.target_size[1], self.target_size[2]),
+                                        maxshape=(None, 1, self.target_size[0], self.target_size[1],
+                                                  self.target_size[2]))
             else:
                 dset = f[self.mito_volume_dataset_name]
                 for i, mito in enumerate(dset):
@@ -73,15 +72,16 @@ class MitoDataset:
                         print('found file with {} volumes in it'.format(i))
                         break
 
-            with multiprocessing.Pool(processes=cpus) as pool:
+            with multiprocessing.Pool(processes=self.cpus) as pool:
                 mito_counter = 0
-                for i in tqdm(range(start, len(regions), int(cpus * self.chunks_per_cpu))):
-                    results = pool.map(self.get_mito_volume, regions[i:i + int(cpus * self.chunks_per_cpu)])
+                for i in tqdm(range(start, len(regions), int(self.cpus * self.chunks_per_cpu))):
+                    results = pool.map(self.get_mito_volume, regions[i:i + int(self.cpus * self.chunks_per_cpu)])
                     for j, result in enumerate(results):
                         if result is not None:
-                            dset[i + j] = result
+                            dset[mito_counter] = result
                             mito_counter += 1
-                        print("{} mitos of {}".format(mito_counter, len(regions)))
+                dset.resize(size=(mito_counter, 1, self.target_size[0], self.target_size[1], self.target_size[2]))
+                print("{} mitos of {}".format(mito_counter, len(regions)))
 
     def get_mito_volume(self, region):
         '''
@@ -90,7 +90,6 @@ class MitoDataset:
         :returns result: (numpy.array) a numpy array with the target dimensions and the mitochondria in it
         '''
         all_fn = sorted(glob.glob(self.gt_path + '*.' + self.ff))
-        target = tio.ScalarImage(tensor=torch.rand(self.target_size))
         fns = [all_fn[id] for id in region['slices']]
         first_image_slice = imageio.imread(fns[0])
         mask = np.zeros(shape=first_image_slice.shape, dtype=np.uint16)
@@ -115,10 +114,8 @@ class MitoDataset:
         mito_volume = volume[mito_region.bbox[0]:mito_region.bbox[3] + 1,
                       mito_region.bbox[1]:mito_region.bbox[4] + 1,
                       mito_region.bbox[2]:mito_region.bbox[5] + 1].astype(np.float32)
-        mito_volume = np.expand_dims(mito_volume, 0)
 
+        scaled_mito = resize(mito_volume, self.target_size)
+        scaled_mito = np.expand_dims(scaled_mito, 0)
 
-        transform = tio.Resample(target=target, image_interpolation='nearest')
-        transformed_mito = transform(mito_volume)
-
-        return transformed_mito
+        return scaled_mito

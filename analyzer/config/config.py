@@ -16,17 +16,21 @@ _C.SYSTEM.NUM_CPUS = 4
 # -----------------------------------------------------------------------------
 _C.AUTOENCODER = CN()
 _C.AUTOENCODER.ARCHITECTURE = 'vae_3d'
-_C.AUTOENCODER.REGION_LIMIT = ''
+_C.AUTOENCODER.REGION_LIMIT = None
 _C.AUTOENCODER.CHUNKS_CPU = 4
 _C.AUTOENCODER.UPPER_BOUND = 0
-_C.AUTOENCODER.LOWER_BOUND = 100
-_C.AUTOENCODER.TARGET = [1, 64, 64, 64]
+_C.AUTOENCODER.LOWER_BOUND = 100000000
+_C.AUTOENCODER.TARGET = [64, 64, 64]
+_C.AUTOENCODER.OUPUT_FILE_VOLUMES = 'features/mito.h5'
+_C.AUTOENCODER.DATASET_NAME = 'mito_volumes'
 # -----------------------------------------------------------------------------
 # Dataset
 # -----------------------------------------------------------------------------
 _C.DATASET = CN()
 _C.DATASET.EM_PATH = ''
 _C.DATASET.LABEL_PATH = ''
+_C.DATASET.FILE_FORMAT = 'png'
+
 # -----------------------------------------------------------------------------
 # Feature Extration
 # -----------------------------------------------------------------------------
