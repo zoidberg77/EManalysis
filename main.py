@@ -1,4 +1,4 @@
-aimport os, sys
+import os, sys
 import argparse
 
 from analyzer.config import get_cfg_defaults
