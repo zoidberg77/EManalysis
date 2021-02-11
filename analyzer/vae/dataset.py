@@ -48,7 +48,7 @@ class MitoDataset:
             return f[self.mito_volume_dataset_name][idx]
 
     def extract_scale_mitos(self):
-        dl = analyzer.data.Dataloader(gtpath=self.gt_path, volpath=self.em_path)
+        dl = analyzer.data.Dataloader(gtpath=self.gt_path, volpath=self.em_path, ff=self.ff)
         regions = dl.prep_data_info()
         print("{} objects found in the ground truth".format(len(regions)))
         regions = pd.DataFrame(regions)
