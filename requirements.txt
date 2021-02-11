@@ -9,7 +9,6 @@ torchvision
 torchaudio
 tqdm
 opencv-python
-torchio
 numpyencoder
 tensorboardX
 yacs
