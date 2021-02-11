@@ -1,4 +1,4 @@
-import os
+import os, sys
 from yacs.config import CfgNode as CN
 
 # -----------------------------------------------------------------------------
@@ -11,6 +11,7 @@ _C = CN()
 _C.SYSTEM = CN()
 _C.SYSTEM.NUM_GPUS = 0
 _C.SYSTEM.NUM_CPUS = 4
+_C.SYSTEM.ROOT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # -----------------------------------------------------------------------------
 # Autoencoder
 # -----------------------------------------------------------------------------
@@ -30,6 +31,8 @@ _C.DATASET = CN()
 _C.DATASET.EM_PATH = ''
 _C.DATASET.LABEL_PATH = ''
 _C.DATASET.FILE_FORMAT = 'png'
+_C.DATASET.DATAINFO = 'features/info.json'
+_C.DATASET.SIZEF = ''
 
 # -----------------------------------------------------------------------------
 # Feature Extration

@@ -52,11 +52,11 @@ def main():
         dataset.extract_scale_mitos()
         exit()
 
-    dl = Dataloader(args.em, args.gt, chunk_size=(2, 4096, 4096))
+    dl = Dataloader(cfg, chunk_size=(2, 4096, 4096))
     em, gt = dl.load_chunk(vol='both')
 
     fex = FeatureExtractor(em, gt, args.em, args.gt, dprc='iter')
-    tmp = fex.compute_seg_dist()
+    #tmp = fex.compute_seg_dist()
     # print(tmp)
     # fex.save_feat_dict(tmp, 'sizef.json')
 

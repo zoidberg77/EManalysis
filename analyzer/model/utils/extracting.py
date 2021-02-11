@@ -188,7 +188,6 @@ def compute_dist_graph(vol, dprc='full', fns=None, mode='3d'):
 				'id': result,
 				'dist': result_dict[result][3],
 			})
-	#print(result_array)
 
 	return (result_array)
 
