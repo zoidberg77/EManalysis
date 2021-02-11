@@ -28,7 +28,7 @@ class Dataloader():
                  volume=None,
                  label=None,
                  chunk_size=(100, 4096, 4096),
-                 mode='3d', ff='png'
+                 mode='3d', ff='png', cpus=multiprocessing.cpu_count()
                  ):
         if volume is not None:
             pass
@@ -45,6 +45,7 @@ class Dataloader():
         self.chunk_size = chunk_size
         self.mode = mode
         self.ff = ff
+        self.cpus = cpus
 
     def load_chunk(self, vol='both'):
         '''
@@ -138,7 +139,7 @@ class Dataloader():
 
         return (bbox_dict)
 
-    def prep_data_info(self, volopt='gt', kernel_n=multiprocessing.cpu_count()):
+    def prep_data_info(self, volopt='gt'):
         '''
         This function aims as an inbetween function iterating over the whole dataset in efficient
         and memory proof fashion in order to preserve information that is needed for further steps.
@@ -154,7 +155,7 @@ class Dataloader():
         else:
             raise ValueError('Please enter the volume on which \'prep_data_info\' should run on.')
 
-        with multiprocessing.Pool(processes=kernel_n) as pool:
+        with multiprocessing.Pool(processes=self.cpus) as pool:
             result = pool.starmap(self.calc_props, enumerate(fns))
 
         added = {}
