@@ -49,7 +49,7 @@ def main():
 
 	fex = FeatureExtractor(em, gt, args.em, args.gt, dprc='iter')
 	tmp = fex.compute_seg_dist()
-	print(tmp)
+	#print(tmp)
 	#fex.save_feat_dict(tmp, 'sizef.json')
 
 	model = Clustermodel(em, gt, dl=dl, alg='kmeans', clstby='bysize')

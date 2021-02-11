@@ -165,17 +165,14 @@ def compute_dist_graph(vol, dprc='full', fns=None, mode='3d'):
 					result_dict[key].append([value[1]])
 					result_dict[key].append([value[2]])
 
-		labels = [seg['id'] for seg in result_dict]
+		labels = list(result_dict.keys())
 		centerpts = []
 		for key, value in result_dict.items():
 			pt = list(map(int, [sum(x) / len(x) for x in zip(*value[2])]))
 			tmp_z = 0.0
 			for i in range(len(value[0])):
 				tmp_z += (value[0][i] / sum(value[0])) * value[1][i]
-			#print('sum value[1]: ', sum(value[1]))
-			#print('test: ', tmp_z / len(value[1]))
 			z = int(tmp_z / len(value[1]))
-			#print('z: ', z)
 			pt.append(z)
 			centerpts.append(pt)
 
@@ -183,18 +180,16 @@ def compute_dist_graph(vol, dprc='full', fns=None, mode='3d'):
 		dist_m = distance.cdist(centerpts, centerpts, 'euclidean')
 
 		for idx in range(len(labels)):
-			#result_dict[labels[idx]] = dist_m[idx]
-			result_dict[labels[idx]].append(dist_m[idx])
+			result_dict[labels[idx]].append([dist_m[idx]])
 
 		result_array = []
 		for result in result_dict.keys():
 			result_array.append({
 				'id': result,
-				'dist': result_dict[result[3]],
+				'dist': result_dict[result][3],
 			})
+	#print(result_array)
 
-	#TODO: Test this shit.
-	
 	return (result_array)
 
 
