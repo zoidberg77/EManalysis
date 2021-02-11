@@ -13,3 +13,4 @@ torchio
 numpyencoder
 tensorboardX
 yacs
+pandas
