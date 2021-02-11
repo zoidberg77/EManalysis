@@ -47,9 +47,10 @@ def main():
 	dl = Dataloader(args.em, args.gt, chunk_size=(2, 4096, 4096))
 	em, gt = dl.load_chunk(vol='both')
 
-	fex = FeatureExtractor(em, gt)
-	tmp = fex.compute_seg_size()
-	fex.save_feat_dict(tmp, 'sizef.json')
+	fex = FeatureExtractor(em, gt, args.em, args.gt, dprc='iter')
+	tmp = fex.compute_seg_dist()
+	print(tmp)
+	#fex.save_feat_dict(tmp, 'sizef.json')
 
 	model = Clustermodel(em, gt, dl=dl, alg='kmeans', clstby='bysize')
 	model.run()

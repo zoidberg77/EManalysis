@@ -1,6 +1,9 @@
+import os, sys
 import json
-
 import numpy as np
+import multiprocessing
+import functools
+import imageio
 import matplotlib.pyplot as plt
 from skimage.measure import label, regionprops
 from scipy.spatial import distance
@@ -61,8 +64,8 @@ def compute_region_size(vol, dprc='full', fns=None, mode='3d'):
 				})
 
 	if dprc == 'iter':
-		with multiprocessing.Pool(processes=kernel_n) as pool:
-			tmp = pool.starmap(self.calc_props, enumerate(fns))
+		with multiprocessing.Pool(processes=multiprocessing.cpu_count()) as pool:
+			tmp = pool.starmap(functools.partial(calc_props, prop_list=['size']), enumerate(fns))
 
 		for dicts in tmp:
 			for key, value in dicts.items():
@@ -147,32 +150,88 @@ def compute_dist_graph(vol, dprc='full', fns=None, mode='3d'):
 			})
 
 	if dprc == 'iter':
-		raise NotImplementedError('no iter option yet.')
+		with multiprocessing.Pool(processes=multiprocessing.cpu_count()) as pool:
+			tmp = pool.starmap(functools.partial(calc_props, prop_list=['size', 'slices', 'centroid']), enumerate(fns))
 
-		#if
-		#with multiprocessing.Pool(processes=cpus) as pool:
-			#print("test")
+		for dicts in tmp:
+			for key, value in dicts.items():
+				if key in result_dict:
+					result_dict[key][0].append(value[0])
+					result_dict[key][1].append(value[1])
+					result_dict[key][2].append(value[2])
+				else:
+					result_dict.setdefault(key, [])
+					result_dict[key].append([value[0]])
+					result_dict[key].append([value[1]])
+					result_dict[key].append([value[2]])
 
+		labels = [seg['id'] for seg in result_dict]
+		centerpts = []
+		for key, value in result_dict.items():
+			pt = list(map(int, [sum(x) / len(x) for x in zip(*value[2])]))
+			tmp_z = 0.0
+			for i in range(len(value[0])):
+				tmp_z += (value[0][i] / sum(value[0])) * value[1][i]
+			#print('sum value[1]: ', sum(value[1]))
+			#print('test: ', tmp_z / len(value[1]))
+			z = int(tmp_z / len(value[1]))
+			#print('z: ', z)
+			pt.append(z)
+			centerpts.append(pt)
+
+		centerpts = np.array(centerpts, dtype=np.int16)
+		dist_m = distance.cdist(centerpts, centerpts, 'euclidean')
+
+		for idx in range(len(labels)):
+			#result_dict[labels[idx]] = dist_m[idx]
+			result_dict[labels[idx]].append(dist_m[idx])
+
+		result_array = []
+		for result in result_dict.keys():
+			result_array.append({
+				'id': result,
+				'dist': result_dict[result[3]],
+			})
+
+	#TODO: Test this shit.
+	
 	return (result_array)
 
 
 ### HELPER SECTION ###
-def calc_props(idx, fns):
+def calc_props(idx, fns, prop_list=['size', 'slices', 'centroid']):
 	'''
 	Helper function for 'compute_regions'
 	:param fns: (string) list of filenames. sorted.
+	:param prop_list: (list) of (strings) that contain the properties that should be stored in result.
 	:returns result: (dict) with each segment. key: idx of segment -- value: [number of pixels in segment, idx of slice].
 	'''
 	result = {}
 	if os.path.exists(fns):
 		tmp = imageio.imread(fns)
-		labels, num_labels = np.unique(tmp, return_counts=True)
+		#labels, num_labels = np.unique(tmp, return_counts=True)
+		regions = regionprops(tmp, cache=False)
 
-		for l in range(labels.shape[0]):
+		labels = []
+		num_labels = []
+		c_list = []
+		for props in regions:
+			labels.append(props.label)
+			if any('size' in s for s in prop_list):
+				num_labels.append(props.area)
+			if any('centroid' in s for s in prop_list):
+				c_list.append(tuple(map(int, props.centroid)))
+
+		for l in range(len(labels)):
 			if labels[l] == 0:
 				continue
 			result.setdefault(labels[l], [])
-			result[labels[l]].append(num_labels[l])
+			if any('size' in s for s in prop_list):
+				result[labels[l]].append(num_labels[l])
+			if any('slices' in s for s in prop_list):
+				result[labels[l]].append(idx)
+			if any('centroid' in s for s in prop_list):
+				result[labels[l]].append(c_list[l])
 
 	return result
 

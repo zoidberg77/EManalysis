@@ -1,6 +1,7 @@
 import os, sys
 import numpy as np
 import json
+import glob
 from numpyencoder import NumpyEncoder
 
 from analyzer.model.utils.extracting import compute_region_size, compute_intentsity, compute_dist_graph
@@ -19,16 +20,19 @@ class FeatureExtractor():
 				 ff='png', fpath=os.path.join(os.path.dirname(os.path.abspath(sys.modules['__main__'].__file__)), 'features/')):
 		self.emvol = emvol
 		self.gtvol = gtvol
+		self.empath = empath
+		self.gtpath = gtpath
 		self.dprc = dprc
+		self.ff = ff
+		self.mode = mode
+		self.fpath = fpath
+
 		if self.dprc == 'iter':
 			self.emfns = sorted(glob.glob(self.empath + '*.' + self.ff))
 			self.gtfns = sorted(glob.glob(self.gtpath + '*.' + self.ff))
 		else:
 			self.emfns = None
 			self.gtfns = None
-		self.ff = ff
-		self.mode = mode
-		self.fpath = fpath
 
 	def compute_seg_size(self):
 		'''
@@ -42,7 +46,7 @@ class FeatureExtractor():
 		Compute the distances of mitochondria to each other and extract it as a graph matrix.
 		:returns
 		'''
-		raise NotImplementedError
+		return compute_dist_graph(self.gtvol, fns=self.gtfns, dprc=self.dprc, mode=self.mode)
 
 	def run_vae(self):
 		'''
