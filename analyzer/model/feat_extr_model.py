@@ -17,7 +17,7 @@ class FeatureExtractor():
 						  This might help you to process the whole dataset without running into memory error.
 	'''
 	def __init__(self, emvol, gtvol, empath=None, gtpath=None, dprc='full', mode='3d',
-				 ff='png', fpath=os.path.join(os.path.dirname(os.path.abspath(sys.modules['__main__'].__file__)), 'features/')):
+				 ff='png', fpath='features/'):
 		self.emvol = emvol
 		self.gtvol = gtvol
 		self.empath = empath
