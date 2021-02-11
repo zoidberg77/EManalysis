@@ -52,7 +52,7 @@ class MitoDataset:
         regions = dl.prep_data_info()
         print("{} objects found in the ground truth".format(len(regions)))
         regions = pd.DataFrame(regions)
-        regions = regions[(self.upper_limit > regions['size']) & (self.lower_limit < regions['size'])]
+        regions = regions[(self.upper_limit > regions['size']) & (self.lower_limit < regions['size'])].values.tolist()
         filtered_length = len(regions)
         print("{} within limits {} and {}".format(filtered_length, self.lower_limit, self.upper_limit))
         if self.region_limit is not None:
@@ -60,8 +60,10 @@ class MitoDataset:
             print("{} will be extracted due to set region_limit".format(self.region_limit))
         mode = 'w'
         start = 0
+        '''
         if os.path.exists(self.mito_volume_file_name):
             mode = 'a'
+        '''
 
         dset = None
         with h5py.File(self.mito_volume_file_name, mode) as f:
@@ -91,16 +93,16 @@ class MitoDataset:
         :returns result: (numpy.array) a numpy array with the target dimensions and the mitochondria in it
         '''
         all_fn = sorted(glob.glob(self.gt_path + '*.' + self.ff))
-        fns = [all_fn[id] for id in region['slices']]
+        fns = [all_fn[id] for id in region[2]]
         first_image_slice = imageio.imread(fns[0])
         mask = np.zeros(shape=first_image_slice.shape, dtype=np.uint16)
-        mask[first_image_slice == region['id']] = 1
+        mask[first_image_slice == region[0]] = 1
         volume = mask
 
         for fn in fns[1:]:
             image_slice = imageio.imread(fn)
             mask = np.zeros(shape=image_slice.shape, dtype=np.uint16)
-            mask[image_slice == region['id']] = 1
+            mask[image_slice == region[0]] = 1
             volume = np.dstack((volume, mask))
         volume = np.moveaxis(volume, -1, 0)
 
