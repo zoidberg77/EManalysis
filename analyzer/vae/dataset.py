@@ -117,6 +117,7 @@ class MitoDataset:
                       mito_region.bbox[2]:mito_region.bbox[5] + 1].astype(np.float32)
 
         scaled_mito = resize(mito_volume, self.target_size)
+        scaled_mito = scaled_mito/scaled_mito.max()
         scaled_mito = np.expand_dims(scaled_mito, 0)
 
         return scaled_mito
