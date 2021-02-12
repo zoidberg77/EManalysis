@@ -31,7 +31,7 @@ _C.DATASET = CN()
 _C.DATASET.EM_PATH = ''
 _C.DATASET.LABEL_PATH = ''
 _C.DATASET.FILE_FORMAT = 'png'
-_C.DATASET.DATAINFO = 'features/info.json'
+_C.DATASET.DATAINFO = 'features/data_info.json'
 _C.DATASET.SIZEF = ''
 
 # -----------------------------------------------------------------------------

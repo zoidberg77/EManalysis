@@ -14,5 +14,5 @@ DATASET:
   EM_PATH: 'datasets/human/human_em_export_8nm/'
   LABEL_PATH: 'datasets/human/human_gt_export_8nm/'
   FILE_FORMAT: 'png'
-  DATAINFO: 'feature/data_info.json'
+  DATAINFO: 'features/data_info.json'
   SIZEF: 'features/sizef_complete.json'

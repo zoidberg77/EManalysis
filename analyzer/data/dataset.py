@@ -1,11 +1,13 @@
 import glob
 import multiprocessing
 import os, sys
+import json
+from numpyencoder import NumpyEncoder
 
 import imageio
 import numpy as np
 from skimage.measure import label, regionprops
-
+from sklearn.cluster import KMeans
 from analyzer.data.data_raw import readvol, folder2Vol
 
 
@@ -206,11 +208,32 @@ class Dataloader():
 
 		return result
 
-	def precluster(self):
+	def precluster(self, mchn='simple', n_groups=5):
 		'''
 		Function preclusters the mitochondria into buckets of similar size in order to avoid
 		sparsity and loss of information while extracting latent representation of the mitochondria.
 		'''
 		if os.path.exists(os.path.join(self.cfg.SYSTEM.ROOT_DIR, self.cfg.DATASET.DATAINFO)) \
-		and os.stat(os.path.join(self.cfg.SYSTEM.ROOT_DIR, self.cfg.DATASET.DATAINFO)).st_size == 0:
-			data_info = json.load(os.path.join(self.cfg.SYSTEM.ROOT_DIR, self.cfg.DATASET.DATAINFO))
+		and os.stat(os.path.join(self.cfg.SYSTEM.ROOT_DIR, self.cfg.DATASET.DATAINFO)).st_size != 0:
+			with open(os.path.join(self.cfg.SYSTEM.ROOT_DIR, self.cfg.DATASET.DATAINFO), 'r') as f:
+				 data_info = json.loads(f.read())
+		else:
+			data_info = self.prep_data_info(save=False)
+
+		tmp = np.stack(([mito['id'] for mito in data_info], [mito['size'] for mito in data_info]), axis=-1)
+		
+		if mchn == 'simple':
+			sorted = tmp[tmp[:,1].argsort()[::-1]]
+			splitted = np.array_split(sorted, n_groups, axis=0)
+			id_lists = [tmp[:,0].tolist() for tmp in splitted]
+
+		elif mchn == 'cluster':
+			model = KMeans(n_clusters=n_groups)
+			res_grps = model.fit_predict(np.array(tmp[:,1]).reshape(-1,1))
+			id_lists = [[]] * n_groups
+			for idx in range(len(res_grps)):
+				id_lists[res_grps[idx]].append(tmp[:,0][idx])
+		else:
+			raise ValueError('Please enter the a valid mechanismn you want to group that mitochondria. \'simple\' or \'cluster\'.')
+
+		return id_lists

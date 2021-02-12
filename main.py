@@ -55,7 +55,9 @@ def main():
     dl = Dataloader(cfg, chunk_size=(2, 4096, 4096))
     em, gt = dl.load_chunk(vol='both')
 
-    fex = FeatureExtractor(em, gt, args.em, args.gt, dprc='iter')
+    #dl.precluster(mchn='cluster')
+
+    #fex = FeatureExtractor(em, gt, args.em, args.gt, dprc='iter')
     #tmp = fex.compute_seg_dist()
     # print(tmp)
     # fex.save_feat_dict(tmp, 'sizef.json')
