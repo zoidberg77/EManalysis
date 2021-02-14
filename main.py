@@ -6,6 +6,8 @@ from analyzer.data import Dataloader
 from analyzer.model import Clustermodel
 from analyzer.model import FeatureExtractor
 from analyzer.vae.dataset import MitoDataset
+from analyzer.vae import train
+import torch
 
 
 # RUN THE SCRIPT LIKE: $ python main.py --em datasets/human/human_em_export_8nm/ --gt datasets/human/human_gt_export_8nm/ --cfg configs/process.yaml
@@ -49,8 +51,22 @@ def main():
                               upper_limit=cfg.AUTOENCODER.UPPER_BOUND, chunks_per_cpu=cfg.AUTOENCODER.CHUNKS_CPU,
                               ff=cfg.DATASET.FILE_FORMAT,
                               region_limit=cfg.AUTOENCODER.REGION_LIMIT, cpus=cfg.SYSTEM.NUM_CPUS)
+
         dataset.extract_scale_mitos()
-        exit()
+        return
+    elif args.mode == "train":
+        dataset = MitoDataset(em_path=cfg.DATASET.EM_PATH, gt_path=cfg.DATASET.LABEL_PATH,
+                              mito_volume_file_name=cfg.AUTOENCODER.OUPUT_FILE_VOLUMES,
+                              mito_volume_dataset_name=cfg.AUTOENCODER.DATASET_NAME,
+                              target_size=cfg.AUTOENCODER.TARGET, lower_limit=cfg.AUTOENCODER.LOWER_BOUND,
+                              upper_limit=cfg.AUTOENCODER.UPPER_BOUND, chunks_per_cpu=cfg.AUTOENCODER.CHUNKS_CPU,
+                              ff=cfg.DATASET.FILE_FORMAT,
+                              region_limit=cfg.AUTOENCODER.REGION_LIMIT, cpus=cfg.SYSTEM.NUM_CPUS)
+        dl = torch.utils.data.DataLoader(dataset,batch_size=4, shuffle=True)
+
+        trainer = train.Trainer(dl, "unet", 3, "adam", "l1")
+        trainer.fit()
+        return
 
     dl = Dataloader(cfg, chunk_size=(2, 4096, 4096))
     em, gt = dl.load_chunk(vol='both')
