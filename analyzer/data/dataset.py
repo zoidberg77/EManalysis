@@ -8,7 +8,7 @@ import imageio
 import numpy as np
 from skimage.measure import label, regionprops
 from sklearn.cluster import KMeans
-from analyzer.data.data_raw import readvol, folder2Vol
+from analyzer.data.data_raw import readvol, folder2Vol, readh5
 
 
 class Dataloader():
@@ -24,30 +24,31 @@ class Dataloader():
 	:param ff: (string) defines the file format that you want to work with. (default: png)
 	'''
 
-	def __init__(self,
-				 cfg,
-				 volume=None,
-				 label=None,
-				 chunk_size=(100, 4096, 4096),
-				 mode='3d', ff='png', cpus=multiprocessing.cpu_count()
-				 ):
+	def __init__(self, cfg, volume=None, label=None, mode='3d'):
 		self.cfg = cfg
 		if volume is not None:
-			pass
+			print('Trying to read in h5 EM volume.')
+			self.volume = readh5(volume)
+			print('em data loaded: ', self.volume.shape)
 		else:
 			self.volpath = self.cfg.DATASET.EM_PATH
 			self.volume = volume
 
 		if label is not None:
-			pass
+			print('Trying to read in h5 label volume.')
+			self.label = readh5(label)
+			print('gt data loaded: ', self.label.shape)
 		else:
 			self.gtpath = self.cfg.DATASET.LABEL_PATH
 			self.label = label
 
-		self.chunk_size = chunk_size
+		self.chunk_size = self.cfg.DATASET.CHUNK_SIZE
 		self.mode = mode
-		self.ff = ff
-		self.cpus = cpus
+		self.ff = self.cfg.DATASET.FILE_FORMAT
+		if self.cfg.SYSTEM.NUM_CPUS is None:
+			self.cpus = multiprocessing.cpu_count()
+		else:
+			self.cpus = self.cfg.SYSTEM.NUM_CPUS
 
 	def load_chunk(self, vol='both'):
 		'''
@@ -221,7 +222,7 @@ class Dataloader():
 			data_info = self.prep_data_info(save=False)
 
 		tmp = np.stack(([mito['id'] for mito in data_info], [mito['size'] for mito in data_info]), axis=-1)
-		
+
 		if mchn == 'simple':
 			sorted = tmp[tmp[:,1].argsort()[::-1]]
 			splitted = np.array_split(sorted, n_groups, axis=0)

@@ -27,7 +27,8 @@ class Clustermodel():
 	:param n_cluster: (int) sets the number of cluster that should be found.
 	:param mode: (string) Analyze either by 2d or 3d slizes.
 	'''
-	def __init__(self, emvol, gtvol, dl=None, alg='kmeans', clstby='bysize', n_cluster=5, mode='3d'):
+	def __init__(self, cfg, emvol, gtvol, dl=None, alg='kmeans', clstby='bysize', n_cluster=5, mode='3d'):
+		self.cfg = cfg
 		self.emvol = emvol
 		self.gtvol = gtvol
 		self.dl = dl
@@ -58,14 +59,16 @@ class Clustermodel():
 
 		return model
 
-	def load_features(self, fpath='features/'):
+	def load_features(self, feature_list=['sizef', 'distf', 'vaef']):
 		'''
 		This function will load different features vectors that were extracted and saved to be used for clustering.
 		'''
-		if os.path.exists(fpath) is False:
-			raise ValueError('Please enter a valid path to the folder where the feature vectors are stored.')
+		for fns in feature_list:
+			if os.path.exists(self.cfg.DATASET.ROOTF + fns + '.json') is False:
+				print('Please make sure this file {} exists.'.format(self.cfg.DATASET.ROOTF + fns + '.json'))
+				continue
 
-		print(fpath)
+		#print(fpath)
 
 	def stack_features(self):
 		'''

@@ -68,7 +68,7 @@ def main():
         trainer.fit()
         return
 
-    dl = Dataloader(cfg, chunk_size=(2, 4096, 4096))
+    dl = Dataloader(cfg)
     em, gt = dl.load_chunk(vol='both')
 
     #dl.precluster(mchn='cluster')
@@ -78,7 +78,8 @@ def main():
     # print(tmp)
     # fex.save_feat_dict(tmp, 'sizef.json')
 
-    model = Clustermodel(em, gt, dl=dl, alg='kmeans', clstby='bysize')
+    model = Clustermodel(cfg, em, gt, dl=dl, alg='kmeans', clstby='bysize')
+    model.load_features()
     model.run()
 
 

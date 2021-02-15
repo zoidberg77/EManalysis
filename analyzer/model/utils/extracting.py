@@ -45,7 +45,7 @@ def compute_region_size(vol, dprc='full', fns=None, mode='3d'):
 					labels[idx, :, :] = tmp
 
 				label_cnt += num_label
-
+				
 		if mode == '3d':
 			if vol.ndim <= 2:
 				raise ValueError('Volume is lacking on dimensionality(at least 3d): {}'.format(vol.shape))
@@ -83,39 +83,6 @@ def compute_region_size(vol, dprc='full', fns=None, mode='3d'):
 			})
 
 	return (result_array)
-
-
-def compute_intentsity(vol, gt, mode='3d'):
-	'''
-	This function takes both em and gt in order to compute the intensities from each segment.
-	:param vol: volume (np.array) that contains the bare em data. (2d || 3d)
-	:param gt: volume (np.array) that contains the groundtruth. (2d || 3d)
-
-	:returns labels: (np.array) same shape as volume with all the labels.
-	:returns intns: (np.array) is a vetor that contains the intensity values for every label.
-	'''
-	intns_values = []
-	labels = np.zeros(shape=vol.shape, dtype=np.uint16)
-	label_cnt = 0
-
-	if mode == '2d':
-		raise NotImplementedError('no 2d mode in this function yet.')
-	else:
-		if vol.ndim <= 2:
-			raise ValueError('Volume is lacking on dimensionality(at least 3d): {}'.format(vol.shape))
-
-		labels, num_label = label(gt, return_num=True)
-		regions = regionprops(labels, cache=False)
-
-		for props in regions:
-			areat = props.area
-			sumt = np.sum(vol[labels == props.label])
-			intns_values.append(sumt / areat)
-
-	intns = np.array(intns_values, dtype=np.float16)
-
-	return (labels, intns)
-
 
 def compute_dist_graph(vol, dprc='full', fns=None, mode='3d'):
 	'''
@@ -191,6 +158,36 @@ def compute_dist_graph(vol, dprc='full', fns=None, mode='3d'):
 
 	return (result_array)
 
+def compute_intentsity(vol, gt, mode='3d'):
+	'''
+	This function takes both em and gt in order to compute the intensities from each segment.
+	:param vol: volume (np.array) that contains the bare em data. (2d || 3d)
+	:param gt: volume (np.array) that contains the groundtruth. (2d || 3d)
+
+	:returns labels: (np.array) same shape as volume with all the labels.
+	:returns intns: (np.array) is a vetor that contains the intensity values for every label.
+	'''
+	intns_values = []
+	labels = np.zeros(shape=vol.shape, dtype=np.uint16)
+	label_cnt = 0
+
+	if mode == '2d':
+		raise NotImplementedError('no 2d mode in this function yet.')
+	else:
+		if vol.ndim <= 2:
+			raise ValueError('Volume is lacking on dimensionality(at least 3d): {}'.format(vol.shape))
+
+		labels, num_label = label(gt, return_num=True)
+		regions = regionprops(labels, cache=False)
+
+		for props in regions:
+			areat = props.area
+			sumt = np.sum(vol[labels == props.label])
+			intns_values.append(sumt / areat)
+
+	intns = np.array(intns_values, dtype=np.float16)
+
+	return (labels, intns)
 
 ### HELPER SECTION ###
 def calc_props(idx, fns, prop_list=['size', 'slices', 'centroid']):

@@ -30,10 +30,26 @@ _C.AUTOENCODER.DATASET_NAME = 'mito_volumes'
 _C.DATASET = CN()
 _C.DATASET.EM_PATH = ''
 _C.DATASET.LABEL_PATH = ''
+_C.DATASET.CHUNK_SIZE = [100, 4096, 4096]
 _C.DATASET.FILE_FORMAT = 'png'
+_C.DATASET.ROOTF = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'features/')
 _C.DATASET.DATAINFO = 'features/data_info.json'
-_C.DATASET.SIZEF = ''
+_C.DATASET.SIZEF = 'features/sizef.json'
+_C.DATASET.DISTF = 'features/distf.json'
+_C.DATASET.VAEF = 'features/vaef.json'
 
+# -----------------------------------------------------------------------------
+# Mode
+# := sets different run options.
+# -----------------------------------------------------------------------------
+_C.MODE = CN()
+# Choose between 'infer' and 'train'. Set to train in order to 'train' the autoencoder.
+# Set to 'infer' to use the features and cluster.
+_C.MODE.PROCESS = 'infer'
+# Choose between 'iter' and 'full'. Dataprocessing decides how the data is processed.
+# 'iter' iterates over the data slice by slice in order to avoid memory erros.
+# 'full' enables to read in the full stack of your data.
+_C.MODE.DPRC = 'iter'
 # -----------------------------------------------------------------------------
 # Feature Extration
 # -----------------------------------------------------------------------------

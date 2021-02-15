@@ -51,7 +51,6 @@ def readimgs(filename):
 
 	return data
 
-
 def folder2Vol(filepath, chunk_size=None, fns=None, file_format='png', dt=np.uint16):
 	'''
 	Convert single image files (2D) to 3D h5 volume.
