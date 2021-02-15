@@ -1,12 +1,14 @@
 SYSTEM:
   NUM_CPUS: 8
 AUTOENCODER:
-  ARCHITECTURE: 'vae_3d'
+  ARCHITECTURE: 'unet_3d'
   REGION_LIMIT: None
   CHUNKS_CPU: 4
   UPPER_BOUND: 100000
   LOWER_BOUND: 100
   TARGET: (128, 128, 128)
+  EPOCHS: 5
+  BATCH_SIZE: 2
   OUPUT_FILE_VOLUMES: 'features/mito.h5'
   DATASET_NAME: 'mito_volumes'
 
@@ -21,4 +23,4 @@ DATASET:
 
 MODE:
   PROCESS: 'train'
-  DRPC: 'iter'
+  DPRC: 'iter'

@@ -22,6 +22,8 @@ _C.AUTOENCODER.CHUNKS_CPU = 4
 _C.AUTOENCODER.UPPER_BOUND = 0
 _C.AUTOENCODER.LOWER_BOUND = 100000000
 _C.AUTOENCODER.TARGET = [64, 64, 64]
+_C.AUTOENCODER.EPOCHS = 10
+_C.AUTOENCODER.BATCH_SIZE = 2
 _C.AUTOENCODER.OUPUT_FILE_VOLUMES = 'features/mito.h5'
 _C.AUTOENCODER.DATASET_NAME = 'mito_volumes'
 # -----------------------------------------------------------------------------

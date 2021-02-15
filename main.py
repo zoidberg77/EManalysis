@@ -4,10 +4,8 @@ import sys
 from analyzer.config import get_cfg_defaults
 from analyzer.data import Dataloader
 from analyzer.model import Clustermodel
-from analyzer.model import FeatureExtractor
-from analyzer.vae.dataset import MitoDataset
 from analyzer.vae import train
-import torch
+from analyzer.vae.dataset import MitoDataset
 
 
 # RUN THE SCRIPT LIKE: $ python main.py --em datasets/human/human_em_export_8nm/ --gt datasets/human/human_gt_export_8nm/ --cfg configs/process.yaml
@@ -41,39 +39,40 @@ def main():
         cfg.freeze()
         print("Configuration details:")
         print(cfg)
+    else:
+        cfg = get_cfg_defaults()
+        cfg.freeze()
+        print("Configuration details:")
+        print(cfg)
 
-    if cfg.mode.process == "iter":
-        dataset = MitoDataset(em_path=cfg.DATASET.EM_PATH, gt_path=cfg.DATASET.LABEL_PATH,
-                              mito_volume_file_name=cfg.AUTOENCODER.OUPUT_FILE_VOLUMES,
-                              mito_volume_dataset_name=cfg.AUTOENCODER.DATASET_NAME,
-                              target_size=cfg.AUTOENCODER.TARGET, lower_limit=cfg.AUTOENCODER.LOWER_BOUND,
-                              upper_limit=cfg.AUTOENCODER.UPPER_BOUND, chunks_per_cpu=cfg.AUTOENCODER.CHUNKS_CPU,
-                              ff=cfg.DATASET.FILE_FORMAT,
-                              region_limit=cfg.AUTOENCODER.REGION_LIMIT, cpus=cfg.SYSTEM.NUM_CPUS)
+    dataset = MitoDataset(em_path=cfg.DATASET.EM_PATH, gt_path=cfg.DATASET.LABEL_PATH,
+                          mito_volume_file_name=cfg.AUTOENCODER.OUPUT_FILE_VOLUMES,
+                          mito_volume_dataset_name=cfg.AUTOENCODER.DATASET_NAME,
+                          target_size=cfg.AUTOENCODER.TARGET, lower_limit=cfg.AUTOENCODER.LOWER_BOUND,
+                          upper_limit=cfg.AUTOENCODER.UPPER_BOUND, chunks_per_cpu=cfg.AUTOENCODER.CHUNKS_CPU,
+                          ff=cfg.DATASET.FILE_FORMAT,
+                          region_limit=cfg.AUTOENCODER.REGION_LIMIT, cpus=cfg.SYSTEM.NUM_CPUS)
 
+    if cfg.MODE.PROCESS == "iter":
         dataset.extract_scale_mitos()
         return
-    elif cfg.mode.process == "train":
-        dataset = MitoDataset(em_path=cfg.DATASET.EM_PATH, gt_path=cfg.DATASET.LABEL_PATH,
-                              mito_volume_file_name=cfg.AUTOENCODER.OUPUT_FILE_VOLUMES,
-                              mito_volume_dataset_name=cfg.AUTOENCODER.DATASET_NAME,
-                              target_size=cfg.AUTOENCODER.TARGET, lower_limit=cfg.AUTOENCODER.LOWER_BOUND,
-                              upper_limit=cfg.AUTOENCODER.UPPER_BOUND, chunks_per_cpu=cfg.AUTOENCODER.CHUNKS_CPU,
-                              ff=cfg.DATASET.FILE_FORMAT,
-                              region_limit=cfg.AUTOENCODER.REGION_LIMIT, cpus=cfg.SYSTEM.NUM_CPUS)
-        dl = torch.utils.data.DataLoader(dataset,batch_size=4, shuffle=True)
-
-        trainer = train.Trainer(dl, "unet", 3, "adam", "l1")
+    elif cfg.MODE.PROCESS == "train":
+        device = 'cpu'
+        if cfg.SYSTEM.NUM_GPUS > 0:
+            device = 'cuda'
+        trainer = train.Trainer(dataset=dataset, batch_size=cfg.AUTOENCODER.BATCH_SIZE, train_percentage=0.7,
+                                model_type=cfg.AUTOENCODER.ARCHITECTURE, epochs=cfg.AUTOENCODER.EPOCHS,
+                                optimizer_type="adam", loss_function="l1", device=device)
         trainer.fit()
         return
 
     dl = Dataloader(cfg)
     em, gt = dl.load_chunk(vol='both')
 
-    #dl.precluster(mchn='cluster')
+    # dl.precluster(mchn='cluster')
 
-    #fex = FeatureExtractor(em, gt, args.em, args.gt, dprc='iter')
-    #tmp = fex.compute_seg_dist()
+    # fex = FeatureExtractor(em, gt, args.em, args.gt, dprc='iter')
+    # tmp = fex.compute_seg_dist()
     # print(tmp)
     # fex.save_feat_dict(tmp, 'sizef.json')
 
