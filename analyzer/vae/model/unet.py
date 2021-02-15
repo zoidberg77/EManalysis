@@ -106,6 +106,7 @@ class UNet3D(nn.Module):
         log_var = self.down_layers[-1](x)
 
         x = self.reparameterize(mu, log_var)
+        latent_space = x.shape
 
         for j in range(self.depth - 1):
             i = self.depth - 2 - j
@@ -114,7 +115,7 @@ class UNet3D(nn.Module):
             x = self.up_layers[i][1](x)
 
         x = self.conv_out(x)
-        return x, mu, log_var
+        return x, mu, log_var, latent_space
 
     def _upsample_add(self, x, y):
         """Upsample and add two feature maps.

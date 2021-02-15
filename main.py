@@ -20,7 +20,6 @@ def create_arg_parser():
     parser.add_argument('--em', type=str, help='input directory em (path)')
     parser.add_argument('--gt', type=str, help='input directory gt (path)')
     parser.add_argument('--cfg', type=str, help='configuration file (path)')
-    parser.add_argument('--mode', type=str, help='cluster or autoencoder mode', default='cluster')
 
     return parser
 
@@ -43,7 +42,7 @@ def main():
         print("Configuration details:")
         print(cfg)
 
-    if args.mode == "autoencoder":
+    if cfg.mode.process == "iter":
         dataset = MitoDataset(em_path=cfg.DATASET.EM_PATH, gt_path=cfg.DATASET.LABEL_PATH,
                               mito_volume_file_name=cfg.AUTOENCODER.OUPUT_FILE_VOLUMES,
                               mito_volume_dataset_name=cfg.AUTOENCODER.DATASET_NAME,
@@ -54,7 +53,7 @@ def main():
 
         dataset.extract_scale_mitos()
         return
-    elif args.mode == "train":
+    elif cfg.mode.process == "train":
         dataset = MitoDataset(em_path=cfg.DATASET.EM_PATH, gt_path=cfg.DATASET.LABEL_PATH,
                               mito_volume_file_name=cfg.AUTOENCODER.OUPUT_FILE_VOLUMES,
                               mito_volume_dataset_name=cfg.AUTOENCODER.DATASET_NAME,
