@@ -1,13 +1,16 @@
-import os
-
+import matplotlib.pyplot as plt
+import numpy as np
 import torch
 from tqdm import tqdm
+
 from analyzer.vae.model import unet
 
 
 class Trainer:
-    def __init__(self, dataset, batch_size, train_percentage, model_type, epochs, optimizer_type, loss_function, device="cpu"):
+    def __init__(self, dataset, batch_size, train_percentage, model_type, epochs, optimizer_type, loss_function, cfg,
+                 device="cpu"):
 
+        self.cfg = cfg
         self.dataset = dataset
         self.model_type = model_type
         self.epochs = epochs
@@ -19,7 +22,7 @@ class Trainer:
         if self.optimizer_type == "adam":
             self.optimizer = torch.optim.Adam(self.model.parameters())
 
-        train_length = int(train_percentage* len(dataset))
+        train_length = int(train_percentage * len(dataset))
         test_length = len(dataset) - train_length
         train_dataset, test_dataset = torch.utils.data.random_split(dataset, (train_length, test_length))
         self.train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
@@ -44,10 +47,11 @@ class Trainer:
                 running_kld_loss += kld_loss
                 loss.backward()
                 self.optimizer.step()
-                if not i % 50 and i > 0:
-                    train_total_loss = running_total_loss / (len(self.train_dl.dataset))
-                    train_reconstruction_loss = running_reconstruction_loss / (len(self.train_dl.dataset))
-                    train_kld_loss = running_kld_loss / (len(self.train_dl.dataset))
+                self.show_images(data, reconstruction, i)
+                if not i % 10 and i > 0:
+                    train_total_loss = running_total_loss / (i * self.train_dl.batch_size)
+                    train_reconstruction_loss = running_reconstruction_loss / (i * self.train_dl.batch_size)
+                    train_kld_loss = running_kld_loss / (i * self.train_dl.batch_size)
                     print("Train reconstruction loss: {}".format(train_total_loss))
                     print("Train kld loss: {}".format(train_reconstruction_loss))
                     print("Train total loss: {}".format(train_kld_loss))
@@ -62,14 +66,13 @@ class Trainer:
         return train_total_loss
 
     def loss(self, reconstruction, input, mu, log_var, latent_space):
-        recons_loss = None
         if self.loss_function == "l1":
             recons_loss = torch.nn.functional.l1_loss(reconstruction, input)
         else:
             recons_loss = torch.nn.functional.mse_loss(reconstruction, input)
 
         kld_loss = -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp())
-        kld_loss /= self.train_dl.batch_size*latent_space[-3]*latent_space[-2]*latent_space[-1]
+        kld_loss /= self.train_dl.batch_size * latent_space
         loss = recons_loss + kld_loss
         return loss, recons_loss, kld_loss
 
@@ -96,3 +99,25 @@ class Trainer:
             print("Evaluation kld loss: {}".format(test_kld_loss))
             print("Evaluation total loss: {}".format(test_total_loss))
             return test_total_loss
+
+    def show_images(self, inputs, reconstructions, iteration):
+
+        for i in range(len(inputs)):
+            original_image = None
+            reconstruction_image = None
+            original_item = inputs[i][0]
+            reconstruction_item = reconstructions[i][0]
+            for j in range(0, len(original_item), 10):
+                if original_image is None:
+                    original_image = original_item[j].detach().numpy()
+                    reconstruction_image = reconstruction_item[j].detach().numpy()
+                else:
+                    original_image = np.concatenate((original_image, original_item[j].detach().numpy()), 0)
+                    reconstruction_image = np.concatenate(
+                        (reconstruction_image, reconstruction_item[j].detach().numpy()), 0)
+
+            evaluation_image = np.concatenate((original_image, reconstruction_image), 1)
+            plt.axis('off')
+            plt.imsave(self.cfg.AUTOENCODER.EVALUATION_IMAGES_OUTPUTDIR + '{}.png'.format(iteration+i), evaluation_image,
+                       cmap="gray")
+            return

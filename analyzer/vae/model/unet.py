@@ -39,17 +39,19 @@ class UNet3D(nn.Module):
                  in_channel: int = 1,
                  out_channel: int = 1,
                  filters: List[int] = [28, 36, 48, 64, 80],
+                 latent_space: int = 10,
                  is_isotropic: bool = False,
                  isotropy: List[bool] = [False, False, False, True, True],
                  pad_mode: str = 'replicate',
                  act_mode: str = 'elu',
                  norm_mode: str = 'bn',
                  init_mode: str = 'orthogonal',
-                 pooling: bool = False,
+                 pooling: bool = True,
                  **kwargs):
         super().__init__()
         assert len(filters) == len(isotropy)
         self.depth = len(filters)
+        self.latent_space = latent_space
         if is_isotropic:
             isotropy = [True] * self.depth
 
@@ -70,6 +72,7 @@ class UNet3D(nn.Module):
 
         # encoding path
         self.down_layers = nn.ModuleList()
+
         for i in range(self.depth):
             kernel_size, padding = self._get_kernal_size(isotropy[i])
             previous = max(0, i - 1)
@@ -80,6 +83,10 @@ class UNet3D(nn.Module):
                                 stride=stride, padding=padding, **shared_kwargs),
                 block(filters[i], filters[i], **shared_kwargs))
             self.down_layers.append(layer)
+
+        self.mu = nn.Linear(in_features=filters[-1]*256, out_features=self.latent_space)
+        self.log_var = nn.Linear(in_features=filters[-1]*256, out_features=self.latent_space)
+        self.decoder_input = nn.Linear(in_features=self.latent_space, out_features=filters[-1]*256)
 
         # decoding path
         self.up_layers = nn.ModuleList()
@@ -98,15 +105,22 @@ class UNet3D(nn.Module):
         x = self.conv_in(x)
 
         down_x = [None] * (self.depth - 1)
-        for i in range(self.depth - 1):
+        for i in range(self.depth-1):
             x = self.down_layers[i](x)
             down_x[i] = x
 
-        mu = self.down_layers[-1](x)
-        log_var = self.down_layers[-1](x)
-
+        x = self.down_layers[-1](x)
+        c = x.shape[-4]
+        d = x.shape[-3]
+        h = x.shape[-2]
+        w = x.shape[-1]
+        x = torch.flatten(x, start_dim=1)
+        log_var = self.log_var(x)
+        mu = self.mu(x)
         x = self.reparameterize(mu, log_var)
-        latent_space = x.shape
+        x = self.decoder_input(x)
+
+        x = x.view(-1, c, d, h, w)
 
         for j in range(self.depth - 1):
             i = self.depth - 2 - j
@@ -115,7 +129,7 @@ class UNet3D(nn.Module):
             x = self.up_layers[i][1](x)
 
         x = self.conv_out(x)
-        return x, mu, log_var, latent_space
+        return x, mu, log_var, self.latent_space
 
     def _upsample_add(self, x, y):
         """Upsample and add two feature maps.
