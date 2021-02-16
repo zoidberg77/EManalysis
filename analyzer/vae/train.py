@@ -35,7 +35,7 @@ class Trainer:
         running_reconstruction_loss = 0.0
         running_kld_loss = 0.0
         train_total_loss = 0.0
-        for epoch in range(1, self.epochs):
+        for epoch in range(1, self.epochs+1):
             for i, data in tqdm(enumerate(self.train_dl),
                                 total=int(len(self.train_dl.dataset) / self.train_dl.batch_size)):
                 data = data.to(self.device)

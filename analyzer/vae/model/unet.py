@@ -84,6 +84,7 @@ class UNet3D(nn.Module):
                 block(filters[i], filters[i], **shared_kwargs))
             self.down_layers.append(layer)
 
+
         self.mu = nn.Linear(in_features=filters[-1]*256, out_features=self.latent_space)
         self.log_var = nn.Linear(in_features=filters[-1]*256, out_features=self.latent_space)
         self.decoder_input = nn.Linear(in_features=self.latent_space, out_features=filters[-1]*256)
