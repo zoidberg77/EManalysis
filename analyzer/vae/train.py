@@ -47,6 +47,7 @@ class Trainer:
                 running_kld_loss += kld_loss
                 loss.backward()
                 self.optimizer.step()
+                '''
                 if not i % 10 and i > 0:
                     train_total_loss = running_total_loss / (i * self.train_dl.batch_size)
                     train_reconstruction_loss = running_reconstruction_loss / (i * self.train_dl.batch_size)
@@ -54,6 +55,7 @@ class Trainer:
                     print("Train reconstruction loss: {}".format(train_total_loss))
                     print("Train kld loss: {}".format(train_reconstruction_loss))
                     print("Train total loss: {}".format(train_kld_loss))
+                '''
 
             train_total_loss = running_total_loss / (len(self.train_dl.dataset))
             train_reconstruction_loss = running_reconstruction_loss / (len(self.train_dl.dataset))
