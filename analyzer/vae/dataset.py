@@ -14,21 +14,19 @@ import analyzer.data
 
 
 class MitoDataset:
-    def __init__(self, em_path, gt_path, mito_volume_file_name="features/mito.h5",
-                 mito_volume_dataset_name="mito_volumes",
-                 target_size=(64, 64, 64), lower_limit=1000, upper_limit=100000, chunks_per_cpu=4, ff="png",
-                 region_limit=None, cpus=multiprocessing.cpu_count()):
-        self.region_limit = region_limit
-        self.chunks_per_cpu = chunks_per_cpu
-        self.upper_limit = upper_limit
-        self.lower_limit = lower_limit
-        self.mito_volume_file_name = mito_volume_file_name
-        self.mito_volume_dataset_name = mito_volume_dataset_name
-        self.gt_path = gt_path
-        self.em_path = em_path
-        self.target_size = target_size
-        self.ff = ff
-        self.cpus = cpus
+    def __init__(self, cfg):
+        self.cfg = cfg
+        self.region_limit = cfg.AUTOENCODER.REGION_LIMIT
+        self.chunks_per_cpu = cfg.AUTOENCODER.CHUNKS_CPU
+        self.upper_limit = cfg.AUTOENCODER.UPPER_BOUND
+        self.lower_limit = cfg.AUTOENCODER.LOWER_BOUND
+        self.mito_volume_file_name = cfg.AUTOENCODER.OUPUT_FILE_VOLUMES
+        self.mito_volume_dataset_name = cfg.AUTOENCODER.DATASET_NAME
+        self.gt_path = cfg.DATASET.LABEL_PATH
+        self.em_path = cfg.DATASET.EM_PATH
+        self.target_size = cfg.AUTOENCODER.TARGET
+        self.ff = cfg.DATASET.FILE_FORMAT
+        self.cpus = cfg.SYSTEM.NUM_CPUS
 
     def __len__(self):
         '''
@@ -48,7 +46,7 @@ class MitoDataset:
             return f[self.mito_volume_dataset_name][idx]
 
     def extract_scale_mitos(self):
-        dl = analyzer.data.Dataloader(gtpath=self.gt_path, volpath=self.em_path, ff=self.ff, cpus=self.cpus)
+        dl = analyzer.data.Dataloader(self.cfg)
         regions = dl.prep_data_info()
         print("{} objects found in the ground truth".format(len(regions)))
         regions = pd.DataFrame(regions)

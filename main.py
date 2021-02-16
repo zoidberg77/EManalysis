@@ -45,13 +45,7 @@ def main():
         print("Configuration details:")
         print(cfg)
 
-    dataset = MitoDataset(em_path=cfg.DATASET.EM_PATH, gt_path=cfg.DATASET.LABEL_PATH,
-                          mito_volume_file_name=cfg.AUTOENCODER.OUPUT_FILE_VOLUMES,
-                          mito_volume_dataset_name=cfg.AUTOENCODER.DATASET_NAME,
-                          target_size=cfg.AUTOENCODER.TARGET, lower_limit=cfg.AUTOENCODER.LOWER_BOUND,
-                          upper_limit=cfg.AUTOENCODER.UPPER_BOUND, chunks_per_cpu=cfg.AUTOENCODER.CHUNKS_CPU,
-                          ff=cfg.DATASET.FILE_FORMAT,
-                          region_limit=cfg.AUTOENCODER.REGION_LIMIT, cpus=cfg.SYSTEM.NUM_CPUS)
+    dataset = MitoDataset(cfg)
 
     if cfg.MODE.PROCESS == "iter":
         dataset.extract_scale_mitos()
@@ -64,6 +58,7 @@ def main():
                                 model_type=cfg.AUTOENCODER.ARCHITECTURE, epochs=cfg.AUTOENCODER.EPOCHS,
                                 optimizer_type="adam", loss_function="l1", device=device)
         trainer.fit()
+        trainer.predict()
         return
 
     dl = Dataloader(cfg)

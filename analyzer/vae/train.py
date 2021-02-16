@@ -1,4 +1,4 @@
-import time
+import os
 
 import torch
 from tqdm import tqdm
@@ -23,12 +23,11 @@ class Trainer:
         test_length = len(dataset) - train_length
         train_dataset, test_dataset = torch.utils.data.random_split(dataset, (train_length, test_length))
         self.train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-        self.test_dl = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+        self.test_dl = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
 
-
-    def fit(self):
-        self.model.to(self.device)
+    def train(self):
         self.model.train()
+        self.model.to(self.device)
         running_loss = 0.0
         train_loss = 0.0
         for epoch in range(1, self.epochs):
@@ -61,3 +60,22 @@ class Trainer:
         kld_loss /= self.train_dl.batch_size*latent_space[-3]*latent_space[-2]*latent_space[-1]
         loss = recons_loss + kld_loss
         return loss, recons_loss, kld_loss
+
+    def validate(self):
+        self.model.eval()
+        self.model.to(self.device)
+        running_loss = 0.0
+        with torch.no_grad():
+            for i, data in tqdm(enumerate(self.test_dl),
+                                total=int(len(self.test_dl.dataset) / self.test_dl.batch_size)):
+                data = data.to(self.device)
+                reconstruction, mu, log_var, latent_space = self.model(data)
+                loss, recon_loss, kld_loss = self.loss(reconstruction, data, mu, log_var, latent_space)
+                running_loss += loss
+                if not i % 50 and i > 0:
+                    print("Reconstruction loss: {} ".format(recon_loss))
+                    print("KLD loss: {}".format(kld_loss))
+                    print("Total loss: {}".format(loss))
+            test_loss = running_loss / (len(self.test_dl.dataset))
+            print("Test running loss: {}".format(test_loss))
+            return test_loss
