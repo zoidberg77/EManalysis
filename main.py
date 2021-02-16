@@ -58,7 +58,6 @@ def main():
                                 model_type=cfg.AUTOENCODER.ARCHITECTURE, epochs=cfg.AUTOENCODER.EPOCHS,
                                 optimizer_type="adam", loss_function="l1", device=device)
         trainer.train()
-        trainer.evaluate()
         return
 
     dl = Dataloader(cfg)

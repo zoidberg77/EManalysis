@@ -47,6 +47,7 @@ class Trainer:
 
             train_loss = running_loss / (len(self.train_dl.dataset) * epoch)
             print("Epoch {} : running loss: {}".format(epoch, train_loss))
+            self.evaluate()
         return train_loss
 
     def loss(self, reconstruction, input, mu, log_var, latent_space):
@@ -72,10 +73,6 @@ class Trainer:
                 reconstruction, mu, log_var, latent_space = self.model(data)
                 loss, recon_loss, kld_loss = self.loss(reconstruction, data, mu, log_var, latent_space)
                 running_loss += loss
-                if not i % 50 and i > 0:
-                    print("Reconstruction loss: {} ".format(recon_loss))
-                    print("KLD loss: {}".format(kld_loss))
-                    print("Total loss: {}".format(loss))
             test_loss = running_loss / (len(self.test_dl.dataset))
-            print("Test running loss: {}".format(test_loss))
+            print("Evaluation running loss: {}".format(test_loss))
             return test_loss
