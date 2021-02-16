@@ -5,6 +5,7 @@ import torch
 import math
 import torch.nn as nn
 import torch.nn.functional as F
+import numpy as np
 
 from .block import *
 from .utils import get_functional_act, model_init
@@ -39,7 +40,7 @@ class UNet3D(nn.Module):
                  in_channel: int = 1,
                  out_channel: int = 1,
                  filters: List[int] = [28, 36, 48, 64, 80],
-                 latent_space: int = 10,
+                 latent_space: int = 100,
                  is_isotropic: bool = False,
                  isotropy: List[bool] = [False, False, False, True, True],
                  pad_mode: str = 'replicate',
@@ -47,11 +48,13 @@ class UNet3D(nn.Module):
                  norm_mode: str = 'bn',
                  init_mode: str = 'orthogonal',
                  pooling: bool = True,
+                 input_shape = (64,64,64),
                  **kwargs):
         super().__init__()
         assert len(filters) == len(isotropy)
         self.depth = len(filters)
         self.latent_space = latent_space
+        self.input_shape = input_shape
         if is_isotropic:
             isotropy = [True] * self.depth
 
@@ -84,10 +87,17 @@ class UNet3D(nn.Module):
                 block(filters[i], filters[i], **shared_kwargs))
             self.down_layers.append(layer)
 
+        self.encoder_dim = self.get_dim_after_encoder()
 
-        self.mu = nn.Linear(in_features=filters[-1]*256, out_features=self.latent_space)
-        self.log_var = nn.Linear(in_features=filters[-1]*256, out_features=self.latent_space)
-        self.decoder_input = nn.Linear(in_features=self.latent_space, out_features=filters[-1]*256)
+        self.mu = nn.Sequential(
+            nn.Linear(np.prod(self.encoder_dim), self.latent_space),
+            nn.LeakyReLU()
+        )
+        self.log_var = nn.Sequential(
+            nn.Linear(np.prod(self.encoder_dim), self.latent_space),
+            nn.LeakyReLU()
+        )
+        self.decoder_input = nn.Linear(self.latent_space, np.prod(self.encoder_dim))
 
         # decoding path
         self.up_layers = nn.ModuleList()
@@ -98,6 +108,9 @@ class UNet3D(nn.Module):
                                 padding=padding, **shared_kwargs),
                 block(filters[j - 1], filters[j - 1], **shared_kwargs)])
             self.up_layers.append(layer)
+
+
+        self.sig = torch.sigmoid
 
         # initialization
         model_init(self)
@@ -111,17 +124,14 @@ class UNet3D(nn.Module):
             down_x[i] = x
 
         x = self.down_layers[-1](x)
-        c = x.shape[-4]
-        d = x.shape[-3]
-        h = x.shape[-2]
-        w = x.shape[-1]
+        encoder_shape = x.shape[-4:]
         x = torch.flatten(x, start_dim=1)
         log_var = self.log_var(x)
         mu = self.mu(x)
         x = self.reparameterize(mu, log_var)
         x = self.decoder_input(x)
 
-        x = x.view(-1, c, d, h, w)
+        x = x.view(-1, *self.encoder_dim)
 
         for j in range(self.depth - 1):
             i = self.depth - 2 - j
@@ -130,7 +140,8 @@ class UNet3D(nn.Module):
             x = self.up_layers[i][1](x)
 
         x = self.conv_out(x)
-        return x, mu, log_var, self.latent_space
+        x = self.sig(x)
+        return x, mu, log_var
 
     def _upsample_add(self, x, y):
         """Upsample and add two feature maps.
@@ -178,6 +189,16 @@ class UNet3D(nn.Module):
         eps = torch.randn_like(std)
         return eps * std + mu
 
+    def get_dim_after_encoder(self):
+        out = self.conv_in(torch.zeros(1, 1, *self.input_shape))
+
+        down_x = [None] * (self.depth - 1)
+        for i in range(self.depth - 1):
+            out = self.down_layers[i](out)
+            down_x[i] = out
+
+        out = self.down_layers[-1](out)
+        return out.size()[1:]
 
 class UNet2D(nn.Module):
     """2D residual U-Net architecture.

@@ -7,26 +7,26 @@ from analyzer.vae.model import unet
 
 
 class Trainer:
-    def __init__(self, dataset, batch_size, train_percentage, model_type, epochs, optimizer_type, loss_function, cfg,
-                 device="cpu"):
-
+    def __init__(self, dataset, train_percentage, optimizer_type, loss_function, cfg):
         self.cfg = cfg
         self.dataset = dataset
-        self.model_type = model_type
-        self.epochs = epochs
+        self.model_type = cfg.AUTOENCODER.ARCHITECTURE
+        self.epochs = cfg.AUTOENCODER.EPOCHS
         self.optimizer_type = optimizer_type
-        self.device = device
+        self.device = 'cpu'
+        if cfg.SYSTEM.NUM_GPUS > 0:
+            self.device = 'cuda'
         self.loss_function = loss_function
         if self.model_type == "unet_3d":
-            self.model = unet.UNet3D()
+            self.model = unet.UNet3D(input_shape=cfg.AUTOENCODER.TARGET)
         if self.optimizer_type == "adam":
             self.optimizer = torch.optim.Adam(self.model.parameters())
 
         train_length = int(train_percentage * len(dataset))
         test_length = len(dataset) - train_length
         train_dataset, test_dataset = torch.utils.data.random_split(dataset, (train_length, test_length))
-        self.train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-        self.test_dl = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
+        self.train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=cfg.AUTOENCODER.BATCH_SIZE, shuffle=True)
+        self.test_dl = torch.utils.data.DataLoader(test_dataset, batch_size=cfg.AUTOENCODER.BATCH_SIZE, shuffle=True)
 
     def train(self):
         self.model.train()
@@ -35,27 +35,27 @@ class Trainer:
         running_reconstruction_loss = 0.0
         running_kld_loss = 0.0
         train_total_loss = 0.0
-        for epoch in range(1, self.epochs+1):
+        for epoch in range(1, self.epochs + 1):
             for i, data in tqdm(enumerate(self.train_dl),
                                 total=int(len(self.train_dl.dataset) / self.train_dl.batch_size)):
                 data = data.to(self.device)
                 self.optimizer.zero_grad()
-                reconstruction, mu, log_var, latent_space = self.model(data)
-                loss, recon_loss, kld_loss = self.loss(reconstruction, data, mu, log_var, latent_space)
+                reconstruction, mu, log_var = self.model(data)
+                loss, recon_loss, kld_loss = self.loss(reconstruction, data, mu, log_var)
                 running_total_loss += loss
                 running_reconstruction_loss += recon_loss
                 running_kld_loss += kld_loss
+                self.save_images(data, reconstruction, i)
                 loss.backward()
                 self.optimizer.step()
-                '''
-                if not i % 10 and i > 0:
+
+                if not i % self.cfg.AUTOENCODER.LOG_INTERVAL and i > 0:
                     train_total_loss = running_total_loss / (i * self.train_dl.batch_size)
                     train_reconstruction_loss = running_reconstruction_loss / (i * self.train_dl.batch_size)
                     train_kld_loss = running_kld_loss / (i * self.train_dl.batch_size)
                     print("Train reconstruction loss: {}".format(train_total_loss))
                     print("Train kld loss: {}".format(train_reconstruction_loss))
                     print("Train total loss: {}".format(train_kld_loss))
-                '''
 
             train_total_loss = running_total_loss / (len(self.train_dl.dataset))
             train_reconstruction_loss = running_reconstruction_loss / (len(self.train_dl.dataset))
@@ -66,14 +66,14 @@ class Trainer:
             self.evaluate()
         return train_total_loss
 
-    def loss(self, reconstruction, input, mu, log_var, latent_space):
+    def loss(self, reconstruction, input, mu, log_var):
         if self.loss_function == "l1":
             recons_loss = torch.nn.functional.l1_loss(reconstruction, input)
         else:
             recons_loss = torch.nn.functional.mse_loss(reconstruction, input)
 
         kld_loss = -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp())
-        kld_loss /= self.train_dl.batch_size
+        #kld_loss /= self.train_dl.batch_size
         loss = recons_loss + kld_loss
         return loss, recons_loss, kld_loss
 
@@ -87,9 +87,9 @@ class Trainer:
             for i, data in tqdm(enumerate(self.test_dl),
                                 total=int(len(self.test_dl.dataset) / self.test_dl.batch_size)):
                 data = data.to(self.device)
-                reconstruction, mu, log_var, latent_space = self.model(data)
+                reconstruction, mu, log_var = self.model(data)
                 self.save_images(data, reconstruction, i)
-                loss, recon_loss, kld_loss = self.loss(reconstruction, data, mu, log_var, latent_space)
+                loss, recon_loss, kld_loss = self.loss(reconstruction, data, mu, log_var)
 
                 running_total_loss += loss
                 running_reconstruction_loss += recon_loss
@@ -118,8 +118,10 @@ class Trainer:
                     reconstruction_image = np.concatenate(
                         (reconstruction_image, reconstruction_item[j].detach().cpu().numpy()), 0)
 
+            reconstruction_image /= reconstruction_image.max()
             evaluation_image = np.concatenate((original_image, reconstruction_image), 1)
             plt.axis('off')
-            plt.imsave(self.cfg.AUTOENCODER.EVALUATION_IMAGES_OUTPUTDIR + '{}.png'.format(iteration+i), evaluation_image,
+            plt.imsave(self.cfg.AUTOENCODER.EVALUATION_IMAGES_OUTPUTDIR + '{}.png'.format(iteration + i),
+                       evaluation_image,
                        cmap="gray")
             return

@@ -27,6 +27,7 @@ _C.AUTOENCODER.BATCH_SIZE = 2
 _C.AUTOENCODER.OUPUT_FILE_VOLUMES = 'features/mito.h5'
 _C.AUTOENCODER.DATASET_NAME = 'mito_volumes'
 _C.AUTOENCODER.EVALUATION_IMAGES_OUTPUTDIR = 'features/evaluation/'
+_C.AUTOENCODER.LOG_INTERVAL = 10
 
 # -----------------------------------------------------------------------------
 # Dataset

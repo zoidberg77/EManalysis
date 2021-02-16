@@ -51,12 +51,9 @@ def main():
         dataset.extract_scale_mitos()
         return
     elif cfg.MODE.PROCESS == "train":
-        device = 'cpu'
-        if cfg.SYSTEM.NUM_GPUS > 0:
-            device = 'cuda'
-        trainer = train.Trainer(dataset=dataset, batch_size=cfg.AUTOENCODER.BATCH_SIZE, train_percentage=0.7,
-                                model_type=cfg.AUTOENCODER.ARCHITECTURE, epochs=cfg.AUTOENCODER.EPOCHS,
-                                optimizer_type="adam", loss_function="l1", device=device, cfg=cfg)
+
+        trainer = train.Trainer(dataset=dataset, train_percentage=0.7, optimizer_type="adam", loss_function="l1",
+                                cfg=cfg)
         trainer.train()
         return
 
