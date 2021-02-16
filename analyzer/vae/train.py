@@ -45,10 +45,8 @@ class Trainer:
                 running_total_loss += loss
                 running_reconstruction_loss += recon_loss
                 running_kld_loss += kld_loss
-                self.save_images(data, reconstruction, i)
                 loss.backward()
                 self.optimizer.step()
-
                 if not i % self.cfg.AUTOENCODER.LOG_INTERVAL and i > 0:
                     train_total_loss = running_total_loss / (i * self.train_dl.batch_size)
                     train_reconstruction_loss = running_reconstruction_loss / (i * self.train_dl.batch_size)
