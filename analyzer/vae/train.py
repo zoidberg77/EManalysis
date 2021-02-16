@@ -61,7 +61,7 @@ class Trainer:
         loss = recons_loss + kld_loss
         return loss, recons_loss, kld_loss
 
-    def validate(self):
+    def evaluate(self):
         self.model.eval()
         self.model.to(self.device)
         running_loss = 0.0

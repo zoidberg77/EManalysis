@@ -57,8 +57,8 @@ def main():
         trainer = train.Trainer(dataset=dataset, batch_size=cfg.AUTOENCODER.BATCH_SIZE, train_percentage=0.7,
                                 model_type=cfg.AUTOENCODER.ARCHITECTURE, epochs=cfg.AUTOENCODER.EPOCHS,
                                 optimizer_type="adam", loss_function="l1", device=device)
-        trainer.fit()
-        trainer.predict()
+        trainer.train()
+        trainer.evaluate()
         return
 
     dl = Dataloader(cfg)
