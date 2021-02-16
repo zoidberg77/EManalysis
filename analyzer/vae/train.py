@@ -18,7 +18,7 @@ class Trainer:
             self.device = 'cuda'
         self.loss_function = loss_function
         if self.model_type == "unet_3d":
-            self.model = unet.UNet3D(input_shape=cfg.AUTOENCODER.TARGET)
+            self.model = unet.UNet3D(input_shape=cfg.AUTOENCODER.TARGET, latent_space=cfg.AUTOENCODER.LATENT_SPACE)
         if self.optimizer_type == "adam":
             self.optimizer = torch.optim.Adam(self.model.parameters())
 
