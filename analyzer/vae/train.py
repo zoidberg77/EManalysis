@@ -28,8 +28,10 @@ class Trainer:
     def train(self):
         self.model.train()
         self.model.to(self.device)
-        running_loss = 0.0
-        train_loss = 0.0
+        running_total_loss = 0.0
+        running_reconstruction_loss = 0.0
+        running_kld_loss = 0.0
+        train_total_loss = 0.0
         for epoch in range(1, self.epochs):
             for i, data in tqdm(enumerate(self.train_dl),
                                 total=int(len(self.train_dl.dataset) / self.train_dl.batch_size)):
@@ -37,18 +39,27 @@ class Trainer:
                 self.optimizer.zero_grad()
                 reconstruction, mu, log_var, latent_space = self.model(data)
                 loss, recon_loss, kld_loss = self.loss(reconstruction, data, mu, log_var, latent_space)
-                running_loss += loss
+                running_total_loss += loss
+                running_reconstruction_loss += recon_loss
+                running_kld_loss += kld_loss
                 loss.backward()
                 self.optimizer.step()
                 if not i % 50 and i > 0:
-                    print("Reconstruction loss: {} ".format(recon_loss))
-                    print("KLD loss: {}".format(kld_loss))
-                    print("Total loss: {}".format(loss))
+                    train_total_loss = running_total_loss / (len(self.train_dl.dataset))
+                    train_reconstruction_loss = running_reconstruction_loss / (len(self.train_dl.dataset))
+                    train_kld_loss = running_kld_loss / (len(self.train_dl.dataset))
+                    print("Train reconstruction loss: {}".format(train_total_loss))
+                    print("Train kld loss: {}".format(train_reconstruction_loss))
+                    print("Train total loss: {}".format(train_kld_loss))
 
-            train_loss = running_loss / (len(self.train_dl.dataset) * epoch)
-            print("Epoch {} : running loss: {}".format(epoch, train_loss))
+            train_total_loss = running_total_loss / (len(self.train_dl.dataset))
+            train_reconstruction_loss = running_reconstruction_loss / (len(self.train_dl.dataset))
+            train_kld_loss = running_kld_loss / (len(self.train_dl.dataset))
+            print("Train reconstruction loss: {}".format(train_total_loss))
+            print("Train kld loss: {}".format(train_reconstruction_loss))
+            print("Train total loss: {}".format(train_kld_loss))
             self.evaluate()
-        return train_loss
+        return train_total_loss
 
     def loss(self, reconstruction, input, mu, log_var, latent_space):
         recons_loss = None
@@ -65,14 +76,23 @@ class Trainer:
     def evaluate(self):
         self.model.eval()
         self.model.to(self.device)
-        running_loss = 0.0
+        running_total_loss = 0.0
+        running_reconstruction_loss = 0.0
+        running_kld_loss = 0.0
         with torch.no_grad():
             for i, data in tqdm(enumerate(self.test_dl),
                                 total=int(len(self.test_dl.dataset) / self.test_dl.batch_size)):
                 data = data.to(self.device)
                 reconstruction, mu, log_var, latent_space = self.model(data)
                 loss, recon_loss, kld_loss = self.loss(reconstruction, data, mu, log_var, latent_space)
-                running_loss += loss
-            test_loss = running_loss / (len(self.test_dl.dataset))
-            print("Evaluation running loss: {}".format(test_loss))
-            return test_loss
+
+                running_total_loss += loss
+                running_reconstruction_loss += recon_loss
+                running_kld_loss += kld_loss
+            test_total_loss = running_total_loss / (len(self.test_dl.dataset))
+            test_reconstruction_loss = running_reconstruction_loss / (len(self.test_dl.dataset))
+            test_kld_loss = running_kld_loss / (len(self.test_dl.dataset))
+            print("Evaluation reconstruction loss: {}".format(test_reconstruction_loss))
+            print("Evaluation kld loss: {}".format(test_kld_loss))
+            print("Evaluation total loss: {}".format(test_total_loss))
+            return test_total_loss
