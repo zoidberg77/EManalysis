@@ -109,12 +109,12 @@ class Trainer:
             reconstruction_item = reconstructions[i][0]
             for j in range(0, len(original_item), 10):
                 if original_image is None:
-                    original_image = original_item[j].detach().numpy()
-                    reconstruction_image = reconstruction_item[j].detach().numpy()
+                    original_image = original_item[j].detach().cpu().numpy()
+                    reconstruction_image = reconstruction_item[j].detach().cpu().numpy()
                 else:
-                    original_image = np.concatenate((original_image, original_item[j].detach().numpy()), 0)
+                    original_image = np.concatenate((original_image, original_item[j].detach().cpu().numpy()), 0)
                     reconstruction_image = np.concatenate(
-                        (reconstruction_image, reconstruction_item[j].detach().numpy()), 0)
+                        (reconstruction_image, reconstruction_item[j].detach().cpu().numpy()), 0)
 
             evaluation_image = np.concatenate((original_image, reconstruction_image), 1)
             plt.axis('off')
