@@ -47,7 +47,6 @@ class Trainer:
                 running_kld_loss += kld_loss
                 loss.backward()
                 self.optimizer.step()
-                self.show_images(data, reconstruction, i)
                 if not i % 10 and i > 0:
                     train_total_loss = running_total_loss / (i * self.train_dl.batch_size)
                     train_reconstruction_loss = running_reconstruction_loss / (i * self.train_dl.batch_size)
@@ -72,7 +71,7 @@ class Trainer:
             recons_loss = torch.nn.functional.mse_loss(reconstruction, input)
 
         kld_loss = -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp())
-        kld_loss /= self.train_dl.batch_size * latent_space
+        kld_loss /= self.train_dl.batch_size
         loss = recons_loss + kld_loss
         return loss, recons_loss, kld_loss
 
@@ -87,6 +86,7 @@ class Trainer:
                                 total=int(len(self.test_dl.dataset) / self.test_dl.batch_size)):
                 data = data.to(self.device)
                 reconstruction, mu, log_var, latent_space = self.model(data)
+                self.save_images(data, reconstruction, i)
                 loss, recon_loss, kld_loss = self.loss(reconstruction, data, mu, log_var, latent_space)
 
                 running_total_loss += loss
@@ -100,7 +100,7 @@ class Trainer:
             print("Evaluation total loss: {}".format(test_total_loss))
             return test_total_loss
 
-    def show_images(self, inputs, reconstructions, iteration):
+    def save_images(self, inputs, reconstructions, iteration):
 
         for i in range(len(inputs)):
             original_image = None
