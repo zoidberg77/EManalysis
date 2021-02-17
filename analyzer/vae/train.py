@@ -49,9 +49,9 @@ class Trainer:
                 if not i % self.cfg.AUTOENCODER.LOG_INTERVAL and i > 0:
                     self.save_images(data, reconstruction, i, "train")
                     norm = i + i * (epoch - 1)
-                    print("[{}/{}] Train reconstruction loss: {}".format(i, len(self.train_dl.dataset), loss/norm))
-                    print("[{}/{}] Train kld loss: {}".format(i, len(self.train_dl.dataset), recon_loss/norm))
-                    print("[{}/{}] Train total loss: {}".format(i, len(self.train_dl.dataset), kld_loss/norm))
+                    print("[{}/{}] Train reconstruction loss: {}".format(i, int(len(self.train_dl.dataset)/self.train_dl.batch_size), loss/norm))
+                    print("[{}/{}] Train kld loss: {}".format(i, int(len(self.train_dl.dataset)/self.train_dl.batch_size), recon_loss/norm))
+                    print("[{}/{}] Train total loss: {}".format(i, int(len(self.train_dl.dataset)/self.train_dl.batch_size), kld_loss/norm))
 
             norm = len(self.train_dl.dataset)+len(self.train_dl.dataset)*(epoch-1)
             train_total_loss = running_total_loss / norm
@@ -85,7 +85,7 @@ class Trainer:
             for i, data in enumerate(self.test_dl):
                 data = data.to(self.device)
                 reconstruction, mu, log_var = self.model(data)
-                self.save_images(data, reconstruction, i, "eval")
+                self.save_images(data, reconstruction, i, "test")
                 loss, recon_loss, kld_loss = self.loss(reconstruction, data, mu, log_var)
 
                 running_total_loss += loss
@@ -94,9 +94,9 @@ class Trainer:
             test_total_loss = running_total_loss / len(self.test_dl.dataset)
             test_reconstruction_loss = running_reconstruction_loss / len(self.test_dl.dataset)
             test_kld_loss = running_kld_loss / len(self.test_dl.dataset)
-            print("[{}/{}] test reconstruction loss: {}".format(i, len(self.test_dl.dataset), test_reconstruction_loss))
-            print("[{}/{}] test kld loss: {}".format(i, len(self.test_dl.dataset), test_kld_loss))
-            print("[{}/{}] test total loss: {}".format(i, len(self.test_dl.dataset), test_total_loss))
+            print("test reconstruction loss: {}".format(test_reconstruction_loss))
+            print("test kld loss: {}".format(test_kld_loss))
+            print("test total loss: {}".format(test_total_loss))
             return test_total_loss
 
     def save_images(self, inputs, reconstructions, iteration, prefix):
