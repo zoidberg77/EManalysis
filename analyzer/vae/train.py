@@ -36,8 +36,7 @@ class Trainer:
         running_kld_loss = 0.0
         train_total_loss = 0.0
         for epoch in range(1, self.epochs + 1):
-            for i, data in tqdm(enumerate(self.train_dl),
-                                total=int(len(self.train_dl.dataset) / self.train_dl.batch_size)):
+            for i, data in enumerate(self.train_dl):
                 data = data.to(self.device)
                 self.optimizer.zero_grad()
                 reconstruction, mu, log_var = self.model(data)
@@ -49,13 +48,15 @@ class Trainer:
                 self.optimizer.step()
                 if not i % self.cfg.AUTOENCODER.LOG_INTERVAL and i > 0:
                     self.save_images(data, reconstruction, i, "train")
-                    print("Train reconstruction loss in iteration {}: {}".format(i, loss))
-                    print("Train kld loss in iteration {}: {}".format(i, recon_loss))
-                    print("Train total loss in iteration {}: {}".format(i, kld_loss))
+                    norm = i + i * (epoch - 1)
+                    print("[{}/{}] Train reconstruction loss: {}".format(i, len(self.train_dl.dataset), loss/norm))
+                    print("[{}/{}] Train kld loss: {}".format(i, len(self.train_dl.dataset), recon_loss/norm))
+                    print("[{}/{}] Train total loss: {}".format(i, len(self.train_dl.dataset), kld_loss/norm))
 
-            train_total_loss = running_total_loss / len(self.train_dl.dataset)
-            train_reconstruction_loss = running_reconstruction_loss / len(self.train_dl.dataset)
-            train_kld_loss = running_kld_loss / len(self.train_dl.dataset)
+            norm = len(self.train_dl.dataset)+len(self.train_dl.dataset)*(epoch-1)
+            train_total_loss = running_total_loss / norm
+            train_reconstruction_loss = running_reconstruction_loss / norm
+            train_kld_loss = running_kld_loss / norm
             print("Train reconstruction loss: {}".format(train_total_loss))
             print("Train kld loss: {}".format(train_reconstruction_loss))
             print("Train total loss: {}".format(train_kld_loss))
@@ -70,7 +71,7 @@ class Trainer:
             recons_loss = torch.nn.functional.mse_loss(reconstruction, input)
 
         kld_loss = -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp())
-        kld_loss /= self.train_dl.batch_size
+        #kld_loss /= self.train_dl.batch_size
         loss = recons_loss + kld_loss
         return loss, recons_loss, kld_loss
 
@@ -81,8 +82,7 @@ class Trainer:
         running_reconstruction_loss = 0.0
         running_kld_loss = 0.0
         with torch.no_grad():
-            for i, data in tqdm(enumerate(self.test_dl),
-                                total=int(len(self.test_dl.dataset) / self.test_dl.batch_size)):
+            for i, data in enumerate(self.test_dl):
                 data = data.to(self.device)
                 reconstruction, mu, log_var = self.model(data)
                 self.save_images(data, reconstruction, i, "eval")
@@ -91,12 +91,12 @@ class Trainer:
                 running_total_loss += loss
                 running_reconstruction_loss += recon_loss
                 running_kld_loss += kld_loss
-            test_total_loss = running_total_loss / (len(self.test_dl.dataset))
-            test_reconstruction_loss = running_reconstruction_loss / (len(self.test_dl.dataset))
-            test_kld_loss = running_kld_loss / (len(self.test_dl.dataset))
-            print("Evaluation reconstruction loss: {}".format(test_reconstruction_loss))
-            print("Evaluation kld loss: {}".format(test_kld_loss))
-            print("Evaluation total loss: {}".format(test_total_loss))
+            test_total_loss = running_total_loss / len(self.test_dl.dataset)
+            test_reconstruction_loss = running_reconstruction_loss / len(self.test_dl.dataset)
+            test_kld_loss = running_kld_loss / len(self.test_dl.dataset)
+            print("[{}/{}] test reconstruction loss: {}".format(i, len(self.test_dl.dataset), test_reconstruction_loss))
+            print("[{}/{}] test kld loss: {}".format(i, len(self.test_dl.dataset), test_kld_loss))
+            print("[{}/{}] test total loss: {}".format(i, len(self.test_dl.dataset), test_total_loss))
             return test_total_loss
 
     def save_images(self, inputs, reconstructions, iteration, prefix):
@@ -115,6 +115,7 @@ class Trainer:
                         (reconstruction_image, reconstruction_item[j].detach().cpu().numpy()), 0)
 
             evaluation_image = np.concatenate((original_image, reconstruction_image), 1)
+            evaluation_image /= evaluation_image.max()
             plt.axis('off')
             plt.imsave(self.cfg.AUTOENCODER.EVALUATION_IMAGES_OUTPUTDIR + prefix +'_{}.png'.format(iteration + i),
                        evaluation_image,

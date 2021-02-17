@@ -97,7 +97,7 @@ class UNet3D(nn.Module):
             nn.Linear(np.prod(self.encoder_dim), self.latent_space),
             nn.LeakyReLU()
         )
-        self.decoder_input = nn.Linear(self.latent_space, np.prod(self.encoder_dim))
+        self.decoder_input = nn.Sequential(nn.Linear(self.latent_space, np.prod(self.encoder_dim)), nn.LeakyReLU())
 
         # decoding path
         self.up_layers = nn.ModuleList()
@@ -109,7 +109,7 @@ class UNet3D(nn.Module):
                 block(filters[j - 1], filters[j - 1], **shared_kwargs)])
             self.up_layers.append(layer)
 
-        self.out_layer = torch.relu
+        self.out_layer = F.relu
         # initialization
         model_init(self)
 
