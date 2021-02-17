@@ -47,7 +47,7 @@ class UNet3D(nn.Module):
                  act_mode: str = 'elu',
                  norm_mode: str = 'bn',
                  init_mode: str = 'orthogonal',
-                 pooling: bool = True,
+                 pooling: bool = False,
                  input_shape = (64,64,64),
                  **kwargs):
         super().__init__()
@@ -109,9 +109,7 @@ class UNet3D(nn.Module):
                 block(filters[j - 1], filters[j - 1], **shared_kwargs)])
             self.up_layers.append(layer)
 
-
-        self.sig = torch.sigmoid
-
+        self.out_layer = torch.relu
         # initialization
         model_init(self)
 
@@ -140,7 +138,7 @@ class UNet3D(nn.Module):
             x = self.up_layers[i][1](x)
 
         x = self.conv_out(x)
-        x = self.sig(x)
+        x = self.out_layer(x)
         return x, mu, log_var
 
     def _upsample_add(self, x, y):
