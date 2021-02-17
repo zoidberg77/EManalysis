@@ -59,8 +59,8 @@ class Trainer:
             print("Train reconstruction loss: {}".format(train_total_loss))
             print("Train kld loss: {}".format(train_reconstruction_loss))
             print("Train total loss: {}".format(train_kld_loss))
-            self.evaluate()
-        return train_total_loss
+            test_total_loss = self.evaluate()
+        return train_total_loss, test_total_loss
 
     def loss(self, reconstruction, input, mu, log_var):
         recons_loss = 0.0

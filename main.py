@@ -54,7 +54,9 @@ def main():
 
         trainer = train.Trainer(dataset=dataset, train_percentage=0.7, optimizer_type="adam", loss_function="l1",
                                 cfg=cfg)
-        trainer.train()
+        train_total_loss, test_total_loss = trainer.train()
+        print("train loss: {}".format(train_total_loss))
+        print("test loss: {}".format(test_total_loss))
         return
 
     dl = Dataloader(cfg)
