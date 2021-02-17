@@ -47,7 +47,7 @@ class Trainer:
                 loss.backward()
                 self.optimizer.step()
                 if not i % self.cfg.AUTOENCODER.LOG_INTERVAL and i > 0:
-                    self.save_images(data, reconstruction, i, "train")
+                    self.save_images(data, reconstruction, i, epoch, "train")
                     norm = i + i * (epoch - 1)
                     print("[{}/{}] Train reconstruction loss: {}".format(i, int(len(self.train_dl.dataset)/self.train_dl.batch_size), loss/norm))
                     print("[{}/{}] Train kld loss: {}".format(i, int(len(self.train_dl.dataset)/self.train_dl.batch_size), recon_loss/norm))
@@ -85,7 +85,7 @@ class Trainer:
             for i, data in enumerate(self.test_dl):
                 data = data.to(self.device)
                 reconstruction, mu, log_var = self.model(data)
-                self.save_images(data, reconstruction, i, "test")
+                self.save_images(data, reconstruction, i, 0, "test")
                 loss, recon_loss, kld_loss = self.loss(reconstruction, data, mu, log_var)
 
                 running_total_loss += loss
@@ -99,7 +99,7 @@ class Trainer:
             print("test total loss: {}".format(test_total_loss))
             return test_total_loss
 
-    def save_images(self, inputs, reconstructions, iteration, prefix):
+    def save_images(self, inputs, reconstructions, iteration,epoch , prefix):
         for i in range(len(inputs)):
             original_image = None
             reconstruction_image = None
@@ -117,7 +117,7 @@ class Trainer:
             evaluation_image = np.concatenate((original_image, reconstruction_image), 1)
             evaluation_image /= evaluation_image.max()
             plt.axis('off')
-            plt.imsave(self.cfg.AUTOENCODER.EVALUATION_IMAGES_OUTPUTDIR + prefix +'_{}.png'.format(iteration + i),
+            plt.imsave(self.cfg.AUTOENCODER.EVALUATION_IMAGES_OUTPUTDIR + prefix +'_{}.png'.format(epoch ,iteration + i),
                        evaluation_image,
                        cmap="gray")
             return
