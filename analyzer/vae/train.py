@@ -58,9 +58,10 @@ class Trainer:
             train_total_loss = running_total_loss / norm
             train_reconstruction_loss = running_reconstruction_loss / norm
             train_kld_loss = running_kld_loss / norm
-            print("Epoch {}:  Train reconstruction loss: {}".format(epoch, train_total_loss))
-            print("Epoch {}: Train kld loss: {}".format(epoch, train_reconstruction_loss))
-            print("Epoch {}: Train total loss: {}".format(epoch, train_kld_loss))
+            self.current_epoch = epoch
+            print("Epoch {}:  Train reconstruction loss: {}".format(self.current_epoch, train_total_loss))
+            print("Epoch {}: Train kld loss: {}".format(self.current_epoch, train_reconstruction_loss))
+            print("Epoch {}: Train total loss: {}".format(self.current_epoch, train_kld_loss))
             test_total_loss = self.evaluate()
         return train_total_loss, test_total_loss
 
@@ -86,7 +87,7 @@ class Trainer:
             for i, data in enumerate(self.test_dl):
                 data = data.to(self.device)
                 reconstruction, mu, log_var = self.model(data)
-                self.save_images(data, reconstruction, i, 0, "test")
+                self.save_images(data, reconstruction, i, self.current_epoch, "test")
                 loss, recon_loss, kld_loss = self.loss(reconstruction, data, mu, log_var)
 
                 running_total_loss += loss
@@ -95,9 +96,9 @@ class Trainer:
             test_total_loss = running_total_loss / len(self.test_dl.dataset)
             test_reconstruction_loss = running_reconstruction_loss / len(self.test_dl.dataset)
             test_kld_loss = running_kld_loss / len(self.test_dl.dataset)
-            print("test reconstruction loss: {}".format(test_reconstruction_loss))
-            print("test kld loss: {}".format(test_kld_loss))
-            print("test total loss: {}".format(test_total_loss))
+            print("Epoch {}: Test reconstruction loss: {}".format(self.current_epoch, test_reconstruction_loss))
+            print("Epoch {}: Test kld loss: {}".format(self.current_epoch, test_kld_loss))
+            print("Epoch {}: Test total loss: {}".format(self.current_epoch, test_total_loss))
             return test_total_loss
 
     def save_images(self, inputs, reconstructions, iteration,epoch , prefix):
