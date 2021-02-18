@@ -87,12 +87,13 @@ class Trainer:
             for i, data in enumerate(self.test_dl):
                 data = data.to(self.device)
                 reconstruction, mu, log_var = self.model(data)
-                self.save_images(data, reconstruction, i, self.current_epoch, "test")
                 loss, recon_loss, kld_loss = self.loss(reconstruction, data, mu, log_var)
-
                 running_total_loss += loss
                 running_reconstruction_loss += recon_loss
                 running_kld_loss += kld_loss
+                if not i % self.cfg.AUTOENCODER.LOG_INTERVAL and i > 0:
+                    self.save_images(data, reconstruction, i, self.current_epoch, "test")
+
             test_total_loss = running_total_loss / len(self.test_dl.dataset)
             test_reconstruction_loss = running_reconstruction_loss / len(self.test_dl.dataset)
             test_kld_loss = running_kld_loss / len(self.test_dl.dataset)
