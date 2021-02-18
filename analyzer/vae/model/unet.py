@@ -71,7 +71,7 @@ class UNet3D(nn.Module):
         self.conv_in = conv3d_norm_act(in_channel, filters[0], kernel_size_io,
                                        padding=padding_io, **shared_kwargs)
         self.conv_out = conv3d_norm_act(filters[0], out_channel, kernel_size_io, bias=True,
-                                        padding=padding_io, pad_mode=pad_mode, act_mode='none', norm_mode='bn')
+                                        padding=padding_io, pad_mode=pad_mode, act_mode='relu', norm_mode='bn')
 
         # encoding path
         self.down_layers = nn.ModuleList()
@@ -109,38 +109,24 @@ class UNet3D(nn.Module):
                 block(filters[j - 1], filters[j - 1], **shared_kwargs)])
             self.up_layers.append(layer)
 
-        self.out_layer = F.relu
+
         # initialization
         model_init(self)
 
     def forward(self, x):
         x = self.conv_in(x)
-        if (x!=x).sum() > 0:
-            print("1: {}".format((x!=x).sum()))
         down_x = [None] * (self.depth - 1)
         for i in range(self.depth-1):
             x = self.down_layers[i](x)
             down_x[i] = x
-            if (x != x).sum() > 0:
-                print("2:{}: {}".format(i, (x!=x).sum()))
 
         x = self.down_layers[-1](x)
-        if (x != x).sum() > 0:
-            print("2 last: {}".format((x != x).sum()))
         x = torch.flatten(x, start_dim=1)
 
         log_var = self.log_var(x)
-        if (x != x).sum() > 0:
-            print("3: {}".format((log_var != log_var).sum()))
         mu = self.mu(x)
-        if (x != x).sum() > 0:
-            print("4: {}".format((mu != mu).sum()))
         x = self.reparameterize(mu, log_var)
-        if (x != x).sum() > 0:
-            print("5: {}".format((x != x).sum()))
         x = self.decoder_input(x)
-        if (x != x).sum() > 0:
-            print("6: {}".format((x != x).sum()))
 
         x = x.view(-1, *self.encoder_dim)
 
@@ -149,15 +135,8 @@ class UNet3D(nn.Module):
             x = self.up_layers[i][0](x)
             x = self._upsample_add(x, down_x[i])
             x = self.up_layers[i][1](x)
-            if (x != x).sum() > 0:
-                print("7 {}: {}".format(j, (x != x).sum()))
 
         x = self.conv_out(x)
-        if (x != x).sum() > 0:
-            print("7 last: {}".format((x != x).sum()))
-        x = self.out_layer(x)
-        if (x != x).sum() > 0:
-            print("8: {}".format((x != x).sum()))
         return x, mu, log_var
 
     def _upsample_add(self, x, y):
