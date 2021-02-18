@@ -117,6 +117,7 @@ class Trainer:
                         (reconstruction_image, reconstruction_item[j].detach().cpu().numpy()), 0)
 
             evaluation_image = np.concatenate((original_image, reconstruction_image), 1)
+            evaluation_image -= evaluation_image.min()
             evaluation_image /= evaluation_image.max()
             plt.axis('off')
             plt.imsave(self.cfg.AUTOENCODER.EVALUATION_IMAGES_OUTPUTDIR +'{}_{}_{}.png'.format(epoch, iteration + i, prefix),
