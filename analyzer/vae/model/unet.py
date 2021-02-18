@@ -48,7 +48,7 @@ class UNet3D(nn.Module):
                  norm_mode: str = 'bn',
                  init_mode: str = 'orthogonal',
                  pooling: bool = False,
-                 input_shape = (64,64,64),
+                 input_shape=(64, 64, 64),
                  **kwargs):
         super().__init__()
         assert len(filters) == len(isotropy)
@@ -71,10 +71,11 @@ class UNet3D(nn.Module):
         self.conv_in = conv3d_norm_act(in_channel, filters[0], kernel_size_io,
                                        padding=padding_io, **shared_kwargs)
         self.conv_out = conv3d_norm_act(filters[0], out_channel, kernel_size_io, bias=True,
-                                        padding=padding_io, pad_mode=pad_mode, act_mode='relu', norm_mode='bn')
+                                        padding=padding_io, pad_mode=pad_mode, act_mode='none', norm_mode='bn')
 
         # encoding path
         self.down_layers = nn.ModuleList()
+        self.out_layer = F.relu
 
         for i in range(self.depth):
             kernel_size, padding = self._get_kernal_size(isotropy[i])
@@ -109,14 +110,13 @@ class UNet3D(nn.Module):
                 block(filters[j - 1], filters[j - 1], **shared_kwargs)])
             self.up_layers.append(layer)
 
-
         # initialization
         model_init(self)
 
     def forward(self, x):
         x = self.conv_in(x)
         down_x = [None] * (self.depth - 1)
-        for i in range(self.depth-1):
+        for i in range(self.depth - 1):
             x = self.down_layers[i](x)
             down_x[i] = x
 
@@ -137,6 +137,7 @@ class UNet3D(nn.Module):
             x = self.up_layers[i][1](x)
 
         x = self.conv_out(x)
+        x = self.out_layer(x)
         return x, mu, log_var
 
     def _upsample_add(self, x, y):
@@ -195,6 +196,7 @@ class UNet3D(nn.Module):
 
         out = self.down_layers[-1](out)
         return out.size()[1:]
+
 
 class UNet2D(nn.Module):
     """2D residual U-Net architecture.
