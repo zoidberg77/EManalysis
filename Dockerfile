@@ -8,4 +8,4 @@ RUN apt-get install libgl1-mesa-glx -y
 RUN python -m pip install -U pip
 RUN pip install numpy h5py scikit-learn scikit-image matplotlib imageio torch torchvision torchaudio tqdm opencv-python numpyencoder tensorboardX yacs pandas
 
-CMD ["python", "main.py", "--cfg", "configs/vae.conf"]
+CMD ["python", "main.py", "--cfg", "configs/vae.yaml"]
