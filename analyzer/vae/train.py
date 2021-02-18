@@ -20,7 +20,7 @@ class Trainer:
         if self.model_type == "unet_3d":
             self.model = unet.UNet3D(input_shape=cfg.AUTOENCODER.TARGET, latent_space=cfg.AUTOENCODER.LATENT_SPACE)
         if self.optimizer_type == "adam":
-            self.optimizer = torch.optim.Adam(self.model.parameters())
+            self.optimizer = torch.optim.Adam(self.model.parameters(), lr=0.001, weight_decay=0.0001)
 
         train_length = int(train_percentage * len(dataset))
         test_length = len(dataset) - train_length
@@ -45,6 +45,7 @@ class Trainer:
                 running_reconstruction_loss += recon_loss
                 running_kld_loss += kld_loss
                 loss.backward()
+                torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=1.0)
                 self.optimizer.step()
                 if not i % self.cfg.AUTOENCODER.LOG_INTERVAL and i > 0:
                     self.save_images(data, reconstruction, i, epoch, "train")
