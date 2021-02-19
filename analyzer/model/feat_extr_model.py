@@ -16,16 +16,15 @@ class FeatureExtractor():
 				- 'iter': This iterates over each slice/image and extracts information one by one.
 						  This might help you to process the whole dataset without running into memory error.
 	'''
-	def __init__(self, emvol, gtvol, empath=None, gtpath=None, dprc='full', mode='3d',
-				 ff='png', fpath='features/'):
+	def __init__(self, cfg, emvol, gtvol):
+		self.cfg = cfg
 		self.emvol = emvol
 		self.gtvol = gtvol
-		self.empath = empath
-		self.gtpath = gtpath
-		self.dprc = dprc
-		self.ff = ff
-		self.mode = mode
-		self.fpath = fpath
+		self.empath = self.cfg.DATASET.EM_PATH
+		self.gtpath = self.cfg.DATASET.LABEL_PATH
+		self.dprc = self.cfg.MODE.DPRC
+		self.ff = self.cfg.DATASET.FILE_FORMAT
+		self.mode = self.cfg.MODE.DIM
 
 		if self.dprc == 'iter':
 			self.emfns = sorted(glob.glob(self.empath + '*.' + self.ff))
@@ -48,9 +47,15 @@ class FeatureExtractor():
 		'''
 		return compute_dist_graph(self.gtvol, fns=self.gtfns, dprc=self.dprc, mode=self.mode)
 
-	def run_vae(self):
+	def infer_vae(self):
 		'''
 		Function runs the vae option.
+		'''
+		raise NotImplementedError
+
+	def compute_seg_secu(self):
+		'''
+		Computes the secularity features from mitochondria volume.
 		'''
 		raise NotImplementedError
 
@@ -60,6 +65,6 @@ class FeatureExtractor():
 		:param rsl_dict: (dict) that contains features.
 		:param filen: (string) filename.
 		'''
-		with open(os.path.join(self.fpath, filen), 'w') as f:
+		with open(os.path.join(self.cfg.DATASET.ROOTF + filen), 'w') as f:
 			json.dump(rsl_dict, f, cls=NumpyEncoder)
 			f.close()

@@ -20,6 +20,7 @@ def compute_region_size(vol, dprc='full', fns=None, mode='3d'):
 
 	:returns result_array: (np.array) which contains (dicts) where the label is the key and the size of the segment is the corresponding value.
 	'''
+	print('Starting to extract size features.')
 	result_dict = {}
 
 	if dprc == 'full':
@@ -45,7 +46,7 @@ def compute_region_size(vol, dprc='full', fns=None, mode='3d'):
 					labels[idx, :, :] = tmp
 
 				label_cnt += num_label
-				
+
 		if mode == '3d':
 			if vol.ndim <= 2:
 				raise ValueError('Volume is lacking on dimensionality(at least 3d): {}'.format(vol.shape))
@@ -82,6 +83,7 @@ def compute_region_size(vol, dprc='full', fns=None, mode='3d'):
 				'size': result_dict[result],
 			})
 
+	print('Size feature extraction finished. {} features extracted.'.format(len(result_array)))
 	return (result_array)
 
 def compute_dist_graph(vol, dprc='full', fns=None, mode='3d'):
@@ -91,6 +93,7 @@ def compute_dist_graph(vol, dprc='full', fns=None, mode='3d'):
 	:param dprc: (string) data processing mode that sets how your data should be threated down the pipe.
 	:returns: (np.array) (N x N) matrix gives you the feature vector--> N: number of segments
 	'''
+	print('Starting to compute distances between mitochondria.')
 	result_dict = {}
 	if dprc == 'full':
 		if vol.ndim <= 2:
@@ -156,6 +159,7 @@ def compute_dist_graph(vol, dprc='full', fns=None, mode='3d'):
 				'dist': result_dict[result][3],
 			})
 
+	print('Distance feature extraction finished. {} x {} features extracted.'.format(len(result_array), len(result_array)))
 	return (result_array)
 
 def compute_intentsity(vol, gt, mode='3d'):

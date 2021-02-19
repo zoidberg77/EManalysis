@@ -4,6 +4,7 @@ import sys
 from analyzer.config import get_cfg_defaults
 from analyzer.data import Dataloader
 from analyzer.model import Clustermodel
+from analyzer.model import FeatureExtractor
 from analyzer.vae import train
 from analyzer.vae.dataset import MitoDataset
 
@@ -45,13 +46,17 @@ def main():
         print("Configuration details:")
         print(cfg)
 
+    dl = Dataloader(cfg)
+    em, gt = dl.load_chunk(vol='both')
+
     dataset = MitoDataset(cfg)
 
-    if cfg.MODE.PROCESS == "iter":
-        dataset.extract_scale_mitos()
+    if cfg.MODE.PROCESS == "infer":
+        #dataset.extract_scale_mitos()
+        dl.extract_scale_mitos()
         return
     elif cfg.MODE.PROCESS == "train":
-
+        print('--- Starting the training process of the autoencoder. --- \n')
         trainer = train.Trainer(dataset=dataset, train_percentage=0.7, optimizer_type="adam", loss_function="l1",
                                 cfg=cfg)
         train_total_loss, test_total_loss = trainer.train()
@@ -59,19 +64,16 @@ def main():
         print("test loss: {}".format(test_total_loss))
         return
 
-    dl = Dataloader(cfg)
-    em, gt = dl.load_chunk(vol='both')
-
     # dl.precluster(mchn='cluster')
 
-    # fex = FeatureExtractor(em, gt, args.em, args.gt, dprc='iter')
-    # tmp = fex.compute_seg_dist()
+    fex = FeatureExtractor(cfg, em, gt)
+    tmp = fex.compute_seg_size()
     # print(tmp)
-    # fex.save_feat_dict(tmp, 'sizef.json')
+    fex.save_feat_dict(tmp, 'sizef.json')
 
-    model = Clustermodel(cfg, em, gt, dl=dl, alg='kmeans', clstby='bysize')
-    model.load_features()
-    model.run()
+    model = Clustermodel(cfg, em, gt, dl=dl, clstby='bysize')
+    #model.load_features()
+    #model.run()
 
 
 if __name__ == "__main__":

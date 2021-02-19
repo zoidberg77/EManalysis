@@ -27,12 +27,12 @@ class Clustermodel():
 	:param n_cluster: (int) sets the number of cluster that should be found.
 	:param mode: (string) Analyze either by 2d or 3d slizes.
 	'''
-	def __init__(self, cfg, emvol, gtvol, dl=None, alg='kmeans', clstby='bysize', n_cluster=5, mode='3d'):
+	def __init__(self, cfg, emvol, gtvol, dl=None, clstby='bysize', n_cluster=5, mode='3d'):
 		self.cfg = cfg
 		self.emvol = emvol
 		self.gtvol = gtvol
 		self.dl = dl
-		self.alg = alg
+		self.alg = self.cfg.CLUSTER.ALG
 		self.clstby = clstby
 		self.n_cluster = n_cluster
 		self.mode = mode
@@ -68,14 +68,11 @@ class Clustermodel():
 				print('Please make sure this file {} exists.'.format(self.cfg.DATASET.ROOTF + fns + '.json'))
 				continue
 
-		#print(fpath)
-
 	def stack_features(self):
 		'''
 		This function takes different features and stacks them togehter for further clustering.
 		'''
 		raise NotImplementedError
-
 
 	def run(self):
 		if self.clstby == 'bysize':
