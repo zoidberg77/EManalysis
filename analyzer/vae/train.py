@@ -31,19 +31,18 @@ class Trainer:
     def train(self):
         self.model.train()
         self.model.to(self.device)
-        running_total_loss = 0.0
-        running_reconstruction_loss = 0.0
-        running_kld_loss = 0.0
-        train_total_loss = 0.0
+        running_total_loss = []
+        running_reconstruction_loss = []
+        running_kld_loss = []
         for epoch in range(1, self.epochs + 1):
             for i, data in enumerate(self.train_dl):
                 data = data.to(self.device)
                 self.optimizer.zero_grad()
                 reconstruction, mu, log_var = self.model(data)
                 loss, recon_loss, kld_loss = self.loss(reconstruction, data, mu, log_var)
-                running_total_loss += loss
-                running_reconstruction_loss += recon_loss
-                running_kld_loss += kld_loss
+                running_total_loss.append(loss.item())
+                running_reconstruction_loss.append(recon_loss.item())
+                running_kld_loss.append(kld_loss.item())
                 loss.backward()
                 torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=1.0)
                 self.optimizer.step()
@@ -55,15 +54,25 @@ class Trainer:
                     print("[{}/{}] Train total loss: {} \n".format(i, int(len(self.train_dl.dataset)/self.train_dl.batch_size), kld_loss/norm))
 
             norm = len(self.train_dl.dataset)+len(self.train_dl.dataset)*epoch
-            train_total_loss = running_total_loss / norm
-            train_reconstruction_loss = running_reconstruction_loss / norm
-            train_kld_loss = running_kld_loss / norm
+            train_total_loss = sum(running_total_loss) / norm
+            train_reconstruction_loss = sum(running_reconstruction_loss) / norm
+            train_kld_loss = sum(running_kld_loss) / norm
             self.current_epoch = epoch
             print("Epoch {}: Train reconstruction loss: {}".format(self.current_epoch, train_total_loss))
             print("Epoch {}: Train kld loss: {}".format(self.current_epoch, train_reconstruction_loss))
             print("Epoch {}: Train total loss: {} \n".format(self.current_epoch, train_kld_loss))
-            test_total_loss = self.evaluate()
-        return train_total_loss, test_total_loss
+            test_loss = self.test()
+
+        plt.axis("on")
+        plt.plot(running_total_loss)
+        plt.plot(running_reconstruction_loss)
+        plt.plot(running_kld_loss)
+        plt.ylabel("log(train loss)")
+        plt.xlabel("# iterations")
+        plt.yscale("log")
+        plt.title("Train Loss over {} Epochs".format(self.epochs))
+        plt.savefig(self.cfg.AUTOENCODER.EVALUATION_IMAGES_OUTPUTDIR + "train_loss.png")
+        return train_total_loss, test_loss
 
     def loss(self, reconstruction, input, mu, log_var):
         recons_loss = 0.0
@@ -77,29 +86,39 @@ class Trainer:
         loss = recons_loss + kld_loss
         return loss, recons_loss, kld_loss
 
-    def evaluate(self):
+    def test(self):
         self.model.eval()
         self.model.to(self.device)
-        running_total_loss = 0.0
-        running_reconstruction_loss = 0.0
-        running_kld_loss = 0.0
+        running_total_loss = []
+        running_reconstruction_loss = []
+        running_kld_loss = []
         with torch.no_grad():
             for i, data in enumerate(self.test_dl):
                 data = data.to(self.device)
                 reconstruction, mu, log_var = self.model(data)
                 loss, recon_loss, kld_loss = self.loss(reconstruction, data, mu, log_var)
-                running_total_loss += loss
-                running_reconstruction_loss += recon_loss
-                running_kld_loss += kld_loss
+                running_total_loss.append(loss.item())
+                running_reconstruction_loss.append(recon_loss.item())
+                running_kld_loss.append(kld_loss.item())
                 if not i % self.cfg.AUTOENCODER.LOG_INTERVAL and i > 0:
                     self.save_images(data, reconstruction, i, self.current_epoch, "test")
 
-            test_total_loss = running_total_loss / len(self.test_dl.dataset)
-            test_reconstruction_loss = running_reconstruction_loss / len(self.test_dl.dataset)
-            test_kld_loss = running_kld_loss / len(self.test_dl.dataset)
+            test_total_loss = sum(running_total_loss) / len(self.test_dl.dataset)
+            test_reconstruction_loss = sum(running_reconstruction_loss) / len(self.test_dl.dataset)
+            test_kld_loss = sum(running_kld_loss) / len(self.test_dl.dataset)
             print("Epoch {}: Test reconstruction loss: {}".format(self.current_epoch, test_reconstruction_loss))
             print("Epoch {}: Test kld loss: {}".format(self.current_epoch, test_kld_loss))
             print("Epoch {}: Test total loss: {} \n".format(self.current_epoch, test_total_loss))
+
+            plt.axis("on")
+            plt.plot(running_total_loss)
+            plt.plot(running_reconstruction_loss)
+            plt.plot(running_kld_loss)
+            plt.ylabel("log(test loss)")
+            plt.xlabel("# iterations")
+            plt.yscale("log")
+            plt.title("Test Loss over {} Epochs".format(self.epochs))
+            plt.savefig(self.cfg.AUTOENCODER.EVALUATION_IMAGES_OUTPUTDIR + "test_loss.png")
             return test_total_loss
 
     def save_images(self, inputs, reconstructions, iteration,epoch , prefix):

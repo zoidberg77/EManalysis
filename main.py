@@ -8,6 +8,8 @@ from analyzer.model import FeatureExtractor
 from analyzer.vae import train
 from analyzer.vae.dataset import MitoDataset
 
+import matplotlib.pyplot as plt
+
 
 # RUN THE SCRIPT LIKE: $ python main.py --em datasets/human/human_em_export_8nm/ --gt datasets/human/human_gt_export_8nm/ --cfg configs/process.yaml
 
@@ -62,6 +64,7 @@ def main():
         train_total_loss, test_total_loss = trainer.train()
         print("train loss: {}".format(train_total_loss))
         print("test loss: {}".format(test_total_loss))
+
         return
 
     # dl.precluster(mchn='cluster')
