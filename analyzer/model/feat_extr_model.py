@@ -16,7 +16,7 @@ class FeatureExtractor():
 				- 'iter': This iterates over each slice/image and extracts information one by one.
 						  This might help you to process the whole dataset without running into memory error.
 	'''
-	def __init__(self, cfg, emvol, gtvol):
+	def __init__(self, cfg, emvol=None, gtvol=None):
 		self.cfg = cfg
 		self.emvol = emvol
 		self.gtvol = gtvol

@@ -3,11 +3,13 @@ import numpy as np
 import pandas as pd
 from skimage.measure import label
 from sklearn.cluster import KMeans, AffinityPropagation, SpectralClustering, DBSCAN
-from analyzer.model.utils.extracting import compute_region_size, compute_intentsity, compute_dist_graph
+from analyzer.model.utils.extracting import *
 from analyzer.model.utils.superpixel import superpixel_segment, superpixel_image, texture_analysis
 from analyzer.model.utils.helper import convert_to_sparse, recompute_from_res, convert_dict_mtx
 from analyzer.data.data_vis import visvol, vissegments
 from analyzer.utils.eval import clusteravg
+
+from .feat_extr_model import FeatureExtractor
 
 class Clustermodel():
 	'''
@@ -34,12 +36,14 @@ class Clustermodel():
 		self.dl = dl
 		self.alg = self.cfg.CLUSTER.ALG
 		self.clstby = clstby
+		self.feat_list = self.cfg.CLUSTER.FEAT_LIST
 		self.n_cluster = n_cluster
 		self.mode = self.cfg.MODE.DIM
 
 		self.model = self.set_model(mn=self.alg)
+		self.fe = FeatureExtractor(self.cfg)
 
-		print(' --- model is set. algorithm: {}, clustering: {} --- '.format(self.alg, self.clstby))
+		print(' --- model is set. algorithm: {}, clustering: {} , features: {} --- '.format(self.alg, self.clstby, str(self.feat_list).strip('[]')))
 
 	def set_model(self, mn='kmeans'):
 		'''
@@ -63,28 +67,41 @@ class Clustermodel():
 		'''
 		This function will load different features vectors that were extracted and saved to be used for clustering.
 		'''
+		rs_feat_list = list()
 		for fns in feature_list:
 			if os.path.exists(self.cfg.DATASET.ROOTF + fns + '.json') is False:
-				print('Please make sure this file {} exists.'.format(self.cfg.DATASET.ROOTF + fns + '.json'))
-				continue
+				print('This file {} does not exist, will be computed.'.format(self.cfg.DATASET.ROOTF + fns + '.json'))
 
-			fn = self.cfg.DATASET.ROOTF + fns + '.json'
-			with open(fn, 'r') as f:
-				feat = json.loads(f.read())
-			feat_list.append(feat)
+				if fns == 'sizef':
+					feat = self.fe.compute_seg_size()
+				elif fns == 'distf':
+					feat = self.fe.compute_seg_dist()
+				elif fns == 'vaef':
+					feat = self.fe.infer_vae()
+				else:
+					print('No function for computing {} features.'.format(fns))
+			else:
+				fn = self.cfg.DATASET.ROOTF + fns + '.json'
+				with open(fn, 'r') as f:
+					feat = json.loads(f.read())
+				rs_feat_list.append(feat)
 
-		return feat_list
+		return rs_feat_list
 
 	def stack_features(self, feature_list=['sizef', 'distf', 'vaef']):
 		'''
 		This function takes different features and stacks them togehter for further clustering.
 		'''
+		#rs_feat_list = self.load_features(feature_list=feature_list)
 		raise NotImplementedError
 
 	def run(self):
 		if self.clstby == 'bysize':
 			# RUN the clustering by size parameters.
+			test = self.load_features(feature_list=['sizef'])[0]
+			print(len(test))
 			rst = compute_region_size(self.gtvol, mode=self.mode)
+			print(len(rst))
 			labels, areas = convert_dict_mtx(rst, 'size')
 			res_labels = self.model.fit_predict(np.array(areas).reshape(-1,1))
 			#res_labels = self.model.fit_predict(pd.DataFrame(rst))
@@ -122,6 +139,9 @@ class Clustermodel():
 
 			for k in range(self.emvol.shape[0]):
 				visvol(self.emvol[k], labeled[k])
+
+		elif self.clstby == 'byall':
+			#RUN the clustering by using all the features extracted.
 
 		else:
 			raise Exception('Please state according to which property should be clustered.')

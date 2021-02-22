@@ -22,5 +22,5 @@ DATASET:
   DISTF: 'features/distf_complete.json'
 
 MODE:
-  #PROCESS: 'leaveitoutfornow'
+  PROCESS: 'leaveitoutfornow'
   DPRC: 'iter'

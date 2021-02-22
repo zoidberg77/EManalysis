@@ -59,14 +59,11 @@ _C.MODE.DPRC = 'iter'
 # Do not change this. This will always be '3d' and probably depracted in the future.
 _C.MODE.DIM = '3d'
 # -----------------------------------------------------------------------------
-# Feature Extration
-# -----------------------------------------------------------------------------
-
-# -----------------------------------------------------------------------------
 # Clustermodel
 # -----------------------------------------------------------------------------
 _C.CLUSTER = CN()
 _C.CLUSTER.ALG = 'kmeans'
+_C.CLUSTER.FEAT_LIST = ['sizef', 'distf', 'vaef']
 
 def get_cfg_defaults():
     '''
