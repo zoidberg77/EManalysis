@@ -53,10 +53,10 @@ class Trainer:
                     print("[{}/{}] Train kld loss: {}".format(i, int(len(self.train_dl.dataset)/self.train_dl.batch_size), recon_loss/norm))
                     print("[{}/{}] Train total loss: {} \n".format(i, int(len(self.train_dl.dataset)/self.train_dl.batch_size), kld_loss/norm))
 
-            norm = len(self.train_dl.dataset)+len(self.train_dl.dataset)*epoch
-            train_total_loss = sum(running_total_loss) / norm
-            train_reconstruction_loss = sum(running_reconstruction_loss) / norm
-            train_kld_loss = sum(running_kld_loss) / norm
+            
+            train_total_loss = sum(running_total_loss) / len(running_total_loss)
+            train_reconstruction_loss = sum(running_reconstruction_loss) / len(running_reconstruction_loss)
+            train_kld_loss = sum(running_kld_loss) / len(running_kld_loss)
             self.current_epoch = epoch
             print("Epoch {}: Train reconstruction loss: {}".format(self.current_epoch, train_total_loss))
             print("Epoch {}: Train kld loss: {}".format(self.current_epoch, train_reconstruction_loss))
