@@ -29,7 +29,7 @@ class Dataloader():
     :param ff: (string) defines the file format that you want to work with. (default: png)
     '''
 
-    def __init__(self, cfg, volume=None, label=None, mode='3d'):
+    def __init__(self, cfg, volume=None, label=None):
         self.cfg = cfg
         if volume is not None:
             print('em data loaded: ', self.volume.shape)
@@ -44,7 +44,7 @@ class Dataloader():
             self.label = label
 
         self.chunk_size = self.cfg.DATASET.CHUNK_SIZE
-        self.mode = mode
+        self.mode = self.cfg.MODE.DIM
         self.ff = self.cfg.DATASET.FILE_FORMAT
         if self.cfg.SYSTEM.NUM_CPUS is None:
             self.cpus = multiprocessing.cpu_count()
@@ -307,7 +307,9 @@ class Dataloader():
 
             with multiprocessing.Pool(processes=self.cpus) as pool:
                 for i in tqdm(range(start, len(regions), int(self.cpus * self.chunks_per_cpu))):
-                    results = pool.map(self.get_mito_volume, regions[i:i + int(self.cpus * self.chunks_per_cpu)])
+                    results, _ = pool.map(self.get_mito_volume, regions[i:i + int(self.cpus * self.chunks_per_cpu)])
+                    from sys import getsizeof
+                    getsizeof(_)
                     for j, result in enumerate(results):
                         dset[i + j] = result
 
@@ -345,4 +347,4 @@ class Dataloader():
         scaled_mito = scaled_mito / scaled_mito.max()
         scaled_mito = np.expand_dims(scaled_mito, 0)
 
-        return scaled_mito
+        return scaled_mito, mito_region
