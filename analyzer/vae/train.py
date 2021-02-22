@@ -64,6 +64,7 @@ class Trainer:
             test_loss = self.test()
 
         plt.axis("on")
+        plt.legend(["total loss", "reconstruction loss", "kld loss"])
         plt.plot(running_total_loss)
         plt.plot(running_reconstruction_loss)
         plt.plot(running_kld_loss)
@@ -111,6 +112,7 @@ class Trainer:
             print("Epoch {}: Test total loss: {} \n".format(self.current_epoch, test_total_loss))
 
             plt.axis("on")
+            plt.legend(["total loss", "reconstruction loss", "kld loss"])
             plt.plot(running_total_loss)
             plt.plot(running_reconstruction_loss)
             plt.plot(running_kld_loss)
