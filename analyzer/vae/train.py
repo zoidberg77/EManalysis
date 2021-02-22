@@ -48,10 +48,9 @@ class Trainer:
                 self.optimizer.step()
                 if not i % self.cfg.AUTOENCODER.LOG_INTERVAL and i > 0:
                     self.save_images(data, reconstruction, i, epoch, "train")
-                    norm = i + i * (epoch - 1)
-                    print("[{}/{}] Train reconstruction loss: {}".format(i, int(len(self.train_dl.dataset)/self.train_dl.batch_size), loss/norm))
-                    print("[{}/{}] Train kld loss: {}".format(i, int(len(self.train_dl.dataset)/self.train_dl.batch_size), recon_loss/norm))
-                    print("[{}/{}] Train total loss: {} \n".format(i, int(len(self.train_dl.dataset)/self.train_dl.batch_size), kld_loss/norm))
+                    print("[{}/{}] Train reconstruction loss: {}".format(i, int(len(self.train_dl.dataset)/self.train_dl.batch_size), sum(loss)/norm))
+                    print("[{}/{}] Train kld loss: {}".format(i, int(len(self.train_dl.dataset)/self.train_dl.batch_size), sum(recon_loss)/norm))
+                    print("[{}/{}] Train total loss: {} \n".format(i, int(len(self.train_dl.dataset)/self.train_dl.batch_size), sum(kld_loss)/norm))
 
             
             train_total_loss = sum(running_total_loss) / len(running_total_loss)
