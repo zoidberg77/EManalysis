@@ -48,15 +48,14 @@ class Trainer:
                 self.optimizer.step()
                 if not i % self.cfg.AUTOENCODER.LOG_INTERVAL and i > 0:
                     self.save_images(data, reconstruction, i, epoch, "train")
-                    norm = i + i * (epoch - 1)
-                    print("[{}/{}] Train reconstruction loss: {}".format(i, int(len(self.train_dl.dataset)/self.train_dl.batch_size), loss/norm))
-                    print("[{}/{}] Train kld loss: {}".format(i, int(len(self.train_dl.dataset)/self.train_dl.batch_size), recon_loss/norm))
-                    print("[{}/{}] Train total loss: {} \n".format(i, int(len(self.train_dl.dataset)/self.train_dl.batch_size), kld_loss/norm))
+                    print("[{}/{}] Train reconstruction loss: {}".format(i, int(len(self.train_dl.dataset)/self.train_dl.batch_size), sum(running_total_loss)/len(running_total_loss)))
+                    print("[{}/{}] Train kld loss: {}".format(i, int(len(self.train_dl.dataset)/self.train_dl.batch_size), sum(running_reconstruction_loss)/len(running_reconstruction_loss)))
+                    print("[{}/{}] Train total loss: {} \n".format(i, int(len(self.train_dl.dataset)/self.train_dl.batch_size), sum(running_kld_loss)/len(running_kld_loss)))
 
-            norm = len(self.train_dl.dataset)+len(self.train_dl.dataset)*epoch
-            train_total_loss = sum(running_total_loss) / norm
-            train_reconstruction_loss = sum(running_reconstruction_loss) / norm
-            train_kld_loss = sum(running_kld_loss) / norm
+            
+            train_total_loss = sum(running_total_loss) / len(running_total_loss)
+            train_reconstruction_loss = sum(running_reconstruction_loss) / len(running_reconstruction_loss)
+            train_kld_loss = sum(running_kld_loss) / len(running_kld_loss)
             self.current_epoch = epoch
             print("Epoch {}: Train reconstruction loss: {}".format(self.current_epoch, train_total_loss))
             print("Epoch {}: Train kld loss: {}".format(self.current_epoch, train_reconstruction_loss))
@@ -73,6 +72,7 @@ class Trainer:
         plt.yscale("log")
         plt.title("Train Loss over {} Epochs".format(self.epochs))
         plt.savefig(self.cfg.AUTOENCODER.EVALUATION_IMAGES_OUTPUTDIR + "train_loss.png")
+        plt.clf()
         return train_total_loss, test_loss
 
     def loss(self, reconstruction, input, mu, log_var):
@@ -121,6 +121,7 @@ class Trainer:
             plt.yscale("log")
             plt.title("Test Loss over {} Epochs".format(self.epochs))
             plt.savefig(self.cfg.AUTOENCODER.EVALUATION_IMAGES_OUTPUTDIR + "test_loss.png")
+            plt.clf()
             return test_total_loss
 
     def save_images(self, inputs, reconstructions, iteration,epoch , prefix):
