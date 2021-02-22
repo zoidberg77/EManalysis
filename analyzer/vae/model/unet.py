@@ -75,7 +75,7 @@ class UNet3D(nn.Module):
 
         # encoding path
         self.down_layers = nn.ModuleList()
-        self.out_layer = F.relu
+        self.out_layer = torch.sigmoid
 
         for i in range(self.depth):
             kernel_size, padding = self._get_kernal_size(isotropy[i])
