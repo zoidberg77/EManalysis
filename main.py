@@ -76,7 +76,7 @@ def main():
 
     model = Clustermodel(cfg, em, gt, dl=dl, clstby='bysize')
     #model.load_features()
-    #model.run()
+    model.run()
 
 
 if __name__ == "__main__":
