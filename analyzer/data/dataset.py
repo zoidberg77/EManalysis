@@ -297,6 +297,7 @@ class Dataloader():
                     len(regions), 1, self.target_size[0], self.target_size[1], self.target_size[2]),
                                         maxshape=(None, 1, self.target_size[0], self.target_size[1],
                                                   self.target_size[2]))
+            '''
             else:
                 dset = f[self.mito_volume_dataset_name]
                 for i, mito in enumerate(dset):
@@ -304,14 +305,12 @@ class Dataloader():
                         start = i
                         print('found file with {} volumes in it'.format(i))
                         break
-
+            '''
             with multiprocessing.Pool(processes=self.cpus) as pool:
                 for i in tqdm(range(start, len(regions), int(self.cpus * self.chunks_per_cpu))):
-                    results, _ = pool.map(self.get_mito_volume, regions[i:i + int(self.cpus * self.chunks_per_cpu)])
-                    from sys import getsizeof
-                    getsizeof(_)
+                    results = pool.map(self.get_mito_volume, regions[i:i + int(self.cpus * self.chunks_per_cpu)])
                     for j, result in enumerate(results):
-                        dset[i + j] = result
+                        dset[i + j] = result[0]
 
     def get_mito_volume(self, region):
         '''
@@ -347,4 +346,4 @@ class Dataloader():
         scaled_mito = scaled_mito / scaled_mito.max()
         scaled_mito = np.expand_dims(scaled_mito, 0)
 
-        return scaled_mito, mito_region
+        return [scaled_mito, mito_region.area, mito_region.major_axis_length]
