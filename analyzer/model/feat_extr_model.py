@@ -53,9 +53,9 @@ class FeatureExtractor():
 		'''
 		raise NotImplementedError
 
-	def compute_seg_secu(self):
+	def compute_seg_circ(self):
 		'''
-		Computes the secularity features from mitochondria volume.
+		Computes the circularity features from mitochondria volume.
 		'''
 		raise NotImplementedError
 
