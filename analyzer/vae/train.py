@@ -73,6 +73,7 @@ class Trainer:
         plt.yscale("log")
         plt.title("Train Loss over {} Epochs".format(self.epochs))
         plt.savefig(self.cfg.AUTOENCODER.EVALUATION_IMAGES_OUTPUTDIR + "train_loss.png")
+        plt.clf()
         return train_total_loss, test_loss
 
     def loss(self, reconstruction, input, mu, log_var):
@@ -121,6 +122,7 @@ class Trainer:
             plt.yscale("log")
             plt.title("Test Loss over {} Epochs".format(self.epochs))
             plt.savefig(self.cfg.AUTOENCODER.EVALUATION_IMAGES_OUTPUTDIR + "test_loss.png")
+            plt.clf()
             return test_total_loss
 
     def save_images(self, inputs, reconstructions, iteration,epoch , prefix):
