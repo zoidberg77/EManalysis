@@ -291,13 +291,13 @@ class Dataloader():
             print("{} will be extracted due to set region_limit".format(self.region_limit))
         mode = 'w'
         start = 0
-        dset = None
         with h5py.File(self.mito_volume_file_name, mode) as f:
             if mode == 'w':
-                dset = f.create_dataset(self.mito_volume_dataset_name, (
+                dset_mito = f.create_dataset(self.mito_volume_dataset_name, (
                     len(regions), 1, self.target_size[0], self.target_size[1], self.target_size[2]),
                                         maxshape=(None, 1, self.target_size[0], self.target_size[1],
                                                   self.target_size[2]))
+                dset_area = f.create_dataset("area", len(regions), maxshape=(len(regions)))
             '''
             else:
                 dset = f[self.mito_volume_dataset_name]
@@ -311,7 +311,8 @@ class Dataloader():
                 for i in tqdm(range(start, len(regions), int(self.cpus * self.chunks_per_cpu))):
                     results = pool.map(self.get_mito_volume, regions[i:i + int(self.cpus * self.chunks_per_cpu)])
                     for j, result in enumerate(results):
-                        dset[i + j] = result[0]
+                        dset_mito[i + j] = result[0]
+                        dset_area[i + j] = result[1]
 
     def get_mito_volume(self, region):
         '''
@@ -346,6 +347,5 @@ class Dataloader():
         scaled_mito = resize(mito_volume, self.target_size)
         scaled_mito = scaled_mito / scaled_mito.max()
         scaled_mito = np.expand_dims(scaled_mito, 0)
-        circularity = (4 * math.pi * mito_region.area) / (mito_region.perimeter**2)
-
-        return [scaled_mito, mito_region.area, circularity]
+        #circularity = (4 * math.pi * mito_region.area) / (mito_region.perimeter**2)
+        return [scaled_mito, mito_region.area]
