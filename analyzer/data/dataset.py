@@ -1,5 +1,6 @@
 import glob
 import json
+import math
 import multiprocessing
 import os
 
@@ -345,5 +346,6 @@ class Dataloader():
         scaled_mito = resize(mito_volume, self.target_size)
         scaled_mito = scaled_mito / scaled_mito.max()
         scaled_mito = np.expand_dims(scaled_mito, 0)
+        circularity = (4 * math.pi * mito_region.area) / (mito_region.perimeter**2)
 
-        return [scaled_mito, mito_region.area, mito_region.major_axis_length]
+        return [scaled_mito, mito_region.area, circularity]
