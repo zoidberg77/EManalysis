@@ -143,5 +143,5 @@ class Clustermodel():
 		elif self.clstby == 'byall':
 			#RUN the clustering by using all the features extracted.
 
-		else:
+                else:
 			raise Exception('Please state according to which property should be clustered.')
