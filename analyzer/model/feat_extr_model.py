@@ -4,7 +4,7 @@ import json
 import glob
 from numpyencoder import NumpyEncoder
 
-from analyzer.model.utils.extracting import compute_region_size, compute_intentsity, compute_dist_graph
+from analyzer.model.utils.extracting import compute_region_size, compute_dist_graph, compute_circularity, compute_intentsity
 
 class FeatureExtractor():
 	'''
@@ -51,13 +51,14 @@ class FeatureExtractor():
 		'''
 		Function runs the vae option.
 		'''
-		raise NotImplementedError
+		print('Not there yet for vae features.')
+		#raise NotImplementedError
 
 	def compute_seg_circ(self):
 		'''
 		Computes the circularity features from mitochondria volume.
 		'''
-		raise NotImplementedError
+		return compute_circularity(self.gtvol, fns=self.gtfns, dprc=self.dprc, mode=self.mode)
 
 	def save_feat_dict(self, rsl_dict, filen='feature_vector.json'):
 		'''

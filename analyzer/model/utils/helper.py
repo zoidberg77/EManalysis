@@ -89,9 +89,3 @@ def convert_dict_mtx(input, valn):
 		raise TypeError('input type {} can not be processed.'.format(type(input)))
 
 	return (labels, values)
-
-def compute_circularity(area, perimeter):
-	'''
-	The circularity of a circle is 1, and much less than one for a starfish footprint.
-	'''
-	return (4 * np.pi * area / np.pow(perimeter,2))

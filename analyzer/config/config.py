@@ -43,6 +43,7 @@ _C.DATASET.DATAINFO = 'features/data_info.json'
 _C.DATASET.SIZEF = 'features/sizef.json'
 _C.DATASET.DISTF = 'features/distf.json'
 _C.DATASET.VAEF = 'features/vaef.json'
+_C.DATASET.CIRCF = 'features/circf.json'
 
 # -----------------------------------------------------------------------------
 # Mode
@@ -63,7 +64,7 @@ _C.MODE.DIM = '3d'
 # -----------------------------------------------------------------------------
 _C.CLUSTER = CN()
 _C.CLUSTER.ALG = 'kmeans'
-_C.CLUSTER.FEAT_LIST = ['sizef', 'distf', 'vaef']
+_C.CLUSTER.FEAT_LIST = ['sizef', 'distf', 'vaef', 'circf']
 
 def get_cfg_defaults():
     '''

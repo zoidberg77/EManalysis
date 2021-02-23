@@ -63,12 +63,12 @@ class Clustermodel():
 
 		return model
 
-	def load_features(self, feature_list=['sizef', 'distf', 'vaef']):
+	def load_features(self, feature_list=['sizef', 'distf', 'vaef', 'circf']):
 		'''
 		This function will load different features vectors that were extracted and saved to be used for clustering.
 		'''
 		rs_feat_list = list()
-		for fns in feature_list:
+		for fns in self.feat_list:
 			if os.path.exists(self.cfg.DATASET.ROOTF + fns + '.json') is False:
 				print('This file {} does not exist, will be computed.'.format(self.cfg.DATASET.ROOTF + fns + '.json'))
 
@@ -78,12 +78,15 @@ class Clustermodel():
 					feat = self.fe.compute_seg_dist()
 				elif fns == 'vaef':
 					feat = self.fe.infer_vae()
+				elif fns == 'circf':
+					feat = self.fe.compute_seg_circ()
 				else:
 					print('No function for computing {} features.'.format(fns))
 			else:
 				fn = self.cfg.DATASET.ROOTF + fns + '.json'
 				with open(fn, 'r') as f:
 					feat = json.loads(f.read())
+					print('test: {}'.format(fns))
 				rs_feat_list.append(feat)
 
 		return rs_feat_list

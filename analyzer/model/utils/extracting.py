@@ -64,7 +64,7 @@ def compute_region_size(vol, dprc='full', fns=None, mode='3d'):
 					'size': result_dict[result],
 				})
 
-	if dprc == 'iter':
+	elif dprc == 'iter':
 		with multiprocessing.Pool(processes=multiprocessing.cpu_count()) as pool:
 			tmp = pool.starmap(functools.partial(calc_props, prop_list=['size']), enumerate(fns))
 
@@ -82,7 +82,8 @@ def compute_region_size(vol, dprc='full', fns=None, mode='3d'):
 				'id': result,
 				'size': result_dict[result],
 			})
-
+	else:
+		raise ValueError('No proper dprc found. Choose \'full\' or \'iter\'.')
 	print('Size feature extraction finished. {} features extracted.'.format(len(result_array)))
 	return (result_array)
 
@@ -119,7 +120,7 @@ def compute_dist_graph(vol, dprc='full', fns=None, mode='3d'):
 				'dist': result_dict[result],
 			})
 
-	if dprc == 'iter':
+	elif dprc == 'iter':
 		with multiprocessing.Pool(processes=multiprocessing.cpu_count()) as pool:
 			tmp = pool.starmap(functools.partial(calc_props, prop_list=['size', 'slices', 'centroid']), enumerate(fns))
 
@@ -158,10 +159,91 @@ def compute_dist_graph(vol, dprc='full', fns=None, mode='3d'):
 				'id': result,
 				'dist': result_dict[result][3],
 			})
-
+	else:
+		raise ValueError('No proper dprc found. Choose \'full\' or \'iter\'.')
 	print('Distance feature extraction finished. {} x {} features extracted.'.format(len(result_array), len(result_array)))
 	return (result_array)
 
+def compute_circularity(vol, dprc='full', fns=None, mode='3d'):
+	'''
+	This function aims to calculate the circularity of an object.
+	'''
+	print('Starting to compute a circularity estimation of mitochondria.')
+	result_dict = {}
+	if dprc == 'full':
+		raise NotImplementedError('no dprc \'full\' in this function yet.')
+	elif dprc == 'iter':
+		with multiprocessing.Pool(processes=multiprocessing.cpu_count()) as pool:
+			tmp = pool.starmap(functools.partial(calc_props, prop_list=['circ']), enumerate(fns))
+
+		for dicts in tmp:
+			for key, value in dicts.items():
+				if key in result_dict:
+					result_dict[key][0] += value[0]
+				else:
+					result_dict.setdefault(key, [])
+					result_dict[key].append(value[0])
+
+		result_array = []
+		for result in result_dict.keys():
+			result_array.append({
+				'id': result,
+				'circ': result_dict[result],
+			})
+	else:
+		raise ValueError('No proper dprc found. Choose \'full\' or \'iter\'.')
+	print('Circularity feature extraction finished. {} features extracted.'.format(len(result_array)))
+	return (result_array)
+
+### HELPER SECTION ###
+def calc_props(idx, fns, prop_list=['size', 'slices', 'centroid', 'circ']):
+	'''
+	Helper function for 'compute_regions'
+	:param fns: (string) list of filenames. sorted.
+	:param prop_list: (list) of (strings) that contain the properties that should be stored in result.
+	:returns result: (dict) with each segment. key: idx of segment -- value: [number of pixels in segment, idx of slice].
+	'''
+	result = {}
+	if os.path.exists(fns):
+		tmp = imageio.imread(fns)
+		#labels, num_labels = np.unique(tmp, return_counts=True)
+		regions = regionprops(tmp, cache=False)
+
+		labels = []
+		num_labels = []
+		c_list = []
+		circ_list = []
+		for props in regions:
+			labels.append(props.label)
+			if any('size' in s for s in prop_list):
+				num_labels.append(props.area)
+			if any('centroid' in s for s in prop_list):
+				c_list.append(tuple(map(int, props.centroid)))
+			if any('circ' in s for s in prop_list):
+				circ_list.append(cc(props.area, props.perimeter))
+
+		for l in range(len(labels)):
+			if labels[l] == 0:
+				continue
+			result.setdefault(labels[l], [])
+			if any('size' in s for s in prop_list):
+				result[labels[l]].append(num_labels[l])
+			if any('slices' in s for s in prop_list):
+				result[labels[l]].append(idx)
+			if any('centroid' in s for s in prop_list):
+				result[labels[l]].append(c_list[l])
+			if any('circ' in s for s in prop_list):
+				result[labels[l]].append(circ_list[l])
+
+	return result
+
+def cc(area, perimeter):
+	'''
+	The circularity of a circle is 1, and much less than one for a starfish footprint.
+	'''
+	return ((4 * np.pi * area) / (perimeter**2))
+
+#### depracted ####
 def compute_intentsity(vol, gt, mode='3d'):
 	'''
 	This function takes both em and gt in order to compute the intensities from each segment.
@@ -192,43 +274,6 @@ def compute_intentsity(vol, gt, mode='3d'):
 	intns = np.array(intns_values, dtype=np.float16)
 
 	return (labels, intns)
-
-### HELPER SECTION ###
-def calc_props(idx, fns, prop_list=['size', 'slices', 'centroid']):
-	'''
-	Helper function for 'compute_regions'
-	:param fns: (string) list of filenames. sorted.
-	:param prop_list: (list) of (strings) that contain the properties that should be stored in result.
-	:returns result: (dict) with each segment. key: idx of segment -- value: [number of pixels in segment, idx of slice].
-	'''
-	result = {}
-	if os.path.exists(fns):
-		tmp = imageio.imread(fns)
-		#labels, num_labels = np.unique(tmp, return_counts=True)
-		regions = regionprops(tmp, cache=False)
-
-		labels = []
-		num_labels = []
-		c_list = []
-		for props in regions:
-			labels.append(props.label)
-			if any('size' in s for s in prop_list):
-				num_labels.append(props.area)
-			if any('centroid' in s for s in prop_list):
-				c_list.append(tuple(map(int, props.centroid)))
-
-		for l in range(len(labels)):
-			if labels[l] == 0:
-				continue
-			result.setdefault(labels[l], [])
-			if any('size' in s for s in prop_list):
-				result[labels[l]].append(num_labels[l])
-			if any('slices' in s for s in prop_list):
-				result[labels[l]].append(idx)
-			if any('centroid' in s for s in prop_list):
-				result[labels[l]].append(c_list[l])
-
-	return result
 
 def plot_stats(data, x_label='x', y_label='y'):
 	'''

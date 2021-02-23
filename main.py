@@ -69,14 +69,14 @@ def main():
 
     # dl.precluster(mchn='cluster')
 
-    fex = FeatureExtractor(cfg, em, gt)
+    #fex = FeatureExtractor(cfg, em, gt)
     #tmp = fex.compute_seg_size()
     # print(tmp)
     #fex.save_feat_dict(tmp, 'sizef.json')
 
     model = Clustermodel(cfg, em, gt, dl=dl, clstby='bysize')
-    #model.load_features()
-    model.run()
+    model.load_features()
+    #model.run()
 
 
 if __name__ == "__main__":
