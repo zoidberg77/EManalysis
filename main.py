@@ -69,13 +69,13 @@ def main():
 
     # dl.precluster(mchn='cluster')
 
-    #fex = FeatureExtractor(cfg, em, gt)
-    #tmp = fex.compute_seg_size()
-    # print(tmp)
-    #fex.save_feat_dict(tmp, 'sizef.json')
+    fex = FeatureExtractor(cfg, em, gt)
+    #tmp = fex.compute_seg_circ()
+    #print(tmp)
+    #fex.save_feat_h5(tmp, 'circf')
 
     model = Clustermodel(cfg, em, gt, dl=dl, clstby='bysize')
-    model.load_features()
+    #model.load_features()
     #model.run()
 
 

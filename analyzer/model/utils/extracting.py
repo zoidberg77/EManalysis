@@ -1,5 +1,6 @@
 import os, sys
 import json
+import math
 import numpy as np
 import multiprocessing
 import functools
@@ -174,21 +175,23 @@ def compute_circularity(vol, dprc='full', fns=None, mode='3d'):
 		raise NotImplementedError('no dprc \'full\' in this function yet.')
 	elif dprc == 'iter':
 		with multiprocessing.Pool(processes=multiprocessing.cpu_count()) as pool:
-			tmp = pool.starmap(functools.partial(calc_props, prop_list=['circ']), enumerate(fns))
+			tmp = pool.starmap(functools.partial(calc_props, prop_list=['slices', 'circ']), enumerate(fns))
 
 		for dicts in tmp:
 			for key, value in dicts.items():
 				if key in result_dict:
-					result_dict[key][0] += value[0]
+					result_dict[key][0].append(value[0])
+					result_dict[key][1] += value[1]
 				else:
 					result_dict.setdefault(key, [])
-					result_dict[key].append(value[0])
+					result_dict[key].append([value[0]])
+					result_dict[key].append([value[1]])
 
 		result_array = []
 		for result in result_dict.keys():
 			result_array.append({
 				'id': result,
-				'circ': result_dict[result],
+				'circ': (result_dict[result][1][0] / len(result_dict[result][0])),
 			})
 	else:
 		raise ValueError('No proper dprc found. Choose \'full\' or \'iter\'.')
@@ -241,9 +244,13 @@ def cc(area, perimeter):
 	'''
 	The circularity of a circle is 1, and much less than one for a starfish footprint.
 	'''
-	return ((4 * np.pi * area) / (perimeter**2))
+	if math.isnan(perimeter) or (perimeter == 0):
+		circ = np.float64(0.0)
+	else:
+		circ = (4 * np.pi * area) / (perimeter**2)
+	return (circ)
 
-#### depracted ####
+#### deprecated ####
 def compute_intentsity(vol, gt, mode='3d'):
 	'''
 	This function takes both em and gt in order to compute the intensities from each segment.

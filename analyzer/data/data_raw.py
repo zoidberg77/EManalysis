@@ -4,7 +4,6 @@ import glob
 import numpy as np
 import imageio
 
-
 def readh5(filename, dataset=''):
 	'''
 	Read in the data volume in h5.

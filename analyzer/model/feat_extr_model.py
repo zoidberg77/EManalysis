@@ -2,9 +2,11 @@ import os, sys
 import numpy as np
 import json
 import glob
+import h5py
 from numpyencoder import NumpyEncoder
 
 from analyzer.model.utils.extracting import compute_region_size, compute_dist_graph, compute_circularity, compute_intentsity
+from analyzer.model.utils.helper import convert_dict_mtx
 
 class FeatureExtractor():
 	'''
@@ -59,6 +61,25 @@ class FeatureExtractor():
 		Computes the circularity features from mitochondria volume.
 		'''
 		return compute_circularity(self.gtvol, fns=self.gtfns, dprc=self.dprc, mode=self.mode)
+
+	def save_feat_h5(self, rsl_dict, filen='feature_vector'):
+		'''
+		Saving arrays to h5 that contains the features.
+		:param rsl_dict: (dict) that contains features.
+		:param filen: (string) filename.
+		'''
+		labels, values = convert_dict_mtx(rsl_dict, filen[:-1])
+		with h5py.File(self.cfg.DATASET.ROOTF + filen + '.h5', 'w') as h5f:
+			h5f.create_dataset('id', data=labels)
+			h5f.create_dataset(filen[:-1], data=values)
+			h5f.close()
+		#with h5py.File(self.cfg.DATASET.ROOTF + filen + '.h5', 'w') as h5f:
+			#ds = h5f.create_dataset(filen, shape=(len(labels)))
+			#idx = h5f.create_group('id')
+			#feat = h5f.create_group(filen[:-1])
+			#idx = labels
+			#feat = values
+			#h5f.close()
 
 	def save_feat_dict(self, rsl_dict, filen='feature_vector.json'):
 		'''

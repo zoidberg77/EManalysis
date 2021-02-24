@@ -29,7 +29,6 @@ _C.AUTOENCODER.DATASET_NAME = 'mito_volumes'
 _C.AUTOENCODER.EVALUATION_IMAGES_OUTPUTDIR = 'features/evaluation/'
 _C.AUTOENCODER.LOG_INTERVAL = 10
 _C.AUTOENCODER.LATENT_SPACE = 100
-
 # -----------------------------------------------------------------------------
 # Dataset
 # -----------------------------------------------------------------------------
@@ -44,7 +43,6 @@ _C.DATASET.SIZEF = 'features/sizef.json'
 _C.DATASET.DISTF = 'features/distf.json'
 _C.DATASET.VAEF = 'features/vaef.json'
 _C.DATASET.CIRCF = 'features/circf.json'
-
 # -----------------------------------------------------------------------------
 # Mode
 # := sets different run options.
@@ -65,6 +63,7 @@ _C.MODE.DIM = '3d'
 _C.CLUSTER = CN()
 _C.CLUSTER.ALG = 'kmeans'
 _C.CLUSTER.FEAT_LIST = ['sizef', 'distf', 'vaef', 'circf']
+_C.CLUSTER.N_CLUSTER = 5
 
 def get_cfg_defaults():
     '''

@@ -29,7 +29,7 @@ class Clustermodel():
 	:param n_cluster: (int) sets the number of cluster that should be found.
 	:param mode: (string) Analyze either by 2d or 3d slizes.
 	'''
-	def __init__(self, cfg, emvol, gtvol, dl=None, clstby='bysize', n_cluster=5):
+	def __init__(self, cfg, emvol, gtvol, dl=None, clstby='bysize'):
 		self.cfg = cfg
 		self.emvol = emvol
 		self.gtvol = gtvol
@@ -37,7 +37,7 @@ class Clustermodel():
 		self.alg = self.cfg.CLUSTER.ALG
 		self.clstby = clstby
 		self.feat_list = self.cfg.CLUSTER.FEAT_LIST
-		self.n_cluster = n_cluster
+		self.n_cluster = self.cfg.CLUSTER.N_CLUSTER
 		self.mode = self.cfg.MODE.DIM
 
 		self.model = self.set_model(mn=self.alg)
@@ -82,6 +82,7 @@ class Clustermodel():
 					feat = self.fe.compute_seg_circ()
 				else:
 					print('No function for computing {} features.'.format(fns))
+				self.fe.save_feat_dict(feat, filen=(fns + '.json'))
 			else:
 				fn = self.cfg.DATASET.ROOTF + fns + '.json'
 				with open(fn, 'r') as f:

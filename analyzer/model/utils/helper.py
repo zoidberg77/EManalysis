@@ -30,7 +30,6 @@ def convert_to_sparse(inputs):
 
 	return (sparse)
 
-
 def recompute_from_res(vol, labels, result, dprc='full', mode='3d'):
 	'''
 	Take the result labels from clustering algorithm and adjust the old labels. NOTE: '3d' mode is way faster.
@@ -69,7 +68,7 @@ def recompute_from_res(vol, labels, result, dprc='full', mode='3d'):
 
 	return cld_labels
 
-def convert_dict_mtx(input, valn):
+def convert_dict_mtx(inputs, valn):
 	'''
 	This function converts a dict with labels as keys and values to 2 separate matrices that represent
 	feature vectors/matrix and labels vector.
@@ -78,14 +77,17 @@ def convert_dict_mtx(input, valn):
 	:returns labels: (np.array) same shape as volume with all the labels.
 	:returns values: (np.array) is a vetor that contains the corresponding values for every label.
 	'''
-	if (type(input) is list):
-		labels = [seg['id'] for seg in input]
-		values = [seg[valn] for seg in input]
-	elif (type(input) is dict):
-		labels, values = zip(* input.items())
+	if (type(inputs) is list):
+		labels = np.array([seg['id'] for seg in inputs])
+		if isinstance(inputs[0][valn], (list, tuple, np.ndarray)) is False:
+			values = np.array([seg[valn] for seg in inputs])
+		else:
+			values = np.concatenate([seg[valn] for seg in inputs])
+	elif (type(inputs) is dict):
+		labels, values = zip(* inputs.items())
 		labels = np.array(labels, dtype=np.uint16)
 		values = np.array(values, dtype=np.uint16)
 	else:
-		raise TypeError('input type {} can not be processed.'.format(type(input)))
+		raise TypeError('input type {} can not be processed.'.format(type(inputs)))
 
 	return (labels, values)
