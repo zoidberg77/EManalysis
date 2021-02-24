@@ -1,5 +1,6 @@
 SYSTEM:
   NUM_CPUS: 8
+  NUM_GPUS: 0
 AUTOENCODER:
   ARCHITECTURE: 'unet_3d'
   REGION_LIMIT: None
@@ -9,8 +10,8 @@ AUTOENCODER:
   TARGET: (128, 128, 128)
   EPOCHS: 5
   BATCH_SIZE: 2
-  OUPUT_FILE_VOLUMES: 'features/mito.h5'
-  DATASET_NAME: 'mito_volumes'
+  OUPUT_FILE: 'features/mito.h5'
+  FEATURE: 'texture'
 DATASET:
   EM_PATH: 'datasets/human/human_em_export_8nm/'
   LABEL_PATH: 'datasets/human/human_gt_export_8nm/'
