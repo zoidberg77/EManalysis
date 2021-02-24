@@ -25,4 +25,4 @@ MODE:
   DPRC: 'iter'
 CLUSTER:
   ALG: 'kmeans'
-  FEAT_LIST: ['circf']
+  FEAT_LIST: ['sizef', 'distf', 'circf']

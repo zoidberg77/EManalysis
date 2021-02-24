@@ -73,7 +73,7 @@ def main():
     #fex.save_feat_h5(tmp, 'circf')
 
     model = Clustermodel(cfg, em, gt, dl=dl, clstby='bysize')
-    #model.load_features()
+    model.load_features()
     #model.run()
 
 

@@ -66,20 +66,13 @@ class FeatureExtractor():
 		'''
 		Saving arrays to h5 that contains the features.
 		:param rsl_dict: (dict) that contains features.
-		:param filen: (string) filename.
+		:param filen: (string) filename. (without h5)
 		'''
 		labels, values = convert_dict_mtx(rsl_dict, filen[:-1])
 		with h5py.File(self.cfg.DATASET.ROOTF + filen + '.h5', 'w') as h5f:
 			h5f.create_dataset('id', data=labels)
 			h5f.create_dataset(filen[:-1], data=values)
 			h5f.close()
-		#with h5py.File(self.cfg.DATASET.ROOTF + filen + '.h5', 'w') as h5f:
-			#ds = h5f.create_dataset(filen, shape=(len(labels)))
-			#idx = h5f.create_group('id')
-			#feat = h5f.create_group(filen[:-1])
-			#idx = labels
-			#feat = values
-			#h5f.close()
 
 	def save_feat_dict(self, rsl_dict, filen='feature_vector.json'):
 		'''

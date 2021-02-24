@@ -1,6 +1,7 @@
 import os, sys
 import numpy as np
 import pandas as pd
+import h5py
 from skimage.measure import label
 from sklearn.cluster import KMeans, AffinityPropagation, SpectralClustering, DBSCAN
 from analyzer.model.utils.extracting import *
@@ -66,8 +67,13 @@ class Clustermodel():
 	def load_features(self, feature_list=['sizef', 'distf', 'vaef', 'circf']):
 		'''
 		This function will load different features vectors that were extracted and saved to be used for clustering.
+		:param feat_list: (list) of (string)s that states which features should be computed and/or load to cache for
+							further processing.
+		:returns labels: (np.array) that contains the labels.
+		:returns rs_feat_list: (list) of (np.array)s that contain the related features.
 		'''
 		rs_feat_list = list()
+		labels = np.array([])
 		for fns in self.feat_list:
 			if os.path.exists(self.cfg.DATASET.ROOTF + fns + '.json') is False:
 				print('This file {} does not exist, will be computed.'.format(self.cfg.DATASET.ROOTF + fns + '.json'))
@@ -82,15 +88,19 @@ class Clustermodel():
 					feat = self.fe.compute_seg_circ()
 				else:
 					print('No function for computing {} features.'.format(fns))
-				self.fe.save_feat_dict(feat, filen=(fns + '.json'))
+				#self.fe.save_feat_dict(feat, filen=(fns + '.json'))
+				self.fe.save_feat_h5(feat, filen=fns)
 			else:
-				fn = self.cfg.DATASET.ROOTF + fns + '.json'
-				with open(fn, 'r') as f:
-					feat = json.loads(f.read())
-					print('test: {}'.format(fns))
-				rs_feat_list.append(feat)
+				#fn = self.cfg.DATASET.ROOTF + fns + '.json'
+				#with open(fn, 'r') as f:
+					#feat = json.loads(f.read())
+				fn = self.cfg.DATASET.ROOTF + fns + '.h5'
+				with h5py.File(fn, "r") as h5f:
+					if labels.size == 0:
+						labels = np.array(h5f['id'])
+					rs_feat_list.append(np.array(h5f[fns[:-1]]))
 
-		return rs_feat_list
+		return labels, rs_feat_list
 
 	def stack_features(self, feature_list=['sizef', 'distf', 'vaef']):
 		'''
