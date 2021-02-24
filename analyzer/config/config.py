@@ -24,11 +24,14 @@ _C.AUTOENCODER.LOWER_BOUND = 100000000
 _C.AUTOENCODER.TARGET = [64, 64, 64]
 _C.AUTOENCODER.EPOCHS = 10
 _C.AUTOENCODER.BATCH_SIZE = 2
-_C.AUTOENCODER.OUPUT_FILE_VOLUMES = 'features/mito.h5'
-_C.AUTOENCODER.DATASET_NAME = 'mito_volumes'
+_C.AUTOENCODER.OUPUT_FILE = 'features/mito.h5'
 _C.AUTOENCODER.EVALUATION_IMAGES_OUTPUTDIR = 'features/evaluation/'
 _C.AUTOENCODER.LOG_INTERVAL = 10
 _C.AUTOENCODER.LATENT_SPACE = 100
+<<<<<<< HEAD
+=======
+_C.AUTOENCODER.FEATURE = 'shape'
+>>>>>>> e6ae59e36a446d743d048979e8f01208c74db403
 # -----------------------------------------------------------------------------
 # Dataset
 # -----------------------------------------------------------------------------

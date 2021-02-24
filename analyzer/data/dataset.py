@@ -57,9 +57,9 @@ class Dataloader():
         self.chunks_per_cpu = cfg.AUTOENCODER.CHUNKS_CPU
         self.upper_limit = cfg.AUTOENCODER.UPPER_BOUND
         self.lower_limit = cfg.AUTOENCODER.LOWER_BOUND
-        self.mito_volume_file_name = cfg.AUTOENCODER.OUPUT_FILE_VOLUMES
-        self.mito_volume_dataset_name = cfg.AUTOENCODER.DATASET_NAME
+        self.mito_volume_file_name = cfg.AUTOENCODER.OUPUT_FILE
         self.target_size = cfg.AUTOENCODER.TARGET
+        self.vae_feature = cfg.AUTOENCODER.FEATURE
 
     def __len__(self):
         '''
@@ -67,7 +67,7 @@ class Dataloader():
         :returns: integer
         '''
         with h5py.File(self.mito_volume_file_name, 'r') as f:
-            return f[self.mito_volume_dataset_name].shape[0]
+            return f[self.vae_feature].shape[0]
 
     def __getitem__(self, idx):
         '''
@@ -76,7 +76,7 @@ class Dataloader():
         :returns: object from the volume
         '''
         with h5py.File(self.mito_volume_file_name, 'r') as f:
-            return f[self.mito_volume_dataset_name][idx]
+            return f[self.vae_feature][idx]
 
     def load_chunk(self, vol='both'):
         '''
@@ -289,29 +289,16 @@ class Dataloader():
         if self.region_limit is not None:
             regions = regions[:self.region_limit]
             print("{} will be extracted due to set region_limit".format(self.region_limit))
-        mode = 'w'
-        start = 0
-        dset = None
-        with h5py.File(self.mito_volume_file_name, mode) as f:
-            if mode == 'w':
-                dset = f.create_dataset(self.mito_volume_dataset_name, (
-                    len(regions), 1, self.target_size[0], self.target_size[1], self.target_size[2]),
-                                        maxshape=(None, 1, self.target_size[0], self.target_size[1],
-                                                  self.target_size[2]))
-            '''
-            else:
-                dset = f[self.mito_volume_dataset_name]
-                for i, mito in enumerate(dset):
-                    if np.max(mito) == 0:
-                        start = i
-                        print('found file with {} volumes in it'.format(i))
-                        break
-            '''
+        with h5py.File(self.mito_volume_file_name, "w") as f:
+            f.create_dataset("shape", (len(regions), 1, *self.target_size))
+            f.create_dataset("texture", (len(regions), 1, *self.target_size))
+
             with multiprocessing.Pool(processes=self.cpus) as pool:
-                for i in tqdm(range(start, len(regions), int(self.cpus * self.chunks_per_cpu))):
+                for i in tqdm(range(0, len(regions), int(self.cpus * self.chunks_per_cpu))):
                     results = pool.map(self.get_mito_volume, regions[i:i + int(self.cpus * self.chunks_per_cpu)])
                     for j, result in enumerate(results):
-                        dset[i + j] = result[0]
+                        f["shape"][i + j] = result[0]
+                        f["texture"][i + j] = result[1]
 
     def get_mito_volume(self, region):
         '''
@@ -319,32 +306,56 @@ class Dataloader():
         :param region: (dict) one region object provided by Dataloader.prep_data_info
         :returns result: (numpy.array) a numpy array with the target dimensions and the mitochondria in it
         '''
-        all_fn = sorted(glob.glob(self.gtpath + '*.' + self.ff))
-        fns = [all_fn[id] for id in region[2]]
-        first_image_slice = imageio.imread(fns[0])
-        mask = np.zeros(shape=first_image_slice.shape, dtype=np.uint16)
-        mask[first_image_slice == region[0]] = 1
-        volume = mask
+        gt_volume, em_volume = self.get_volumes_from_slices(region)
 
-        for fn in fns[1:]:
-            image_slice = imageio.imread(fn)
-            mask = np.zeros(shape=image_slice.shape, dtype=np.uint16)
-            mask[image_slice == region[0]] = 1
-            volume = np.dstack((volume, mask))
-        volume = np.moveaxis(volume, -1, 0)
-
-        mito_regions = regionprops(volume, cache=False)
+        mito_regions = regionprops(gt_volume, cache=False)
         if len(mito_regions) != 1:
             print("something went wrong during volume building. region count: {}".format(len(mito_regions)))
 
         mito_region = mito_regions[0]
 
-        mito_volume = volume[mito_region.bbox[0]:mito_region.bbox[3] + 1,
-                      mito_region.bbox[1]:mito_region.bbox[4] + 1,
-                      mito_region.bbox[2]:mito_region.bbox[5] + 1].astype(np.float32)
+        shape = gt_volume[mito_region.bbox[0]:mito_region.bbox[3] + 1,
+                mito_region.bbox[1]:mito_region.bbox[4] + 1,
+                mito_region.bbox[2]:mito_region.bbox[5] + 1].astype(np.float32)
 
-        scaled_mito = resize(mito_volume, self.target_size)
-        scaled_mito = scaled_mito / scaled_mito.max()
-        scaled_mito = np.expand_dims(scaled_mito, 0)
-        #circularity = (4 * math.pi * mito_region.area) / (mito_region.perimeter**2)
-        return [scaled_mito, mito_region.area, circularity]
+        texture = em_volume[mito_region.bbox[0]:mito_region.bbox[3] + 1,
+                mito_region.bbox[1]:mito_region.bbox[4] + 1,
+                mito_region.bbox[2]:mito_region.bbox[5] + 1].astype(np.float32)
+
+        scaled_shape = resize(shape, self.target_size)
+        scaled_shape = scaled_shape / scaled_shape.max()
+        scaled_shape = np.expand_dims(scaled_shape, 0)
+
+        scaled_texture = resize(texture, self.target_size)
+        scaled_texture = scaled_texture / scaled_texture.max()
+        scaled_texture = np.expand_dims(scaled_texture, 0)
+
+        return [scaled_shape, scaled_texture]
+
+    def get_volumes_from_slices(self, region):
+        gt_all_fn = sorted(glob.glob(self.gtpath + '*.' + self.ff))
+        em_all_fn = sorted(glob.glob(self.volpath + '*.' + self.ff))
+
+        gt_fns = [gt_all_fn[id] for id in region[2]]
+        em_fns = [em_all_fn[id] for id in region[2]]
+
+        gt_volume = imageio.imread(gt_fns[0])
+        em_volume = imageio.imread(em_fns[0])
+
+        gt_volume[gt_volume != region[0]] = 0
+        em_volume[gt_volume != region[0]] = 0
+
+        for i in range(len(gt_fns)-1):
+            gt_slice = imageio.imread(gt_fns[i])
+            em_slice = imageio.imread(em_fns[i])
+
+            gt_slice[gt_slice != region[0]] = 0
+            em_slice[gt_slice != region[0]] = 0
+
+            gt_volume = np.dstack((gt_volume, gt_slice))
+            em_volume = np.dstack((em_volume, em_slice))
+
+        gt_volume = np.moveaxis(gt_volume, -1, 0)
+        em_volume = np.moveaxis(em_volume, -1, 0)
+
+        return gt_volume, em_volume

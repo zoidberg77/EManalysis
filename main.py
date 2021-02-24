@@ -6,9 +6,9 @@ from analyzer.data import Dataloader
 from analyzer.model import Clustermodel
 from analyzer.model import FeatureExtractor
 from analyzer.vae import train
-from analyzer.vae.dataset import MitoDataset
 
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 # RUN THE SCRIPT LIKE: $ python main.py --em datasets/human/human_em_export_8nm/ --gt datasets/human/human_gt_export_8nm/ --cfg configs/process.yaml
@@ -51,7 +51,6 @@ def main():
     dl = Dataloader(cfg)
     em, gt = dl.load_chunk(vol='both')
 
-    dataset = MitoDataset(cfg)
 
     if cfg.MODE.PROCESS == "infer":
         #dataset.extract_scale_mitos()
@@ -59,8 +58,7 @@ def main():
         return
     elif cfg.MODE.PROCESS == "train":
         print('--- Starting the training process of the autoencoder. --- \n')
-        trainer = train.Trainer(dataset=dataset, train_percentage=0.7, optimizer_type="adam", loss_function="l1",
-                                cfg=cfg)
+        trainer = train.Trainer(dataset=dl, train_percentage=0.7, optimizer_type="adam", loss_function="l1", cfg=cfg)
         train_total_loss, test_total_loss = trainer.train()
         print("train loss: {}".format(train_total_loss))
         print("test loss: {}".format(test_total_loss))
