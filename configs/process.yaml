@@ -10,8 +10,10 @@ AUTOENCODER:
   TARGET: (128, 128, 128)
   EPOCHS: 5
   BATCH_SIZE: 2
-  OUPUT_FILE: 'features/mito.h5'
+  OUTPUT_FOLDER: 'features/'
   FEATURE: 'texture'
+  LATENT_SPACE: 100
+  LOG_INTERVAL: 10
 DATASET:
   EM_PATH: 'datasets/human/human_em_export_8nm/'
   LABEL_PATH: 'datasets/human/human_gt_export_8nm/'
