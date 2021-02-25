@@ -44,12 +44,12 @@ def main():
             cfg.MODE.PROCESS = args.mode
         cfg.freeze()
         print("Configuration details:")
-        print(cfg)
+        print(cfg, '\n')
     else:
         cfg = get_cfg_defaults()
         cfg.freeze()
         print("Configuration details:")
-        print(cfg)
+        print(cfg, '\n')
 
     dl = Dataloader(cfg)
     em, gt = dl.load_chunk(vol='both')
@@ -75,8 +75,8 @@ def main():
     #fex.save_feat_h5(tmp, 'circf')
 
     model = Clustermodel(cfg, em, gt, dl=dl, clstby='bysize')
-    model.load_features()
-    #model.run()
+    #model.load_features()
+    model.run()
 
 
 if __name__ == "__main__":

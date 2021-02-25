@@ -54,7 +54,7 @@ class FeatureExtractor():
 		Function runs the vae option.
 		'''
 		print('Not there yet for vae features.')
-		#raise NotImplementedError
+		raise NotImplementedError
 
 	def compute_seg_circ(self):
 		'''
@@ -62,16 +62,29 @@ class FeatureExtractor():
 		'''
 		return compute_circularity(self.gtvol, fns=self.gtfns, dprc=self.dprc, mode=self.mode)
 
-	def save_feat_h5(self, rsl_dict, filen='feature_vector'):
+	def save_single_feat_h5(self, rsl_dict, filen='feature_vector'):
 		'''
-		Saving arrays to h5 that contains the features.
-		:param rsl_dict: (dict) that contains features.
+		Saving the resulting array dicts to h5 that contains the single features.
+		:param rsl_dict: (array) of (dict)s that contains single features.
 		:param filen: (string) filename. (without h5)
 		'''
 		labels, values = convert_dict_mtx(rsl_dict, filen[:-1])
 		with h5py.File(self.cfg.DATASET.ROOTF + filen + '.h5', 'w') as h5f:
 			h5f.create_dataset('id', data=labels)
 			h5f.create_dataset(filen[:-1], data=values)
+			h5f.close()
+
+		return labels, values
+
+	def save_feats_h5(self, labels, feat_array, filen='features'):
+		'''
+		Saving arrays to h5 that contains the features.
+		:param rsl_dict: (dict) that contains features.
+		:param filen: (string) filename. (without h5)
+		'''
+		with h5py.File(self.cfg.DATASET.ROOTF + filen + '.h5', 'w') as h5f:
+			h5f.create_dataset('id', data=labels)
+			h5f.create_dataset(filen, data=feat_array)
 			h5f.close()
 
 	def save_feat_dict(self, rsl_dict, filen='feature_vector.json'):

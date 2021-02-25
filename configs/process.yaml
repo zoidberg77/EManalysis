@@ -26,5 +26,5 @@ MODE:
   PROCESS: 'leaveitoutfornow'
   DPRC: 'iter'
 CLUSTER:
-  ALG: 'kmeans'
+  ALG: 'affprop'
   FEAT_LIST: ['sizef', 'distf', 'circf']
