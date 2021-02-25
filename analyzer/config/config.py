@@ -62,6 +62,7 @@ _C.MODE.DIM = '3d'
 # -----------------------------------------------------------------------------
 _C.CLUSTER = CN()
 _C.CLUSTER.ALG = 'kmeans'
+#Choose the features you want to cluster.
 _C.CLUSTER.FEAT_LIST = ['sizef', 'distf', 'vaef', 'circf']
 _C.CLUSTER.N_CLUSTER = 5
 

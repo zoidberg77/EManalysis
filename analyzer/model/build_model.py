@@ -4,6 +4,8 @@ import pandas as pd
 import h5py
 from skimage.measure import label
 from sklearn.cluster import KMeans, AffinityPropagation, SpectralClustering, DBSCAN
+from sklearn.preprocessing import StandardScaler
+
 from analyzer.model.utils.extracting import *
 from analyzer.model.utils.superpixel import superpixel_segment, superpixel_image, texture_analysis
 from analyzer.model.utils.helper import convert_to_sparse, recompute_from_res, convert_dict_mtx
@@ -64,7 +66,7 @@ class Clustermodel():
 
 		return model
 
-	def load_features(self, feature_list=['sizef', 'distf', 'vaef', 'circf']):
+	def get_features(self, feature_list=['sizef', 'distf', 'vaef', 'circf']):
 		'''
 		This function will load different features vectors that were extracted and saved to be used for clustering.
 		:param feat_list: (list) of (string)s that states which features should be computed and/or load to cache for
@@ -75,8 +77,8 @@ class Clustermodel():
 		rs_feat_list = list()
 		labels = np.array([])
 		for fns in self.feat_list:
-			if os.path.exists(self.cfg.DATASET.ROOTF + fns + '.json') is False:
-				print('This file {} does not exist, will be computed.'.format(self.cfg.DATASET.ROOTF + fns + '.json'))
+			if os.path.exists(self.cfg.DATASET.ROOTF + fns + '.h5') is False:
+				print('This file {} does not exist, will be computed.'.format(self.cfg.DATASET.ROOTF + fns + '.h5'))
 
 				if fns == 'sizef':
 					feat = self.fe.compute_seg_size()
@@ -89,7 +91,10 @@ class Clustermodel():
 				else:
 					print('No function for computing {} features.'.format(fns))
 				#self.fe.save_feat_dict(feat, filen=(fns + '.json'))
-				self.fe.save_feat_h5(feat, filen=fns)
+				label, values = self.fe.save_single_feat_h5(feat, filen=fns)
+				if labels.size == 0:
+					labels = np.array(label)
+				rs_feat_list.append(np.array(values))
 			else:
 				#fn = self.cfg.DATASET.ROOTF + fns + '.json'
 				#with open(fn, 'r') as f:
@@ -102,13 +107,36 @@ class Clustermodel():
 
 		return labels, rs_feat_list
 
-	def stack_features(self, feature_list=['sizef', 'distf', 'vaef']):
+	def stack_and_std_features(self, feat):
 		'''
-		This function takes different features and stacks them togehter for further clustering.
+		This function takes different features and stacks them togehter and performs
+		standardization by centering and scaling for further clustering.
+		:param feat: (list) of features.
 		'''
-		#rs_feat_list = self.load_features(feature_list=feature_list)
-		raise NotImplementedError
+		scaler = StandardScaler()
+		if len(feat) == 1:
+			return feat
 
+		feats = np.column_stack([singlef for singlef in feat])
+		std_feat = scaler.fit_transform(feats)
+		
+		return std_feat
+
+	def run(self):
+		'''
+		Running the main clustering algoritm on the features (feature list) extracted.
+		'''
+		labels, feat = self.get_features(feature_list=self.feat_list)
+		test = self.stack_and_std_features(feat)
+		print(test)
+		print(test.shape)
+		#tmp = pd.DataFrame(feat, columns=['size', 'dist', 'circ'])
+		#print(tmp)
+		res_labels = self.model.fit_predict(pd.DataFrame(feat))
+		print(res_labels)
+		labeled = recompute_from_res(labels, res_labels, mode=self.mode)
+
+	'''
 	def run(self):
 		if self.clstby == 'bysize':
 			# RUN the clustering by size parameters.
@@ -156,7 +184,8 @@ class Clustermodel():
 
 		elif self.clstby == 'byall':
 			#RUN the clustering by using all the features extracted.
-			pass
+			labels, feat = self.load_features(feature_list=self.feat_list)
 
 		else:
 			raise Exception('Please state according to which property should be clustered.')
+		'''
