@@ -91,3 +91,16 @@ def convert_dict_mtx(inputs, valn):
 		raise TypeError('input type {} can not be processed.'.format(type(inputs)))
 
 	return (labels, values)
+
+def min_max_scale(X, desired_range=(0,1)):
+	'''
+	Transform features by scaling each feature to a given range.
+	:param X: Matrix you want to transform.
+	:param range: Desired range of transformed data.
+	:returns X_scaled: scaled matrix.
+	'''
+	min_v = desired_range[0]
+	max_v = desired_range[1]
+	X_std = (X - X.min()) / (X.max() - X.min())
+	X_scaled = X_std * (max_v - min_v) + min_v
+	return X_scaled

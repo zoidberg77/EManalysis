@@ -4,11 +4,11 @@ import pandas as pd
 import h5py
 from skimage.measure import label
 from sklearn.cluster import KMeans, AffinityPropagation, SpectralClustering, DBSCAN
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, MinMaxScaler
 
 from analyzer.model.utils.extracting import *
 from analyzer.model.utils.superpixel import superpixel_segment, superpixel_image, texture_analysis
-from analyzer.model.utils.helper import convert_to_sparse, recompute_from_res, convert_dict_mtx
+from analyzer.model.utils.helper import convert_to_sparse, recompute_from_res, convert_dict_mtx, min_max_scale
 from analyzer.data.data_vis import visvol, vissegments
 from analyzer.utils.eval import clusteravg
 
@@ -119,22 +119,43 @@ class Clustermodel():
 
 		feats = np.column_stack([singlef for singlef in feat])
 		std_feat = scaler.fit_transform(feats)
-		
+
 		return std_feat
+
+	def prep_cluster_matrix(self, feat_list):
+		'''
+		Function computes clustering matrix from different features for the actual clustering.
+		:param weights: (np.array) of weighting factor for different features.
+		'''
+		weights = [1, 1, 1]
+		scaler = MinMaxScaler()
+		clst_m = np.zeros(shape=feat_list[0].shape[0], dtype=np.float16)
+		for idx, feat in enumerate(feat_list):
+			#print('feat before scaling: ', feat)
+			if feat.ndim <= 1:
+				tmp = scaler.fit_transform(feat.reshape(-1,1))
+				#clst_m = clst_m + weights[idx] * distance.cdist(tmp, tmp, 'euclidean')
+				clst_m = np.add(clst_m, weights[idx] * distance.cdist(tmp, tmp, 'euclidean'))
+			else:
+				#clst_m = clst_m + weights[idx] * min_max_scale(feat)
+				clst_m = np.add(clst_m, weights[idx] * min_max_scale(feat))
+
+		return clst_m
 
 	def run(self):
 		'''
 		Running the main clustering algoritm on the features (feature list) extracted.
 		'''
 		labels, feat = self.get_features(feature_list=self.feat_list)
-		test = self.stack_and_std_features(feat)
-		print(test)
-		print(test.shape)
+		self.prep_cluster_matrix(feat)
+		#test = self.stack_and_std_features(feat)
+		#print(test)
+		#print(test.shape)
 		#tmp = pd.DataFrame(feat, columns=['size', 'dist', 'circ'])
 		#print(tmp)
-		res_labels = self.model.fit_predict(pd.DataFrame(feat))
-		print(res_labels)
-		labeled = recompute_from_res(labels, res_labels, mode=self.mode)
+		#res_labels = self.model.fit_predict(pd.DataFrame(feat))
+		#print(res_labels)
+		#labeled = recompute_from_res(labels, res_labels, mode=self.mode)
 
 	'''
 	def run(self):
