@@ -21,6 +21,7 @@ def create_arg_parser():
     parser.add_argument('--em', type=str, help='input directory em (path)')
     parser.add_argument('--gt', type=str, help='input directory gt (path)')
     parser.add_argument('--cfg', type=str, help='configuration file (path)')
+    parser.add_argument('--mode', type=str, help='infer or train mode')
 
     return parser
 
@@ -39,6 +40,8 @@ def main():
     if args.cfg is not None:
         cfg = get_cfg_defaults()
         cfg.merge_from_file(args.cfg)
+        if args.mode is not None:
+            cfg.MODE.PROCESS = args.mode
         cfg.freeze()
         print("Configuration details:")
         print(cfg)
@@ -60,10 +63,10 @@ def main():
         print('--- Starting the training process of the autoencoder. --- \n')
         trainer = train.Trainer(dataset=dl, train_percentage=0.7, optimizer_type="adam", loss_function="l1", cfg=cfg)
         train_total_loss, test_total_loss = trainer.train()
+        exit()
         print("train loss: {}".format(train_total_loss))
         print("test loss: {}".format(test_total_loss))
-
-        return
+        return 0
 
     # dl.precluster(mchn='cluster')
 

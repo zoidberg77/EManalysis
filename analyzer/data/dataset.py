@@ -52,12 +52,11 @@ class Dataloader():
         else:
             self.cpus = self.cfg.SYSTEM.NUM_CPUS
 
-        ### Autoencoder preperation
         self.region_limit = cfg.AUTOENCODER.REGION_LIMIT
         self.chunks_per_cpu = cfg.AUTOENCODER.CHUNKS_CPU
         self.upper_limit = cfg.AUTOENCODER.UPPER_BOUND
         self.lower_limit = cfg.AUTOENCODER.LOWER_BOUND
-        self.mito_volume_file_name = cfg.AUTOENCODER.OUPUT_FILE
+        self.mito_volume_file_name = cfg.AUTOENCODER.OUTPUT_FOLDER + "mito.h5"
         self.target_size = cfg.AUTOENCODER.TARGET
         self.vae_feature = cfg.AUTOENCODER.FEATURE
 
@@ -67,7 +66,7 @@ class Dataloader():
         :returns: integer
         '''
         with h5py.File(self.mito_volume_file_name, 'r') as f:
-            return f[self.vae_feature].shape[0]
+            return len(f[self.vae_feature+"_volume"])
 
     def __getitem__(self, idx):
         '''
@@ -76,7 +75,7 @@ class Dataloader():
         :returns: object from the volume
         '''
         with h5py.File(self.mito_volume_file_name, 'r') as f:
-            return f[self.vae_feature][idx]
+            return f[self.vae_feature+"_volume"][idx]
 
     def load_chunk(self, vol='both'):
         '''
@@ -270,7 +269,7 @@ class Dataloader():
 
     def extract_scale_mitos(self):
         '''
-        FILL ME
+        Function to extract the objects as volumes and scale them. Then its saves the scaled volumes to an h5 file.
         '''
         if os.path.exists(os.path.join(self.cfg.SYSTEM.ROOT_DIR, self.cfg.DATASET.DATAINFO)) \
                 and os.stat(os.path.join(self.cfg.SYSTEM.ROOT_DIR, self.cfg.DATASET.DATAINFO)).st_size != 0:
@@ -290,15 +289,15 @@ class Dataloader():
             regions = regions[:self.region_limit]
             print("{} will be extracted due to set region_limit".format(self.region_limit))
         with h5py.File(self.mito_volume_file_name, "w") as f:
-            f.create_dataset("shape", (len(regions), 1, *self.target_size))
-            f.create_dataset("texture", (len(regions), 1, *self.target_size))
+            f.create_dataset("shape_volume", (len(regions), 1, *self.target_size))
+            f.create_dataset("texture_volume", (len(regions), 1, *self.target_size))
 
             with multiprocessing.Pool(processes=self.cpus) as pool:
                 for i in tqdm(range(0, len(regions), int(self.cpus * self.chunks_per_cpu))):
                     results = pool.map(self.get_mito_volume, regions[i:i + int(self.cpus * self.chunks_per_cpu)])
                     for j, result in enumerate(results):
-                        f["shape"][i + j] = result[0]
-                        f["texture"][i + j] = result[1]
+                        f["shape_volume"][i + j] = result[0]
+                        f["texture_volume"][i + j] = result[1]
 
     def get_mito_volume(self, region):
         '''
@@ -322,11 +321,11 @@ class Dataloader():
                 mito_region.bbox[1]:mito_region.bbox[4] + 1,
                 mito_region.bbox[2]:mito_region.bbox[5] + 1].astype(np.float32)
 
-        scaled_shape = resize(shape, self.target_size)
+        scaled_shape = resize(shape, self.target_size, order=0, anti_aliasing=False)
         scaled_shape = scaled_shape / scaled_shape.max()
         scaled_shape = np.expand_dims(scaled_shape, 0)
 
-        scaled_texture = resize(texture, self.target_size)
+        scaled_texture = resize(texture, self.target_size, order=0, anti_aliasing=False)
         scaled_texture = scaled_texture / scaled_texture.max()
         scaled_texture = np.expand_dims(scaled_texture, 0)
 
