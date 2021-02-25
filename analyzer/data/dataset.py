@@ -56,9 +56,9 @@ class Dataloader():
         self.chunks_per_cpu = cfg.AUTOENCODER.CHUNKS_CPU
         self.upper_limit = cfg.AUTOENCODER.UPPER_BOUND
         self.lower_limit = cfg.AUTOENCODER.LOWER_BOUND
-        self.mito_volume_file_name = cfg.AUTOENCODER.OUTPUT_FOLDER + "mito.h5"
         self.target_size = cfg.AUTOENCODER.TARGET
         self.vae_feature = cfg.AUTOENCODER.FEATURE
+        self.mito_volume_file_name = cfg.AUTOENCODER.OUTPUT_FOLDER + "mito_{}.h5".format(self.target_size[0])
 
     def __len__(self):
         '''

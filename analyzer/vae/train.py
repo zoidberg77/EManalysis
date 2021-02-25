@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
-from tqdm import tqdm
 
 from analyzer.vae.model import unet
 
@@ -69,7 +68,7 @@ class Trainer:
             print("Epoch {}: Train kld loss: {}".format(self.current_epoch, train_kld_loss))
             print("Epoch {}: Train total loss: {} \n".format(self.current_epoch, train_total_loss))
 
-            #plt.clf()
+            plt.clf()
             plt.axis("on")
             #plt.legend(["total loss", "reconstruction loss", "kld loss"])
             plt.plot(running_total_loss)
@@ -125,7 +124,7 @@ class Trainer:
             print("Epoch {}: Test kld loss: {}".format(self.current_epoch, test_kld_loss))
             print("Epoch {}: Test total loss: {} \n".format(self.current_epoch, test_total_loss))
 
-            #plt.clf()
+            plt.clf()
             plt.axis("on")
             #plt.legend(["total loss", "reconstruction loss", "kld loss"])
             plt.plot(running_total_loss)

@@ -63,7 +63,6 @@ def main():
         print('--- Starting the training process of the autoencoder. --- \n')
         trainer = train.Trainer(dataset=dl, train_percentage=0.7, optimizer_type="adam", loss_function="l1", cfg=cfg)
         train_total_loss, test_total_loss = trainer.train()
-        exit()
         print("train loss: {}".format(train_total_loss))
         print("test loss: {}".format(test_total_loss))
         return 0
