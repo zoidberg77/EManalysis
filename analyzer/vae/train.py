@@ -175,7 +175,7 @@ class Trainer:
         self.model.eval()
         self.model.to(self.device)
         dl = torch.utils.data.DataLoader(self.dataset, shuffle=False)
-        with h5py.File("vae_data_{}.h5".format(self.dataset[0].shape[-1]), 'a') as f:
+        with h5py.File(self.cfg.AUTOENCODER.OUTPUT_FOLDER + "vae_data_{}.h5".format(self.dataset[0].shape[-1]), 'a') as f:
             if self.cfg.AUTOENCODER.FEATURE in f.keys():
                 del f[self.cfg.AUTOENCODER.FEATURE]
             f.create_dataset(name=self.cfg.AUTOENCODER.FEATURE,
