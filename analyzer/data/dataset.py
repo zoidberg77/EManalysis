@@ -58,7 +58,7 @@ class Dataloader():
         self.lower_limit = cfg.AUTOENCODER.LOWER_BOUND
         self.target_size = cfg.AUTOENCODER.TARGET
         self.vae_feature = cfg.AUTOENCODER.FEATURE
-        self.mito_volume_file_name = cfg.AUTOENCODER.OUTPUT_FOLDER + "mito_{}.h5".format(self.target_size[0])
+        self.mito_volume_file_name = cfg.AUTOENCODER.OUTPUT_FOLDER + "vae_data_{}.h5".format(self.target_size[0])
 
     def __len__(self):
         '''
@@ -66,7 +66,7 @@ class Dataloader():
         :returns: integer
         '''
         with h5py.File(self.mito_volume_file_name, 'r') as f:
-            return len(f[self.vae_feature+"_volume"])
+            return len(f[self.vae_feature + "_volume"])
 
     def __getitem__(self, idx):
         '''
@@ -75,7 +75,7 @@ class Dataloader():
         :returns: object from the volume
         '''
         with h5py.File(self.mito_volume_file_name, 'r') as f:
-            return f[self.vae_feature+"_volume"][idx]
+            return f[self.vae_feature + "_volume"][idx]
 
     def load_chunk(self, vol='both'):
         '''
@@ -318,8 +318,8 @@ class Dataloader():
                 mito_region.bbox[2]:mito_region.bbox[5] + 1].astype(np.float32)
 
         texture = em_volume[mito_region.bbox[0]:mito_region.bbox[3] + 1,
-                mito_region.bbox[1]:mito_region.bbox[4] + 1,
-                mito_region.bbox[2]:mito_region.bbox[5] + 1].astype(np.float32)
+                  mito_region.bbox[1]:mito_region.bbox[4] + 1,
+                  mito_region.bbox[2]:mito_region.bbox[5] + 1].astype(np.float32)
 
         scaled_shape = resize(shape, self.target_size, order=0, anti_aliasing=False)
         scaled_shape = scaled_shape / scaled_shape.max()
@@ -344,7 +344,7 @@ class Dataloader():
         gt_volume[gt_volume != region[0]] = 0
         em_volume[gt_volume != region[0]] = 0
 
-        for i in range(len(gt_fns)-1):
+        for i in range(len(gt_fns) - 1):
             gt_slice = imageio.imread(gt_fns[i])
             em_slice = imageio.imread(em_fns[i])
 

@@ -1,6 +1,8 @@
+import h5py
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
+from tqdm import tqdm
 
 from analyzer.vae.model import unet
 
@@ -70,10 +72,10 @@ class Trainer:
 
             plt.clf()
             plt.axis("on")
-            #plt.legend(["total loss", "reconstruction loss", "kld loss"])
+            # plt.legend(["total loss", "reconstruction loss", "kld loss"])
             plt.plot(running_total_loss)
-            #plt.plot(running_reconstruction_loss)
-            #plt.plot(running_kld_loss)
+            # plt.plot(running_reconstruction_loss)
+            # plt.plot(running_kld_loss)
             plt.ylabel("log(train loss)")
             plt.xlabel("# iterations")
             plt.yscale("log")
@@ -82,6 +84,9 @@ class Trainer:
                 self.cfg.AUTOENCODER.OUTPUT_FOLDER + "evaluation/train_loss_curve_{}.png".format(self.current_epoch))
 
             test_loss = self.test()
+
+            torch.save(self.model.state_dict(),
+                       self.cfg.AUTOENCODER.OUTPUT_FOLDER + "vae_{}_model.pt".format(self.cfg.AUTOENCODER.FEATURE))
 
         return train_total_loss, test_loss
 
@@ -93,8 +98,8 @@ class Trainer:
             recons_loss = torch.nn.functional.mse_loss(reconstruction, input)
 
         kld_weight = 1
-        if self.current_epoch == 0 and (self.current_iteration/len(self.train_dl)) < 0.5:
-            kld_weight = self.current_iteration/len(self.train_dl)*2
+        if self.current_epoch == 0 and (self.current_iteration / len(self.train_dl)) < 0.5:
+            kld_weight = self.current_iteration / len(self.train_dl) * 2
 
         kld_loss = -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp()) * kld_weight
         loss = recons_loss + kld_loss
@@ -117,19 +122,19 @@ class Trainer:
                 if not i % self.cfg.AUTOENCODER.LOG_INTERVAL and i > 0:
                     self.save_images(data, reconstruction, i, self.current_epoch, "test")
 
-            test_total_loss = sum(running_total_loss) / len(self.test_dl.dataset)
-            test_reconstruction_loss = sum(running_reconstruction_loss) / len(self.test_dl.dataset)
-            test_kld_loss = sum(running_kld_loss) / len(self.test_dl.dataset)
+            test_total_loss = sum(running_total_loss) / len(running_total_loss)
+            test_reconstruction_loss = sum(running_reconstruction_loss) / len(running_reconstruction_loss)
+            test_kld_loss = sum(running_kld_loss) / len(running_kld_loss)
             print("Epoch {}: Test reconstruction loss: {}".format(self.current_epoch, test_reconstruction_loss))
             print("Epoch {}: Test kld loss: {}".format(self.current_epoch, test_kld_loss))
             print("Epoch {}: Test total loss: {} \n".format(self.current_epoch, test_total_loss))
 
             plt.clf()
             plt.axis("on")
-            #plt.legend(["total loss", "reconstruction loss", "kld loss"])
+            # plt.legend(["total loss", "reconstruction loss", "kld loss"])
             plt.plot(running_total_loss)
-            #plt.plot(running_reconstruction_loss)
-            #plt.plot(running_kld_loss)
+            # plt.plot(running_reconstruction_loss)
+            # plt.plot(running_kld_loss)
             plt.ylabel("log(test loss)")
             plt.xlabel("# iterations")
             plt.yscale("log")
@@ -163,3 +168,20 @@ class Trainer:
                 evaluation_image,
                 cmap="gray")
             return
+
+    def save_latent_feature(self):
+        self.model.load_state_dict(
+            torch.load(self.cfg.AUTOENCODER.OUTPUT_FOLDER + "vae_{}_model.pt".format(self.cfg.AUTOENCODER.FEATURE)))
+        self.model.eval()
+        self.model.to(self.device)
+        dl = torch.utils.data.DataLoader(self.dataset, shuffle=False)
+        with h5py.File(self.cfg.AUTOENCODER.OUTPUT_FOLDER + "vae_data_{}.h5".format(self.dataset[0].shape[-1]), 'a') as f:
+            if self.cfg.AUTOENCODER.FEATURE in f.keys():
+                del f[self.cfg.AUTOENCODER.FEATURE]
+            f.create_dataset(name=self.cfg.AUTOENCODER.FEATURE,
+                             shape=(len(self.dataset), self.cfg.AUTOENCODER.LATENT_SPACE))
+            with torch.no_grad():
+                for i, data in tqdm(enumerate(dl), total=len(self.dataset)):
+                    data = data.to(self.device)
+                    x = self.model.latent_representation(data)
+                    f[self.cfg.AUTOENCODER.FEATURE][i] = x.cpu().numpy()

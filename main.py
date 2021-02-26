@@ -54,9 +54,7 @@ def main():
     dl = Dataloader(cfg)
     em, gt = dl.load_chunk(vol='both')
 
-
-    if cfg.MODE.PROCESS == "infer":
-        #dataset.extract_scale_mitos()
+    if cfg.MODE.PROCESS == "preprocessing":
         dl.extract_scale_mitos()
         return
     elif cfg.MODE.PROCESS == "train":
@@ -65,17 +63,21 @@ def main():
         train_total_loss, test_total_loss = trainer.train()
         print("train loss: {}".format(train_total_loss))
         print("test loss: {}".format(test_total_loss))
-        return 0
+        return
+    elif cfg.MODE.PROCESS == "infer":
+        trainer = train.Trainer(dataset=dl, train_percentage=0.7, optimizer_type="adam", loss_function="l1", cfg=cfg)
+        trainer.save_latent_feature()
+        return
 
     # dl.precluster(mchn='cluster')
 
     fex = FeatureExtractor(cfg, em, gt)
-    #tmp = fex.compute_seg_circ()
-    #print(tmp)
-    #fex.save_feat_h5(tmp, 'circf')
+    # tmp = fex.compute_seg_circ()
+    # print(tmp)
+    # fex.save_feat_h5(tmp, 'circf')
 
     model = Clustermodel(cfg, em, gt, dl=dl, clstby='bysize')
-    #model.load_features()
+    # model.load_features()
     model.run()
 
 
