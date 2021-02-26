@@ -28,3 +28,4 @@ MODE:
 CLUSTER:
   ALG: 'affprop'
   FEAT_LIST: ['sizef', 'distf', 'circf']
+  WEIGHTSF: [1, 1, 1]

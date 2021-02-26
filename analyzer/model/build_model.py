@@ -40,6 +40,7 @@ class Clustermodel():
 		self.alg = self.cfg.CLUSTER.ALG
 		self.clstby = clstby
 		self.feat_list = self.cfg.CLUSTER.FEAT_LIST
+		self.weightsf = self.cfg.CLUSTER.WEIGHTSF
 		self.n_cluster = self.cfg.CLUSTER.N_CLUSTER
 		self.mode = self.cfg.MODE.DIM
 
@@ -122,24 +123,34 @@ class Clustermodel():
 
 		return std_feat
 
-	def prep_cluster_matrix(self, feat_list):
+	def prep_cluster_matrix(self, labels, feat_list):
 		'''
 		Function computes clustering matrix from different features for the actual clustering.
+		:param labels:
+		:param feat_list: (list) of (np.array)s that are the feature vectors/matrices.
 		:param weights: (np.array) of weighting factor for different features.
+		:returns clst_m: (np.array) of NxN clustering distance from each feature to another. N is a sample.
 		'''
-		weights = [1, 1, 1]
-		scaler = MinMaxScaler()
-		clst_m = np.zeros(shape=feat_list[0].shape[0], dtype=np.float16)
-		for idx, feat in enumerate(feat_list):
-			#print('feat before scaling: ', feat)
-			if feat.ndim <= 1:
-				tmp = scaler.fit_transform(feat.reshape(-1,1))
-				#clst_m = clst_m + weights[idx] * distance.cdist(tmp, tmp, 'euclidean')
-				clst_m = np.add(clst_m, weights[idx] * distance.cdist(tmp, tmp, 'euclidean'))
-			else:
-				#clst_m = clst_m + weights[idx] * min_max_scale(feat)
-				clst_m = np.add(clst_m, weights[idx] * min_max_scale(feat))
+		#Preload if possible.
+		if os.path.exists(os.path.join(self.cfg.DATASET.ROOTF, 'clstm.h5')) \
+                and os.stat(os.path.join(self.cfg.DATASET.ROOTF, 'clstm.h5')).st_size != 0:
+			with h5py.File(os.path.join(self.cfg.DATASET.ROOTF, 'clstm.h5'), "r") as h5f:
+				clst_m = list(h5f['clstm'])
+				h5f.close()
+		else:
+			scaler = MinMaxScaler()
+			clst_m = np.zeros(shape=feat_list[0].shape[0], dtype=np.float16)
+			for idx, feat in enumerate(feat_list):
+				if feat.ndim <= 1:
+					tmp = scaler.fit_transform(feat.reshape(-1,1))
+					#clst_m = clst_m + weights[idx] * distance.cdist(tmp, tmp, 'euclidean')
+					clst_m = np.add(clst_m, self.cfg.CLUSTER.WEIGHTSF[idx] * distance.cdist(tmp, tmp, 'euclidean'))
+				else:
+					#clst_m = clst_m + weights[idx] * min_max_scale(feat)
+					clst_m = np.add(clst_m, self.cfg.CLUSTER.WEIGHTSF[idx] * min_max_scale(feat))
 
+			clst_m = np.concatenate(clst_m)
+			self.fe.save_feats_h5(labels, clst_m, filen='clstm')
 		return clst_m
 
 	def run(self):
@@ -147,14 +158,10 @@ class Clustermodel():
 		Running the main clustering algoritm on the features (feature list) extracted.
 		'''
 		labels, feat = self.get_features(feature_list=self.feat_list)
-		self.prep_cluster_matrix(feat)
-		#test = self.stack_and_std_features(feat)
-		#print(test)
-		#print(test.shape)
-		#tmp = pd.DataFrame(feat, columns=['size', 'dist', 'circ'])
-		#print(tmp)
-		#res_labels = self.model.fit_predict(pd.DataFrame(feat))
-		#print(res_labels)
+		clst_m = self.prep_cluster_matrix(labels, feat)
+		print(np.concatenate(clst_m))
+		res_labels = self.model.fit_predict(clst_m)
+		print(res_labels)
 		#labeled = recompute_from_res(labels, res_labels, mode=self.mode)
 
 	'''

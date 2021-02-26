@@ -63,6 +63,8 @@ _C.CLUSTER = CN()
 _C.CLUSTER.ALG = 'kmeans'
 #Choose the features you want to cluster.
 _C.CLUSTER.FEAT_LIST = ['sizef', 'distf', 'vaef', 'circf']
+#Please make sure these weights make the dimension of the features. Means 4 features 4 weight factors.
+_C.CLUSTER.WEIGHTSF = [1, 1, 1 ,1]
 _C.CLUSTER.N_CLUSTER = 5
 
 def get_cfg_defaults():
