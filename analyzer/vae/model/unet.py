@@ -140,6 +140,21 @@ class UNet3D(nn.Module):
         x = self.out_layer(x)
         return x, mu, log_var
 
+    def latent_representation(self, x):
+        x = self.conv_in(x)
+        down_x = [None] * (self.depth - 1)
+        for i in range(self.depth - 1):
+            x = self.down_layers[i](x)
+            down_x[i] = x
+
+        x = self.down_layers[-1](x)
+        x = torch.flatten(x, start_dim=1)
+
+        log_var = self.log_var(x)
+        mu = self.mu(x)
+        x = self.reparameterize(mu, log_var)
+        return x
+
     def _upsample_add(self, x, y):
         """Upsample and add two feature maps.
 
