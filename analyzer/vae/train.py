@@ -30,6 +30,7 @@ class Trainer:
         self.test_dl = torch.utils.data.DataLoader(test_dataset, batch_size=cfg.AUTOENCODER.BATCH_SIZE, shuffle=True)
         self.current_iteration = 0
         self.current_epoch = 0
+        self.vae_feature = self.dataset.vae_feature
 
     def train(self):
         self.model.train()
@@ -81,12 +82,12 @@ class Trainer:
             plt.yscale("log")
             plt.title("Train Loss in Epoch {}/{} ".format(self.current_epoch, self.epochs))
             plt.savefig(
-                self.cfg.AUTOENCODER.OUTPUT_FOLDER + "evaluation/train_loss_curve_{}.png".format(self.current_epoch))
+                self.cfg.AUTOENCODER.OUTPUT_FOLDER + "evaluation/{}/train_loss_curve_{}.png".format(self.vae_feature, self.current_epoch))
 
             test_loss = self.test()
 
             torch.save(self.model.state_dict(),
-                       self.cfg.AUTOENCODER.OUTPUT_FOLDER + "vae_{}_model.pt".format(self.cfg.AUTOENCODER.FEATURE))
+                       self.cfg.AUTOENCODER.OUTPUT_FOLDER + "vae_{}_model.pt".format(self.vae_feature))
 
         return train_total_loss, test_loss
 
@@ -98,8 +99,8 @@ class Trainer:
             recons_loss = torch.nn.functional.mse_loss(reconstruction, input)
 
         kld_weight = 1
-        if self.current_epoch == 0 and (self.current_iteration / len(self.train_dl)) < 0.5:
-            kld_weight = self.current_iteration / len(self.train_dl) * 2
+        if self.current_epoch == 0:
+            kld_weight = self.current_iteration / len(self.train_dl)
 
         kld_loss = -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp()) * kld_weight
         loss = recons_loss + kld_loss
@@ -140,7 +141,7 @@ class Trainer:
             plt.yscale("log")
             plt.title("Test Loss over in Epoch {}/{} ".format(self.current_epoch, self.epochs))
             plt.savefig(
-                self.cfg.AUTOENCODER.OUTPUT_FOLDER + "evaluation/test_loss_curve_{}.png".format(self.current_epoch))
+                self.cfg.AUTOENCODER.OUTPUT_FOLDER + "evaluation/{}/test_loss_curve_{}.png".format(self.vae_feature, self.current_epoch))
             return test_total_loss
 
     def save_images(self, inputs, reconstructions, iteration, epoch, prefix):
@@ -164,24 +165,24 @@ class Trainer:
 
             plt.axis('off')
             plt.imsave(
-                self.cfg.AUTOENCODER.OUTPUT_FOLDER + 'evaluation/{}_{}_{}.png'.format(prefix, epoch, iteration + i),
+                self.cfg.AUTOENCODER.OUTPUT_FOLDER + 'evaluation/'+self.vae_feature+'/{}_{}_{}.png'.format(prefix, epoch, iteration + i),
                 evaluation_image,
                 cmap="gray")
             return
 
     def save_latent_feature(self):
         self.model.load_state_dict(
-            torch.load(self.cfg.AUTOENCODER.OUTPUT_FOLDER + "vae_{}_model.pt".format(self.cfg.AUTOENCODER.FEATURE)))
+            torch.load(self.cfg.AUTOENCODER.OUTPUT_FOLDER + "vae_{}_model.pt".format(self.vae_feature)))
         self.model.eval()
         self.model.to(self.device)
         dl = torch.utils.data.DataLoader(self.dataset, shuffle=False)
         with h5py.File(self.cfg.AUTOENCODER.OUTPUT_FOLDER + "vae_data_{}.h5".format(self.dataset[0].shape[-1]), 'a') as f:
-            if self.cfg.AUTOENCODER.FEATURE in f.keys():
-                del f[self.cfg.AUTOENCODER.FEATURE]
-            f.create_dataset(name=self.cfg.AUTOENCODER.FEATURE,
+            if self.vae_feature in f.keys():
+                del f[self.vae_feature]
+            f.create_dataset(name=self.vae_feature,
                              shape=(len(self.dataset), self.cfg.AUTOENCODER.LATENT_SPACE))
             with torch.no_grad():
                 for i, data in tqdm(enumerate(dl), total=len(self.dataset)):
                     data = data.to(self.device)
                     x = self.model.latent_representation(data)
-                    f[self.cfg.AUTOENCODER.FEATURE][i] = x.cpu().numpy()
+                    f[self.vae_feature][i] = x.cpu().numpy()

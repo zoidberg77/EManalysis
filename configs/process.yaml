@@ -11,7 +11,7 @@ AUTOENCODER:
   EPOCHS: 5
   BATCH_SIZE: 2
   OUTPUT_FOLDER: 'features/'
-  FEATURE: 'texture'
+  FEATURES: ['shape', 'texture']
   LATENT_SPACE: 100
   LOG_INTERVAL: 10
 DATASET:

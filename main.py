@@ -58,15 +58,19 @@ def main():
         dl.extract_scale_mitos()
         return
     elif cfg.MODE.PROCESS == "train":
-        print('--- Starting the training process of the autoencoder. --- \n')
-        trainer = train.Trainer(dataset=dl, train_percentage=0.7, optimizer_type="adam", loss_function="l1", cfg=cfg)
-        train_total_loss, test_total_loss = trainer.train()
-        print("train loss: {}".format(train_total_loss))
-        print("test loss: {}".format(test_total_loss))
+        for feature in cfg.AUTOENCODER.FEATURES:
+            dl = Dataloader(cfg, feature=feature)
+            print('--- Starting the training process of the {} autoencoder. --- \n'.format(feature))
+            trainer = train.Trainer(dataset=dl, train_percentage=0.7, optimizer_type="adam", loss_function="l1", cfg=cfg)
+            train_total_loss, test_total_loss = trainer.train()
+            print("train loss: {}".format(train_total_loss))
+            print("test loss: {}".format(test_total_loss))
         return
     elif cfg.MODE.PROCESS == "infer":
-        trainer = train.Trainer(dataset=dl, train_percentage=0.7, optimizer_type="adam", loss_function="l1", cfg=cfg)
-        trainer.save_latent_feature()
+        for feature in cfg.AUTOENCODER.FEATURES:
+            dl = Dataloader(cfg, feature=feature)
+            trainer = train.Trainer(dataset=dl, train_percentage=0.7, optimizer_type="adam", loss_function="l1", cfg=cfg)
+            trainer.save_latent_feature()
         return
 
     # dl.precluster(mchn='cluster')

@@ -30,7 +30,7 @@ class Dataloader():
     :param ff: (string) defines the file format that you want to work with. (default: png)
     '''
 
-    def __init__(self, cfg, volume=None, label=None):
+    def __init__(self, cfg, volume=None, label=None, feature="shape"):
         self.cfg = cfg
         if volume is not None:
             print('em data loaded: ', self.volume.shape)
@@ -57,7 +57,7 @@ class Dataloader():
         self.upper_limit = cfg.AUTOENCODER.UPPER_BOUND
         self.lower_limit = cfg.AUTOENCODER.LOWER_BOUND
         self.target_size = cfg.AUTOENCODER.TARGET
-        self.vae_feature = cfg.AUTOENCODER.FEATURE
+        self.vae_feature = feature
         self.mito_volume_file_name = cfg.AUTOENCODER.OUTPUT_FOLDER + "vae_data_{}.h5".format(self.target_size[0])
 
     def __len__(self):
