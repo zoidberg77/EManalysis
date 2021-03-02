@@ -135,7 +135,7 @@ class Clustermodel():
 		if os.path.exists(os.path.join(self.cfg.DATASET.ROOTF, 'clstm.h5')) \
                 and os.stat(os.path.join(self.cfg.DATASET.ROOTF, 'clstm.h5')).st_size != 0:
 			with h5py.File(os.path.join(self.cfg.DATASET.ROOTF, 'clstm.h5'), "r") as h5f:
-				clst_m = list(h5f['clstm'])
+				clst_m = np.array(h5f['clstm'])
 				h5f.close()
 		else:
 			scaler = MinMaxScaler()
@@ -159,7 +159,7 @@ class Clustermodel():
 		'''
 		labels, feat = self.get_features(feature_list=self.feat_list)
 		clst_m = self.prep_cluster_matrix(labels, feat)
-		print(np.concatenate(clst_m))
+		print(clst_m.shape)
 		res_labels = self.model.fit_predict(clst_m)
 		print(res_labels)
 		_, gtfns = self.fe.get_fns()

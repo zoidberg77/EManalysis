@@ -26,6 +26,6 @@ MODE:
   PROCESS: 'leaveitoutfornow'
   DPRC: 'iter'
 CLUSTER:
-  ALG: 'affprop'
+  ALG: 'kmeans'
   FEAT_LIST: ['sizef', 'distf', 'circf']
   WEIGHTSF: [1, 1, 1]
