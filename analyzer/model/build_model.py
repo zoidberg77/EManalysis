@@ -91,15 +91,12 @@ class Clustermodel():
 					feat = self.fe.compute_seg_circ()
 				else:
 					print('No function for computing {} features.'.format(fns))
-				#self.fe.save_feat_dict(feat, filen=(fns + '.json'))
+					
 				label, values = self.fe.save_single_feat_h5(feat, filen=fns)
 				if labels.size == 0:
 					labels = np.array(label)
 				rs_feat_list.append(np.array(values))
 			else:
-				#fn = self.cfg.DATASET.ROOTF + fns + '.json'
-				#with open(fn, 'r') as f:
-					#feat = json.loads(f.read())
 				fn = self.cfg.DATASET.ROOTF + fns + '.h5'
 				with h5py.File(fn, "r") as h5f:
 					if labels.size == 0:
@@ -144,10 +141,8 @@ class Clustermodel():
 			for idx, feat in enumerate(feat_list):
 				if feat.ndim <= 1:
 					tmp = scaler.fit_transform(feat.reshape(-1,1))
-					#clst_m = clst_m + weights[idx] * distance.cdist(tmp, tmp, 'euclidean')
 					clst_m = np.add(clst_m, self.cfg.CLUSTER.WEIGHTSF[idx] * distance.cdist(tmp, tmp, 'euclidean'))
 				else:
-					#clst_m = clst_m + weights[idx] * min_max_scale(feat)
 					clst_m = np.add(clst_m, self.cfg.CLUSTER.WEIGHTSF[idx] * min_max_scale(feat))
 
 			clst_m = np.vstack(clst_m)

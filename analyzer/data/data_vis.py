@@ -22,7 +22,6 @@ def visvol(vol, gt=None):
 			plt.imshow(gt, cmap='gist_ncar', alpha=0.8)
 		plt.show()
 
-
 def vissegments(image, segments, mask=None):
 	'''
 	Visualize volume and the overlaying segments created by a superpixels algorithm.
@@ -67,5 +66,6 @@ def visbbox(image, bbox):
 ### HELPER SECTION ###
 def zero_to_nan(values):
 	"""Replace every 0 with 'nan' and return a copy."""
+	values = values.astype(np.float16)
 	values[ values==0 ] = np.nan
 	return values

@@ -161,9 +161,7 @@ class Dataloader():
                 else:
                     tmparr = vol[boundbox[0]:boundbox[3], (boundbox[1] - os):(boundbox[4] + os),
                              (boundbox[2] - os):(boundbox[5] + os)]
-
                 bbox_dict[props.label] = tmparr
-
         else:
             raise ValueError('No valid dimensionality mode in function list_segments.')
 
@@ -246,7 +244,7 @@ class Dataloader():
             with open(os.path.join(self.cfg.SYSTEM.ROOT_DIR, self.cfg.DATASET.DATAINFO), 'r') as f:
                 data_info = json.loads(f.read())
         else:
-            data_info = self.prep_data_info(save=False)
+            data_info = self.prep_data_info(save=True)
 
         tmp = np.stack(([mito['id'] for mito in data_info], [mito['size'] for mito in data_info]), axis=-1)
 
@@ -332,6 +330,9 @@ class Dataloader():
         return [scaled_shape, scaled_texture]
 
     def get_volumes_from_slices(self, region):
+        '''
+        #TODO
+        '''
         gt_all_fn = sorted(glob.glob(self.gtpath + '*.' + self.ff))
         em_all_fn = sorted(glob.glob(self.volpath + '*.' + self.ff))
 

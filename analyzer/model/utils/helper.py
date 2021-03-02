@@ -47,7 +47,7 @@ def recompute_from_res(labels, result, vol= None, volfns=None, dprc='full', fp='
 	:param dprc: (string)
 	:returns cld_labels: (np.array) vol matrix that is the same shape as vol mask. But with adjusted labels.
 	'''
-	print('Starting to relabel the mitochondria.')
+	print('Starting to relabel the mask with the results from the clustering results.')
 	if dprc == 'full':
 		if mode == '2d':
 			cld_labels = np.zeros(shape=labels.shape)
@@ -82,7 +82,7 @@ def recompute_from_res(labels, result, vol= None, volfns=None, dprc='full', fp='
 		cld_labels = 0 #Just to avoid error message.
 	else:
 		raise ValueError('No valid data processing option choosen. Please choose \'full\' or \'iter\'.')
-	print('Relabeling of the mitochondria is done.')
+	print('Relabeling of the mask is done.\n')
 	return cld_labels
 
 def recompute_from_res_per_slice(idx, fns, k, v, fp):

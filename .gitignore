@@ -5,6 +5,7 @@ __pycache__/
 
 datasets/
 features/
+outputs/
 
 .ipynb_checkpoints
 notebooks/analyzer

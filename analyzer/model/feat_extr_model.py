@@ -79,7 +79,8 @@ class FeatureExtractor():
 			h5f.create_dataset('id', data=labels)
 			h5f.create_dataset(filen[:-1], data=values)
 			h5f.close()
-
+			
+		print('saved features to {}.'.format(self.cfg.DATASET.ROOTF + filen + '.h5'))
 		return labels, values
 
 	def save_feats_h5(self, labels, feat_array, filen='features'):
@@ -92,6 +93,7 @@ class FeatureExtractor():
 			h5f.create_dataset('id', data=labels)
 			h5f.create_dataset(filen, data=feat_array)
 			h5f.close()
+		print('saved features to {}.'.format(self.cfg.DATASET.ROOTF + filen + '.h5'))
 
 	def save_feat_dict(self, rsl_dict, filen='feature_vector.json'):
 		'''
@@ -102,3 +104,4 @@ class FeatureExtractor():
 		with open(os.path.join(self.cfg.DATASET.ROOTF + filen), 'w') as f:
 			json.dump(rsl_dict, f, cls=NumpyEncoder)
 			f.close()
+		print('stored infos in {}.'.format(os.path.join(self.cfg.DATASET.ROOTF + filen)))
