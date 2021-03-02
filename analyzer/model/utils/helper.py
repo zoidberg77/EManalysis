@@ -1,5 +1,6 @@
 import numpy as np
 import multiprocessing
+import functools
 from scipy.sparse import bsr_matrix, coo_matrix, csr_matrix
 
 from analyzer.data.data_raw import save_m_to_image

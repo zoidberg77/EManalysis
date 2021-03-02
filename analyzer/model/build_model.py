@@ -134,6 +134,7 @@ class Clustermodel():
 		#Preload if possible.
 		if os.path.exists(os.path.join(self.cfg.DATASET.ROOTF, 'clstm.h5')) \
                 and os.stat(os.path.join(self.cfg.DATASET.ROOTF, 'clstm.h5')).st_size != 0:
+			print('preload the clustering matrix.')
 			with h5py.File(os.path.join(self.cfg.DATASET.ROOTF, 'clstm.h5'), "r") as h5f:
 				clst_m = np.array(h5f['clstm'])
 				h5f.close()
