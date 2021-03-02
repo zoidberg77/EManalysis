@@ -1,6 +1,8 @@
+import os, sys
 import numpy as np
 import multiprocessing
 import functools
+import imageio
 from scipy.sparse import bsr_matrix, coo_matrix, csr_matrix
 
 from analyzer.data.data_raw import save_m_to_image
@@ -77,6 +79,7 @@ def recompute_from_res(labels, result, vol= None, volfns=None, dprc='full', fp='
 
 		with multiprocessing.Pool(processes=multiprocessing.cpu_count()) as pool:
 			pool.starmap(functools.partial(recompute_from_res_per_slice, k=k, v=v, fp=fp), enumerate(volfns))
+		cld_labels = 0 #Just to avoid error message.
 	else:
 		raise ValueError('No valid data processing option choosen. Please choose \'full\' or \'iter\'.')
 	print('Relabeling of the mitochondria is done.')
@@ -94,7 +97,7 @@ def recompute_from_res_per_slice(idx, fns, k, v, fp):
 		cld_labels = mapv[vol]
 	else:
 		raise ValueError('image {} not found.'.format(fns))
-	save_m_to_image(cld_labels, 'rs_mask', fp=fp, idx=idx, ff='png')
+	save_m_to_image(cld_labels, 'cluster_mask', fp=fp, idx=idx, ff='png')
 
 def convert_dict_mtx(inputs, valn):
 	'''

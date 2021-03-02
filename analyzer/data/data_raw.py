@@ -145,7 +145,8 @@ def save_m_to_image(img, filename, fp, idx=None, ff='png'):
 	:param img: 2d (np.array) that contains the information you want to save.
 	'''
 	if idx is not None:
-		fn = filename + str(idx) + '.' + ff
+		fn = filename + '_' + str(idx) + '.' + ff
 	else:
 		fn = filename + '.' + ff
-	imageio.imwrite(os.path.join(fp, fn), img)
+	imageio.imwrite(os.path.join(fp, fn), img.astype(np.uint8))
+	print('saving resulting image as {} to {}'.format(fn, fp))

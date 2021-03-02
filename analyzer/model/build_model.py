@@ -160,62 +160,10 @@ class Clustermodel():
 		'''
 		labels, feat = self.get_features(feature_list=self.feat_list)
 		clst_m = self.prep_cluster_matrix(labels, feat)
-		print(clst_m.shape)
 		res_labels = self.model.fit_predict(clst_m)
-		print(res_labels)
 		_, gtfns = self.fe.get_fns()
-		recompute_from_res(labels, res_labels, volfns=gtfns, dprc=self.cfg.MODE.DPRC, fp=self.cfg.CLUSTER.OUTPUTPATH)
+		_ = recompute_from_res(labels, res_labels, volfns=gtfns, dprc=self.cfg.MODE.DPRC, fp=self.cfg.CLUSTER.OUTPUTPATH)
 
-	'''
-	def run(self):
-		if self.clstby == 'bysize':
-			# RUN the clustering by size parameters.
-			test = self.load_features(feature_list=['sizef'])[0]
-			print(len(test))
-			rst = compute_region_size(self.gtvol, mode=self.mode)
-			print(len(rst))
-			labels, areas = convert_dict_mtx(rst, 'size')
-			res_labels = self.model.fit_predict(np.array(areas).reshape(-1,1))
-			#res_labels = self.model.fit_predict(pd.DataFrame(rst))
-
-			labeled = recompute_from_res(self.gtvol, labels, res_labels, mode=self.mode)
-			for k in range(labeled.shape[0]):
-				visvol(self.emvol[k], labeled[k])
-
-		elif self.clstby == 'bytext':
-			# RUN the clustering by texture parameters.
-			volume = self.emvol.copy()
-			if self.dl is not None:
-				labels = label(self.gtvol)
-				segments = self.dl.list_segments(self.emvol, self.gtvol, mode=self.mode)
-
-				texture_dict = texture_analysis(segments)
-				sparse = convert_to_sparse(texture_dict)
-
-				res_labels = self.model.fit_predict(sparse)
-				labeled = recompute_from_res(labels, res_labels, mode=self.mode)
-
-				for k in range(self.emvol.shape[0]):
-					visvol(volume[k], labeled[k])
-			else:
-				raise ValueError('No dataloader functionality useable as (dl == None).')
-
-		elif self.clstby == 'bydist':
-			# RUN the clustering by distance graph parameters.
-			rst = compute_dist_graph(self.gtvol, mode=self.mode)
-			labels = [seg['id'] for seg in rst]
-			dist_m = np.vstack([seg['dist'] for seg in rst])
-
-			res_labels = self.model.fit_predict(dist_m)
-			labeled = recompute_from_res(self.gtvol, labels, res_labels, mode=self.mode)
-
-			for k in range(self.emvol.shape[0]):
-				visvol(self.emvol[k], labeled[k])
-
-		elif self.clstby == 'byall':
-			#RUN the clustering by using all the features extracted.
-			labels, feat = self.load_features(feature_list=self.feat_list)
-
-		else:
-			raise Exception('Please state according to which property should be clustered.')
-		'''
+		# For visualization purposes.
+		labeled = imageio.imread(os.path.join(self.cfg.CLUSTER.OUTPUTPATH, 'cluster_mask_0.png'))
+		visvol(self.emvol[0], labeled)
