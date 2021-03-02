@@ -149,7 +149,7 @@ class Clustermodel():
 					#clst_m = clst_m + weights[idx] * min_max_scale(feat)
 					clst_m = np.add(clst_m, self.cfg.CLUSTER.WEIGHTSF[idx] * min_max_scale(feat))
 
-			clst_m = np.concatenate(clst_m)
+			clst_m = np.vstack(clst_m)
 			self.fe.save_feats_h5(labels, clst_m, filen='clstm')
 		return clst_m
 
@@ -162,7 +162,8 @@ class Clustermodel():
 		print(np.concatenate(clst_m))
 		res_labels = self.model.fit_predict(clst_m)
 		print(res_labels)
-		#labeled = recompute_from_res(labels, res_labels, mode=self.mode)
+		_, gtfns = self.fe.get_fns()
+		recompute_from_res(labels, res_labels, volfns=gtfns, dprc=self.cfg.MODE.DPRC, fp=self.cfg.CLUSTER.OUTPUTPATH)
 
 	'''
 	def run(self):

@@ -35,6 +35,12 @@ class FeatureExtractor():
 			self.emfns = None
 			self.gtfns = None
 
+	def get_fns(self):
+		'''
+		Funtion returns the attribute fns of the feature extractor.
+		'''
+		return self.emfns, self.gtfns
+
 	def compute_seg_size(self):
 		'''
 		Extract the size of each mitochondria segment.

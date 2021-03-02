@@ -1,5 +1,8 @@
 import numpy as np
+import multiprocessing
 from scipy.sparse import bsr_matrix, coo_matrix, csr_matrix
+
+from analyzer.data.data_raw import save_m_to_image
 
 def convert_to_sparse(inputs):
 	'''
@@ -30,15 +33,18 @@ def convert_to_sparse(inputs):
 
 	return (sparse)
 
-def recompute_from_res(vol, labels, result, dprc='full', mode='3d'):
+def recompute_from_res(labels, result, vol= None, volfns=None, dprc='full', fp='', mode='3d'):
 	'''
 	Take the result labels from clustering algorithm and adjust the old labels. NOTE: '3d' mode is way faster.
-	:param vol: (np.array) matrix that is the groundtruth mask.
 	:param labels: (np.array) vector that contains old labels that you want to adjust.
 	:param result: (np.array) vector that contains the new labels.
+	:param vol: (np.array) matrix that is the groundtruth mask.
+	:param volfns: (list) of image filenames that contain the groundtruth mask.
+	:param fp: (string) this should give you the folder path where the resulting image should be stored.
 	:param dprc: (string)
 	:returns cld_labels: (np.array) vol matrix that is the same shape as vol mask. But with adjusted labels.
 	'''
+	print('Starting to relabel the mitochondria.')
 	if dprc == 'full':
 		if mode == '2d':
 			cld_labels = np.zeros(shape=labels.shape)
@@ -61,12 +67,33 @@ def recompute_from_res(vol, labels, result, dprc='full', mode='3d'):
 			mapv[k] = v
 			cld_labels = mapv[vol]
 	elif dprc == 'iter':
-		#TODO!
-		raise NotImplementedError('no iterative option in this function yet.')
+		ldict = {}
+		for k, v in zip(labels, result):
+			ldict[k] = v + 1  # + 1 in order to secure that label 0 is not missed.
+
+		k = np.array(list(ldict.keys()))
+		v = np.array(list(ldict.values()))
+
+		with multiprocessing.Pool(processes=multiprocessing.cpu_count()) as pool:
+			pool.starmap(functools.partial(recompute_from_res_per_slice, k=k, v=v, fp=fp), enumerate(volfns))
 	else:
 		raise ValueError('No valid data processing option choosen. Please choose \'full\' or \'iter\'.')
-
+	print('Relabeling of the mitochondria is done.')
 	return cld_labels
+
+def recompute_from_res_per_slice(idx, fns, k, v, fp):
+	'''
+	Helper function to iterate over the whole dataset in order to replace the labels with its
+	clustering labels.
+	'''
+	if os.path.exists(fns):
+		vol = imageio.imread(fns)
+		mapv = np.zeros(k.max() + 1)
+		mapv[k] = v
+		cld_labels = mapv[vol]
+	else:
+		raise ValueError('image {} not found.'.format(fns))
+	save_m_to_image(cld_labels, 'rs_mask', fp=fp, idx=idx, ff='png')
 
 def convert_dict_mtx(inputs, valn):
 	'''

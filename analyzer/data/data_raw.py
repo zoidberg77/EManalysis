@@ -137,3 +137,15 @@ def savelabvol(vol, filename, labels=None, dataset='main', format='h5'):
 			ld[:] = labels
 
 	h5.close()
+
+def save_m_to_image(img, filename, fp, idx=None, ff='png'):
+	'''
+	Save the data volume.
+	:param filename: (string)
+	:param img: 2d (np.array) that contains the information you want to save.
+	'''
+	if idx is not None:
+		fn = filename + str(idx) + '.' + ff
+	else:
+		fn = filename + '.' + ff
+	imageio.imwrite(os.path.join(fp, fn), img)

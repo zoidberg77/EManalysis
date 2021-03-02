@@ -66,6 +66,7 @@ _C.CLUSTER.FEAT_LIST = ['sizef', 'distf', 'vaef', 'circf']
 #Please make sure these weights make the dimension of the features. Means 4 features 4 weight factors.
 _C.CLUSTER.WEIGHTSF = [1, 1, 1 ,1]
 _C.CLUSTER.N_CLUSTER = 5
+_C.CLUSTER.OUTPUTPATH = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'outputs/')
 
 def get_cfg_defaults():
     '''
