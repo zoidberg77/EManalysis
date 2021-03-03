@@ -45,7 +45,6 @@ class Dataloader():
             self.label = label
 
         self.chunk_size = self.cfg.DATASET.CHUNK_SIZE
-        self.mode = self.cfg.MODE.DIM
         self.ff = self.cfg.DATASET.FILE_FORMAT
         if self.cfg.SYSTEM.NUM_CPUS is None:
             self.cpus = multiprocessing.cpu_count()
@@ -77,7 +76,7 @@ class Dataloader():
         with h5py.File(self.mito_volume_file_name, 'r') as f:
             return f[self.vae_feature + "_volume"][idx]
 
-    def load_chunk(self, vol='both'):
+    def load_chunk(self, vol='both', mode='3d'):
         '''
         Load chunk of em and groundtruth data for further processing.
         :param vol: (string) choose between -> 'both', 'em', 'gt' in order to specify
@@ -88,7 +87,7 @@ class Dataloader():
         emdata = 0
         gt = 0
 
-        if self.mode == '2d':
+        if mode == '2d':
             if (vol == 'em') or (vol == 'both'):
                 emdata = readvol(emfns[0])
                 emdata = np.squeeze(emdata)
@@ -98,7 +97,7 @@ class Dataloader():
                 gt = np.squeeze(gt)
                 print('gt data loaded: ', gt.shape)
 
-        if self.mode == '3d':
+        if mode == '3d':
             if (vol == 'em') or (vol == 'both'):
                 if self.volume is None:
                     emdata = folder2Vol(self.volpath, self.chunk_size, file_format=self.ff)

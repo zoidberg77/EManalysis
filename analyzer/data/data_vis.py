@@ -62,10 +62,9 @@ def visbbox(image, bbox):
 
 	plt.show()
 
-
 ### HELPER SECTION ###
 def zero_to_nan(values):
 	"""Replace every 0 with 'nan' and return a copy."""
-	values = values.astype(np.float16)
+	values = values.astype('float32')
 	values[ values==0 ] = np.nan
 	return values

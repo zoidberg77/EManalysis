@@ -54,8 +54,6 @@ _C.MODE.PROCESS = 'infer'
 # 'iter' iterates over the data slice by slice in order to avoid memory erros.
 # 'full' enables to read in the full stack of your data.
 _C.MODE.DPRC = 'iter'
-# Do not change this. This will always be '3d' and probably depracted in the future.
-_C.MODE.DIM = '3d'
 # -----------------------------------------------------------------------------
 # Clustermodel
 # -----------------------------------------------------------------------------

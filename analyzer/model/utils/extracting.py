@@ -88,7 +88,7 @@ def compute_region_size(vol, dprc='full', fns=None, mode='3d'):
 	print('Size feature extraction finished. {} features extracted.'.format(len(result_array)))
 	return (result_array)
 
-def compute_dist_graph(vol, dprc='full', fns=None, mode='3d'):
+def compute_dist_graph(vol, dprc='full', fns=None):
 	'''
 	This function computes a graph matrix that represents the distances from each segment to all others.
 	:param vol: volume (np.array) that contains the groundtruth mask (= labels). (2d || 3d)
@@ -165,36 +165,36 @@ def compute_dist_graph(vol, dprc='full', fns=None, mode='3d'):
 	print('Distance feature extraction finished. {} x {} features extracted.'.format(len(result_array), len(result_array)))
 	return (result_array)
 
-def compute_circularity(vol, dprc='full', fns=None, mode='3d'):
+def compute_circularity(vol, dprc='full', fns=None):
 	'''
 	This function aims to calculate the circularity of an object.
 	'''
 	print('Starting to compute a circularity estimation of mitochondria.')
 	result_dict = {}
 	if dprc == 'full':
-		raise NotImplementedError('no dprc \'full\' in this function yet.')
-	elif dprc == 'iter':
-		with multiprocessing.Pool(processes=multiprocessing.cpu_count()) as pool:
-			tmp = pool.starmap(functools.partial(calc_props, prop_list=['slices', 'circ']), enumerate(fns))
+		fns = fns[:vol.shape[0]]
+		print(fns)
 
-		for dicts in tmp:
-			for key, value in dicts.items():
-				if key in result_dict:
-					result_dict[key][0].append(value[0])
-					result_dict[key][1] += value[1]
-				else:
-					result_dict.setdefault(key, [])
-					result_dict[key].append([value[0]])
-					result_dict[key].append([value[1]])
+	with multiprocessing.Pool(processes=multiprocessing.cpu_count()) as pool:
+		tmp = pool.starmap(functools.partial(calc_props, prop_list=['slices', 'circ']), enumerate(fns))
 
-		result_array = []
-		for result in result_dict.keys():
-			result_array.append({
-				'id': result,
-				'circ': (result_dict[result][1][0] / len(result_dict[result][0])),
-			})
-	else:
-		raise ValueError('No proper dprc found. Choose \'full\' or \'iter\'.')
+	for dicts in tmp:
+		for key, value in dicts.items():
+			if key in result_dict:
+				result_dict[key][0].append(value[0])
+				result_dict[key][1] += value[1]
+			else:
+				result_dict.setdefault(key, [])
+				result_dict[key].append([value[0]])
+				result_dict[key].append([value[1]])
+
+	result_array = []
+	for result in result_dict.keys():
+		result_array.append({
+			'id': result,
+			'circ': (result_dict[result][1][0] / len(result_dict[result][0])),
+		})
+
 	print('Circularity feature extraction finished. {} features extracted.'.format(len(result_array)))
 	return (result_array)
 
@@ -281,15 +281,3 @@ def compute_intentsity(vol, gt, mode='3d'):
 	intns = np.array(intns_values, dtype=np.float16)
 
 	return (labels, intns)
-
-def plot_stats(data, x_label='x', y_label='y'):
-	'''
-	Plotting statistical data in order to get an impression.
-	:param data: (np.array) potentially any dimension.
-	:param x_label && y_label: (string) description of the x and y axis.
-	'''
-	if type(data).__name__ == 'list':
-		plt.plot(data)
-		plt.xlabel(x_label)
-		plt.ylabel(y_label)
-		plt.show()

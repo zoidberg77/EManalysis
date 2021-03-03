@@ -1,13 +1,11 @@
 import os, sys
 import numpy as np
-import pandas as pd
 import h5py
+import imageio
 from skimage.measure import label
 from sklearn.cluster import KMeans, AffinityPropagation, SpectralClustering, DBSCAN
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 
-from analyzer.model.utils.extracting import *
-from analyzer.model.utils.superpixel import superpixel_segment, superpixel_image, texture_analysis
 from analyzer.model.utils.helper import convert_to_sparse, recompute_from_res, convert_dict_mtx, min_max_scale
 from analyzer.data.data_vis import visvol, vissegments
 from analyzer.utils.eval import clusteravg
@@ -32,7 +30,7 @@ class Clustermodel():
 	:param n_cluster: (int) sets the number of cluster that should be found.
 	:param mode: (string) Analyze either by 2d or 3d slizes.
 	'''
-	def __init__(self, cfg, emvol, gtvol, dl=None, clstby='bysize'):
+	def __init__(self, cfg, emvol=None, gtvol=None, dl=None, clstby='bysize'):
 		self.cfg = cfg
 		self.emvol = emvol
 		self.gtvol = gtvol
@@ -42,7 +40,6 @@ class Clustermodel():
 		self.feat_list = self.cfg.CLUSTER.FEAT_LIST
 		self.weightsf = self.cfg.CLUSTER.WEIGHTSF
 		self.n_cluster = self.cfg.CLUSTER.N_CLUSTER
-		self.mode = self.cfg.MODE.DIM
 
 		self.model = self.set_model(mn=self.alg)
 		self.fe = FeatureExtractor(self.cfg)
@@ -67,7 +64,7 @@ class Clustermodel():
 
 		return model
 
-	def get_features(self, feature_list=['sizef', 'distf', 'vaef', 'circf']):
+	def get_features(self):
 		'''
 		This function will load different features vectors that were extracted and saved to be used for clustering.
 		:param feat_list: (list) of (string)s that states which features should be computed and/or load to cache for
@@ -91,7 +88,7 @@ class Clustermodel():
 					feat = self.fe.compute_seg_circ()
 				else:
 					print('No function for computing {} features.'.format(fns))
-					
+
 				label, values = self.fe.save_single_feat_h5(feat, filen=fns)
 				if labels.size == 0:
 					labels = np.array(label)
@@ -102,23 +99,9 @@ class Clustermodel():
 					if labels.size == 0:
 						labels = np.array(h5f['id'])
 					rs_feat_list.append(np.array(h5f[fns[:-1]]))
+					print('Loaded {} features to cache.'.format(fns[:-1]))
 
 		return labels, rs_feat_list
-
-	def stack_and_std_features(self, feat):
-		'''
-		This function takes different features and stacks them togehter and performs
-		standardization by centering and scaling for further clustering.
-		:param feat: (list) of features.
-		'''
-		scaler = StandardScaler()
-		if len(feat) == 1:
-			return feat
-
-		feats = np.column_stack([singlef for singlef in feat])
-		std_feat = scaler.fit_transform(feats)
-
-		return std_feat
 
 	def prep_cluster_matrix(self, labels, feat_list):
 		'''
@@ -160,5 +143,5 @@ class Clustermodel():
 		_ = recompute_from_res(labels, res_labels, volfns=gtfns, dprc=self.cfg.MODE.DPRC, fp=self.cfg.CLUSTER.OUTPUTPATH)
 
 		# For visualization purposes.
-		labeled = imageio.imread(os.path.join(self.cfg.CLUSTER.OUTPUTPATH, 'cluster_mask_0.png'))
-		visvol(self.emvol[0], labeled)
+		#labeled = imageio.imread(os.path.join(self.cfg.CLUSTER.OUTPUTPATH, 'cluster_mask_0.png'))
+		#visvol(self.emvol[0], labeled)

@@ -26,7 +26,6 @@ class FeatureExtractor():
 		self.gtpath = self.cfg.DATASET.LABEL_PATH
 		self.dprc = self.cfg.MODE.DPRC
 		self.ff = self.cfg.DATASET.FILE_FORMAT
-		self.mode = self.cfg.MODE.DIM
 
 		if self.dprc == 'iter':
 			self.emfns = sorted(glob.glob(self.empath + '*.' + self.ff))
@@ -46,14 +45,14 @@ class FeatureExtractor():
 		Extract the size of each mitochondria segment.
 		:returns result_dict: (dict) where the label is the key and the size of the segment is the corresponding value.
 		'''
-		return compute_region_size(self.gtvol, fns=self.gtfns, dprc=self.dprc, mode=self.mode)
+		return compute_region_size(self.gtvol, fns=self.gtfns, dprc=self.dprc)
 
 	def compute_seg_dist(self):
 		'''
 		Compute the distances of mitochondria to each other and extract it as a graph matrix.
 		:returns
 		'''
-		return compute_dist_graph(self.gtvol, fns=self.gtfns, dprc=self.dprc, mode=self.mode)
+		return compute_dist_graph(self.gtvol, fns=self.gtfns, dprc=self.dprc)
 
 	def infer_vae(self):
 		'''
@@ -66,7 +65,7 @@ class FeatureExtractor():
 		'''
 		Computes the circularity features from mitochondria volume.
 		'''
-		return compute_circularity(self.gtvol, fns=self.gtfns, dprc=self.dprc, mode=self.mode)
+		return compute_circularity(self.gtvol, fns=self.gtfns, dprc=self.dprc)
 
 	def save_single_feat_h5(self, rsl_dict, filen='feature_vector'):
 		'''
@@ -79,7 +78,7 @@ class FeatureExtractor():
 			h5f.create_dataset('id', data=labels)
 			h5f.create_dataset(filen[:-1], data=values)
 			h5f.close()
-			
+
 		print('saved features to {}.'.format(self.cfg.DATASET.ROOTF + filen + '.h5'))
 		return labels, values
 

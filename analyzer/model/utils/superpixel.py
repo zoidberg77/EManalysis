@@ -6,63 +6,6 @@ from skimage.feature import greycomatrix, greycoprops
 
 from analyzer.data.data_vis import visvol, vissegments, visbbox
 
-def superpixel_image(vol, gt, mode='2d'):
-    '''
-    This function computes superpixels within every segment of the whole image and returns the segments.
-    :param vol: volume (np.array) that contains the bare em data. (2d || 3d)
-	:param gt: volume (np.array) that contains the groundtruth. (2d || 3d)
-
-    :returns segments: ()
-    '''
-    #TODO --> This function is not complete and used.
-
-    mask = np.zeros(shape=vol.shape, dtype=np.uint16)
-    mask[gt > 0] = 1
-    vol[mask == 0] = 0
-    eqvol = equalize_hist(vol)
-
-    if mode == '2d':
-        for idx in range(vol.shape[0]):
-            mask2d = mask[idx]
-            segments = slic(vol[idx], n_segments=10, mask=mask2d, start_label=1, compactness=10)
-            #segments = slic(vol[idx], n_segments=200, start_label=1, compactness=.1)
-    else:
-        raise NotImplementedError('no 3d mode in this function yet.')
-
-    vissegments(vol[0], segments[0], mask=mask[0])
-
-    return segments
-
-
-def superpixel_segment(segments, n_seg=10):
-    '''
-    This function computes superpixels within every segment.
-    :param segments: (dict) object containing (np.array)s that are the mitochondria segments + labels as keys.
-    :param n_seg: (int) defines the approximate number of segments the slic should find.
-
-    :returns slic_res
-    '''
-    if segments.get(1).ndim == 2:
-        raise NotImplementedError('no 2d mode in this function yet.')
-    else:
-        for idx in range(len(segments)):
-            seg = segments[idx + 1]
-            # create a mask.
-            mask = np.zeros(seg.shape, dtype=np.uint16)
-            mask[seg > 0] = 1
-
-            print('seg: ', seg.shape)
-            print('mask: ', mask.shape)
-
-            #slice = seg
-            #slic_res = slic(slice, n_segments=n_seg, compactness=0.01, mask=mask[0], start_label=1)
-            slic_res = slic(seg, n_segments=n_seg, compactness=0.01, start_label=1)
-            for i in range(seg.shape[0]):
-                slice = seg[i]
-                vissegments(slice, slic_res[i], mask=mask[i])
-
-    return slic_res
-
 def texture_analysis(segments, mode='3d', method='slic'):
     '''
     This function analysis the texture in the segments.
@@ -72,7 +15,6 @@ def texture_analysis(segments, mode='3d', method='slic'):
                             - 'fast':
                             - 'sliding_window':
                             - 'slic':
-
     :returns texts: (dict) of (np.array)s that contain the correlation values of each segments.
                     Keys represent the labels. Values represent the corr values vector.
                     Correlation values are extracted from a GLCM.
@@ -80,7 +22,6 @@ def texture_analysis(segments, mode='3d', method='slic'):
     '''
     #TODO: For the 3d mode --> Make it truly 3d as you are doing slic in 2d and just expand it to 3d.
     print('number of segments (mitochondria): ', len(segments))
-
     if mode == '2d':
         raise NotImplementedError('no 2d mode in this function yet.')
     elif mode == '3d':
@@ -91,8 +32,6 @@ def texture_analysis(segments, mode='3d', method='slic'):
 
             for d in range(vol.shape[0]):
                 image = vol[d]
-
-                # padded image.
                 pad = 3
                 padded = np.pad(image, pad, mode='constant', constant_values=0)
 
@@ -114,10 +53,8 @@ def texture_analysis(segments, mode='3d', method='slic'):
                         for column in range(image.shape[1]):
                             if image[row][column] == 0:
                                 continue
-
                             if (padded.shape[0] - 7) == image.shape[0]:
                                 break
-
                             glcm_window = padded[row:(row + 7), column:(column + 7)]
                             if np.any(glcm_window == 0):
                                 continue
@@ -161,7 +98,6 @@ def texture_analysis(segments, mode='3d', method='slic'):
 
 
 ### HELPER SECTION ###
-
 def rolling_window(a, window, step_size):
     '''
     Create a function to reshape a ndarray using a sliding window.

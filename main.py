@@ -69,7 +69,7 @@ def main():
             trainer.save_latent_feature()
         return
 
-    model = Clustermodel(cfg, em, gt, dl=dl, clstby='bysize')
+    model = Clustermodel(cfg, em, gt, dl=dl)
     model.run()
 
 
