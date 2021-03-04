@@ -1,6 +1,7 @@
-# EManalysis
+<h1 align="center">
+  <b>EManalysis</b><br>
+</h1>
 
-## Introduction
 The field of connectomics aims to reconstruct the wiring diagram of the brain by mapping the neural connections at a cellular level. Based on electronic microscopy (EM) data this repository aims to make analysis on human brain tissue, particularly on mitochondria. Besides having algorithms that enable dense segmentation and alignment, the need for classification and clustering is key. Therefore, this software enables to cluster mitochondria (or any segments you want to cluster) automatically without relying on powerful computational resources.
 
 ## Installation
@@ -32,16 +33,35 @@ but there are a few points to consider. This software uses different features fo
 Before training the VAE, you have preprocess the data. This has two main reasons: Consistent input size & individual training samples.
 
 Preprocessing is done by either ...
-- altering the configuration file ``` MODE:
-                                        PROCESS: 'preprocessing' ```
+- altering the configuration file ``` yaml
+                                      MODE:
+                                        PROCESS: 'preprocessing'
+                                  ```
 - from the command line by adding ``` --mode preprocessing ```
 
 Training the VAE is done by either ...
-- altering the configuration file ``` MODE:
-                                        PROCESS: 'train' ```
+- altering the configuration file ``` yaml
+                                      MODE:
+                                        PROCESS: 'train'
+                                  ```
 - from the command line by adding ``` --mode train```
 
 Hyperparameter Tuning
+``` yaml
+    AUTOENCODER:
+      ARCHITECTURE: 'unet_3d'
+      REGION_LIMIT: None
+      CHUNKS_CPU: 4
+      UPPER_BOUND: 100000
+      LOWER_BOUND: 100
+      TARGET: (128, 128, 128)
+      EPOCHS: 5
+      BATCH_SIZE: 2
+      OUTPUT_FOLDER: 'features/'
+      FEATURES: ['shape', 'texture']
+      LATENT_SPACE: 100
+      LOG_INTERVAL: 10
+```
 
 ### Part 2: Clustering stage
 
