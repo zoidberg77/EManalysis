@@ -142,6 +142,8 @@ class Clustermodel():
 		_, gtfns = self.fe.get_fns()
 		_ = recompute_from_res(labels, res_labels, volfns=gtfns, dprc=self.cfg.MODE.DPRC, fp=self.cfg.CLUSTER.OUTPUTPATH)
 
+		print('\nfinished clustering.')
+
 		# For visualization purposes.
 		#labeled = imageio.imread(os.path.join(self.cfg.CLUSTER.OUTPUTPATH, 'cluster_mask_0.png'))
 		#visvol(self.emvol[0], labeled)

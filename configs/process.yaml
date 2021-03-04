@@ -20,12 +20,10 @@ DATASET:
   FILE_FORMAT: 'png'
   CHUNK_SIZE: [2, 4096, 4096]
   DATAINFO: 'features/data_info.json'
-  SIZEF: 'features/sizef_complete.json'
-  DISTF: 'features/distf_complete.json'
 MODE:
   PROCESS: 'leaveitoutfornow'
   DPRC: 'iter'
 CLUSTER:
   ALG: 'kmeans'
-  FEAT_LIST: ['sizef', 'distf', 'circf']
-  WEIGHTSF: [1, 1, 1]
+  FEAT_LIST: ['sizef', 'circf']
+  WEIGHTSF: [1, 1]
