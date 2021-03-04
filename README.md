@@ -18,12 +18,32 @@ pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
+## Dataset
+The framework relies on both EM data and its related groundtruth mask of the segments (e.g. mitochondria) you want to cluster. The output are images with relabeled segments.
+
 ## Usage
 Running the software after the installation is simply put by
 ```
 python main.py --cfg configs/process.yaml
 ```
-but there are a few points to consider. This software uses different features for the clustering process and these are computed in separate ways. The main component of the framework is the Variational Autoencoder ([VAE](https://github.com/AntixK/PyTorch-VAE)) where the latent space is used as representational features. In order to use the VAE, it is has to be trained beforehand. So the framework is consisting as two separate parts, where one is the training phase of the VAE and the other is the actual clustering. You have to make sure to tell the program which part you want to run. This is done by altering the configuration file.
+but there are a few points to consider. This software uses different features for the clustering process and these are computed in separate ways. The main component of the framework is the Variational Autoencoder ([VAE](https://github.com/AntixK/PyTorch-VAE)) where the latent space is used as representational features. In order to use the VAE, it is has to be trained beforehand. So the framework is consisting as two separate parts, where one is the training phase of the VAE and the other is the actual clustering. You have to make sure to tell the program which part you want to run.
+
+### Part 1: Training the Variational Autoencoder
+Before training the VAE, you have preprocess the data. This has two main reasons: Consistent input size & individual training samples.
+
+Preprocessing is done by either ...
+- altering the configuration file ``` MODE:
+                                        PROCESS: 'preprocessing' ```
+- from the command line by adding ``` --mode preprocessing ```
+
+Training the VAE is done by either ...
+- altering the configuration file ``` MODE:
+                                        PROCESS: 'train' ```
+- from the command line by adding ``` --mode train```
+
+Hyperparameter Tuning
+
+### Part 2: Clustering stage
 
 
 ## License
