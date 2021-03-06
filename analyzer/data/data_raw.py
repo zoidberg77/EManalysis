@@ -103,7 +103,6 @@ def folder2Vol(filepath, chunk_size=None, fns=None, file_format='png', dt=np.uin
 						vtmp = np.vsplit(htmp[j], ratio)
 						for elements in range(ratio):
 							splitarr.append(vtmp[elements])
-
 					for i in range(ratio * 2):
 						vol[i, zi, :, :] = splitarr[i]
 				else:

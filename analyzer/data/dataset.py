@@ -203,7 +203,6 @@ class Dataloader():
                 'size': added[result][0],
                 'slices': added[result][1]
             })
-
         if save:
             with open(os.path.join(self.cfg.SYSTEM.ROOT_DIR, self.cfg.DATASET.DATAINFO), 'w') as f:
                 json.dump(result_array, f, cls=NumpyEncoder)
@@ -331,6 +330,8 @@ class Dataloader():
     def get_volumes_from_slices(self, region):
         '''
         #TODO
+        :param region:
+        :returns gt_volume, em_volume:
         '''
         gt_all_fn = sorted(glob.glob(self.gtpath + '*.' + self.ff))
         em_all_fn = sorted(glob.glob(self.volpath + '*.' + self.ff))
