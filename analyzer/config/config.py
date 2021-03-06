@@ -38,10 +38,6 @@ _C.DATASET.CHUNK_SIZE = [100, 4096, 4096]
 _C.DATASET.FILE_FORMAT = 'png'
 _C.DATASET.ROOTF = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'features/')
 _C.DATASET.DATAINFO = 'features/data_info.json'
-_C.DATASET.SIZEF = 'features/sizef.json'
-_C.DATASET.DISTF = 'features/distf.json'
-_C.DATASET.VAEF = 'features/vaef.json'
-_C.DATASET.CIRCF = 'features/circf.json'
 # -----------------------------------------------------------------------------
 # Mode
 # := sets different run options.
