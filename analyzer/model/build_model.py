@@ -83,9 +83,9 @@ class Clustermodel():
 				elif fns == 'distf':
 					feat = self.fe.compute_seg_dist()
 				elif fns == 'shapef':
-					feat = self.fe.vae_shape()
+					feat = self.fe.compute_vae_shape()
 				elif fns == 'texturef':
-					feat = self.fe.vae_texture()
+					feat = self.fe.compute_vae_texture()
 				elif fns == 'circf':
 					feat = self.fe.compute_seg_circ()
 				else:
