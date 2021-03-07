@@ -82,12 +82,12 @@ class Trainer:
             plt.yscale("log")
             plt.title("Train Loss in Epoch {}/{} ".format(self.current_epoch, self.epochs))
             plt.savefig(
-                self.cfg.AUTOENCODER.OUTPUT_FOLDER + "training/evaluation/{}/train_loss_curve_{}.png".format(self.vae_feature, self.current_epoch))
+                "datasets/vae/evaluation/{}/train_loss_curve_{}.png".format(self.vae_feature, self.current_epoch))
 
             test_loss = self.test()
 
             torch.save(self.model.state_dict(),
-                       self.cfg.AUTOENCODER.OUTPUT_FOLDER + "training/" + "vae_{}_model.pt".format(self.vae_feature))
+                       "datasets/vae/vae_{}_model.pt".format(self.vae_feature))
 
         return train_total_loss, test_loss
 
@@ -141,7 +141,7 @@ class Trainer:
             plt.yscale("log")
             plt.title("Test Loss over in Epoch {}/{} ".format(self.current_epoch, self.epochs))
             plt.savefig(
-                self.cfg.AUTOENCODER.OUTPUT_FOLDER + "training/evaluation/{}/test_loss_curve_{}.png".format(self.vae_feature, self.current_epoch))
+                "datasets/vae/evaluation/{}/test_loss_curve_{}.png".format(self.vae_feature, self.current_epoch))
             return test_total_loss
 
     def save_images(self, inputs, reconstructions, iteration, epoch, prefix):
@@ -165,18 +165,18 @@ class Trainer:
 
             plt.axis('off')
             plt.imsave(
-                self.cfg.AUTOENCODER.OUTPUT_FOLDER + 'training/evaluation/'+self.vae_feature+'/{}_{}_{}.png'.format(prefix, epoch, iteration + i),
+                'datasets/vae/evaluation/'+self.vae_feature+'/{}_{}_{}.png'.format(prefix, epoch, iteration + i),
                 evaluation_image,
                 cmap="gray")
             return
 
     def save_latent_feature(self):
         self.model.load_state_dict(
-            torch.load(self.cfg.AUTOENCODER.OUTPUT_FOLDER + "training/" + "vae_{}_model.pt".format(self.vae_feature)))
+            torch.load("datasets/vae/" + "vae_{}_model.pt".format(self.vae_feature)))
         self.model.eval()
         self.model.to(self.device)
         dl = torch.utils.data.DataLoader(self.dataset, shuffle=False)
-        with h5py.File(self.cfg.AUTOENCODER.OUTPUT_FOLDER + "vae_{}_{}.h5".format(self.vae_feature, self.dataset[0].shape[-1]), 'w') as f:
+        with h5py.File("features/{}f.h5".format(self.vae_feature), 'w') as f:
             if self.vae_feature in f.keys():
                 del f[self.vae_feature]
             f.create_dataset(name=self.vae_feature,

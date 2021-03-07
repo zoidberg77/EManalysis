@@ -57,7 +57,7 @@ class Dataloader():
         self.lower_limit = cfg.AUTOENCODER.LOWER_BOUND
         self.target_size = cfg.AUTOENCODER.TARGET
         self.vae_feature = feature
-        self.mito_volume_file_name = cfg.AUTOENCODER.OUTPUT_FOLDER + "training/" + "vae_data_{}.h5".format(cfg.AUTOENCODER.TARGET[0])
+        self.mito_volume_file_name = "datasets/vae/" + "vae_data_{}.h5".format(cfg.AUTOENCODER.TARGET[0])
 
     def __len__(self):
         '''
