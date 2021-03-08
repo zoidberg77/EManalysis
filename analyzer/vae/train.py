@@ -175,14 +175,28 @@ class Trainer:
             torch.load("datasets/vae/" + "vae_{}_model.pt".format(self.vae_feature)))
         self.model.eval()
         self.model.to(self.device)
-        dl = torch.utils.data.DataLoader(self.dataset, shuffle=False)
-        with h5py.File("features/{}f.h5".format(self.vae_feature), 'w') as f:
-            if self.vae_feature in f.keys():
-                del f[self.vae_feature]
-            f.create_dataset(name=self.vae_feature,
-                             shape=(len(self.dataset), self.cfg.AUTOENCODER.LATENT_SPACE))
-            with torch.no_grad():
-                for i, data in tqdm(enumerate(dl), total=len(self.dataset)):
-                    data = data.to(self.device)
-                    x = self.model.latent_representation(data)
-                    f[self.vae_feature][i] = x.cpu().numpy()
+        all_regions = self.dataset.prep_data_info(save=False)
+
+        with h5py.File("datasets/vae/" + "vae_data_{}.h5".format(self.cfg.AUTOENCODER.TARGET[0]), 'r') as volume_file:
+            with h5py.File("features/{}f.h5".format(self.vae_feature), 'w') as f:
+                if self.vae_feature in f.keys():
+                    del f[self.vae_feature]
+                if "id" in f.keys():
+                    del f["id"]
+                f.create_dataset(name=self.vae_feature,
+                                 shape=(len(all_regions), self.cfg.AUTOENCODER.LATENT_SPACE))
+                f.create_dataset(name="id",
+                                 shape=(len(all_regions), ))
+                with torch.no_grad():
+                    for i, region in tqdm(enumerate(all_regions), total=len(all_regions)):
+                        x = torch.zeros(self.cfg.AUTOENCODER.LATENT_SPACE)
+                        for j, vid in enumerate(volume_file["id"]):
+                            if vid == region["id"]:
+                                volume = volume_file[self.vae_feature + "_volume"][j]
+                                volume = np.expand_dims(volume, axis=0)
+                                data = torch.from_numpy(volume).cuda()
+                                data.to(self.device)
+                                x = self.model.latent_representation(data).cpu().numpy()
+
+                        f[self.vae_feature][i] = x
+                        f["id"][i] = region["id"]

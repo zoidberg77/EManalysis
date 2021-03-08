@@ -280,20 +280,21 @@ class Dataloader():
         regions = regions[(self.upper_limit > regions['size']) & (self.lower_limit < regions['size'])].values.tolist()
         filtered_length = len(regions)
         print("{} within limits {} and {}".format(filtered_length, self.lower_limit, self.upper_limit))
-
         if self.region_limit is not None:
             regions = regions[:self.region_limit]
             print("{} will be extracted due to set region_limit".format(self.region_limit))
         with h5py.File(self.mito_volume_file_name, "w") as f:
             f.create_dataset("shape_volume", (len(regions), 1, *self.target_size))
             f.create_dataset("texture_volume", (len(regions), 1, *self.target_size))
+            f.create_dataset("id", (len(regions),))
 
             with multiprocessing.Pool(processes=self.cpus) as pool:
                 for i in tqdm(range(0, len(regions), int(self.cpus * self.chunks_per_cpu))):
                     results = pool.map(self.get_mito_volume, regions[i:i + int(self.cpus * self.chunks_per_cpu)])
                     for j, result in enumerate(results):
-                        f["shape_volume"][i + j] = result[0]
-                        f["texture_volume"][i + j] = result[1]
+                        f["id"][i + j] = result[0]
+                        f["shape_volume"][i + j] = result[1]
+                        f["texture_volume"][i + j] = result[2]
 
     def get_mito_volume(self, region):
         '''
@@ -325,7 +326,7 @@ class Dataloader():
         scaled_texture = scaled_texture / scaled_texture.max()
         scaled_texture = np.expand_dims(scaled_texture, 0)
 
-        return [scaled_shape, scaled_texture]
+        return [region[0], scaled_shape, scaled_texture]
 
     def get_volumes_from_slices(self, region):
         '''
