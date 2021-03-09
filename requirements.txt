@@ -13,3 +13,4 @@ numpyencoder
 tensorboardX
 yacs
 pandas
+hdbscan

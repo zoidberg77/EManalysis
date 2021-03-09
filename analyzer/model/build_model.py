@@ -2,7 +2,7 @@ import os, sys
 import numpy as np
 import h5py
 import imageio
-from skimage.measure import label
+import hdbscan
 from sklearn.cluster import KMeans, AffinityPropagation, SpectralClustering, DBSCAN
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 
@@ -22,6 +22,7 @@ class Clustermodel():
 				- 'affprop': AffinityPropagation
 				- 'specCl': SpectralClustering
 				- 'dbscan': DBSCAN
+				- 'hdbscan': HDBSCAN (https://hdbscan.readthedocs.io/en/latest/index.html)
 
 	:param clstby: choose how you want to cluster and label the segments.
 				- 'bysize': cluster segements by their size.
@@ -30,13 +31,12 @@ class Clustermodel():
 	:param n_cluster: (int) sets the number of cluster that should be found.
 	:param mode: (string) Analyze either by 2d or 3d slizes.
 	'''
-	def __init__(self, cfg, emvol=None, gtvol=None, dl=None, clstby='bysize'):
+	def __init__(self, cfg, emvol=None, gtvol=None, dl=None):
 		self.cfg = cfg
 		self.emvol = emvol
 		self.gtvol = gtvol
 		self.dl = dl
 		self.alg = self.cfg.CLUSTER.ALG
-		self.clstby = clstby
 		self.feat_list = self.cfg.CLUSTER.FEAT_LIST
 		self.weightsf = self.cfg.CLUSTER.WEIGHTSF
 		self.n_cluster = self.cfg.CLUSTER.N_CLUSTER
@@ -59,8 +59,10 @@ class Clustermodel():
 			model = SpectralClustering(n_clusters=self.n_cluster)
 		elif mn == 'dbscan':
 			model = DBSCAN()
+		elif mn == 'hdbscan':
+			model = hdbscan.HDBSCAN(min_cluster_size=self.n_cluster, gen_min_span_tree=True)
 		else:
-			raise ValueError('Please enter a valid clustering algorithm. -- \'kmeans\', \'affprop\', \'specCl\', \'dbscan\'')
+			raise ValueError('Please enter a valid clustering algorithm. -- \'kmeans\', \'affprop\', \'specCl\', \'dbscan\', \'hdbscan\'')
 
 		return model
 
