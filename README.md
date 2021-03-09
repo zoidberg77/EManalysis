@@ -66,7 +66,17 @@ AUTOENCODER:
 ```
 
 ### Part 2: Clustering stage
-
+For the clustering stage, you have to set the algorithm and the features, you want to use. You find all the algorithms that are usable in the .yaml example below.
+Please choose one. You find also all the possible features. Please fill the list with all features, you actually want to use. 'textf' & 'shapef' are extracted from the
+Variational Autoencoder. It is also possible to weight the features by applying a weighted term to the features, please adapt this list accordingly.
+N_CLUSTER allows to adjust the number of clusters, that should be found.
+``` yaml
+CLUSTER:
+  ALG: 'kmeans'
+  FEAT_LIST: ['sizef', 'distf', 'shapef', 'textf', 'circf']
+  WEIGHTSF: [1, 1, 1, 1, 1]
+  N_CLUSTER: 6
+```
 
 ## License
 This project is licensed under the MIT License - see the [LICENSE](https://github.com/frommwonderland/EManalysis/blob/main/LICENSE) file for details.
