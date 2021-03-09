@@ -27,6 +27,7 @@ _C.AUTOENCODER.BATCH_SIZE = 2
 _C.AUTOENCODER.OUTPUT_FOLDER = 'features/'
 _C.AUTOENCODER.LOG_INTERVAL = 10
 _C.AUTOENCODER.LATENT_SPACE = 100
+_C.AUTOENCODER.MAX_MEAN = 0.001
 _C.AUTOENCODER.FEATURES = ['shape', 'texture']
 # -----------------------------------------------------------------------------
 # Dataset
