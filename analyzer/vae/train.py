@@ -53,7 +53,6 @@ class Trainer:
                 torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=1.0)
                 self.optimizer.step()
                 if not i % self.cfg.AUTOENCODER.LOG_INTERVAL and i > 0:
-                    print(torch.mean(mu))
                     self.save_images(data, reconstruction, i, epoch, "train")
                     print("[{}/{}] Train reconstruction loss: {}".format(i, int(
                         len(self.train_dl.dataset) / self.train_dl.batch_size), (sum(running_reconstruction_loss) / len(
