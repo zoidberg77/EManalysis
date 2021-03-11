@@ -2,7 +2,8 @@ import os, sys
 import numpy as np
 import h5py
 import imageio
-import hdbscan
+#import hdbscan
+from scipy.spatial import distance
 from sklearn.cluster import KMeans, AffinityPropagation, SpectralClustering, DBSCAN
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 
@@ -44,7 +45,7 @@ class Clustermodel():
 		self.model = self.set_model(mn=self.alg)
 		self.fe = FeatureExtractor(self.cfg)
 
-		print(' --- model is set. algorithm: {}, clustering: {} , features: {} --- '.format(self.alg, self.clstby, str(self.feat_list).strip('[]')))
+		print(' --- model is set. algorithm: {}, clustering by the features: {} --- '.format(self.alg, str(self.feat_list).strip('[]')))
 
 	def set_model(self, mn='kmeans'):
 		'''
@@ -60,7 +61,8 @@ class Clustermodel():
 		elif mn == 'dbscan':
 			model = DBSCAN()
 		elif mn == 'hdbscan':
-			model = hdbscan.HDBSCAN(min_cluster_size=self.n_cluster, gen_min_span_tree=True)
+			#model = hdbscan.HDBSCAN(min_cluster_size=self.n_cluster, gen_min_span_tree=True)
+			pass
 		else:
 			raise ValueError('Please enter a valid clustering algorithm. -- \'kmeans\', \'affprop\', \'specCl\', \'dbscan\', \'hdbscan\'')
 
@@ -76,7 +78,7 @@ class Clustermodel():
 		'''
 		rs_feat_list = list()
 		labels = np.array([])
-		for fns in self.feat_list:
+		for idx, fns in enumerate(self.feat_list):
 			if os.path.exists(self.cfg.DATASET.ROOTF + fns + '.h5') is False:
 				print('This file {} does not exist, will be computed.'.format(self.cfg.DATASET.ROOTF + fns + '.h5'))
 
@@ -105,6 +107,12 @@ class Clustermodel():
 					rs_feat_list.append(np.array(h5f[fns[:-1]]))
 					print('Loaded {} features to cache.'.format(fns[:-1]))
 
+			if idx == 0:
+				labels = base_labels
+			else:
+				#correct_idx_feat(
+				pass
+
 		return labels, rs_feat_list
 
 	def prep_cluster_matrix(self, labels, feat_list, load=False, save=False):
@@ -123,6 +131,7 @@ class Clustermodel():
 				clst_m = np.array(h5f['clstm'])
 				h5f.close()
 		else:
+			print('computing the clustering matrix.')
 			scaler = MinMaxScaler()
 			clst_m = np.zeros(shape=feat_list[0].shape[0], dtype=np.float16)
 			for idx, feat in enumerate(feat_list):

@@ -6,6 +6,8 @@ from analyzer.data import Dataloader
 from analyzer.model import Clustermodel
 from analyzer.vae import train
 
+from analyzer.data.data_vis import visvol
+
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -49,6 +51,10 @@ def main():
 
     dl = Dataloader(cfg)
     em, gt = dl.load_chunk(vol='both')
+    import imageio
+    visvol(imageio.imread('datasets/human/human_em_export_8nm/human_em_export_s0220.png'), \
+    imageio.imread('outputs/cluster_mask_3_circf_220.png'), filename='circf_3_em_220', ff='png', save=True, dpi=1200)
+    return
 
     if cfg.MODE.PROCESS == "preprocessing":
         dl.extract_scale_mitos()

@@ -5,7 +5,7 @@ import matplotlib.patches as patches
 
 import cv2
 
-def visvol(vol, gt=None):
+def visvol(vol, gt=None, filename='test', ff='png', save=False, dpi=500):
 	'''
 	Visualizing data and results for simplicity.
 	:param vol: (np.array) em data volume.
@@ -15,11 +15,16 @@ def visvol(vol, gt=None):
 		raise ValueError('The input volume is higher than 2 dimensions.')
 	else:
 		plt.figure()
+		plt.axis('off')
 		plt.imshow(vol, cmap = plt.cm.gray)
 		if gt is not None:
 			gt = zero_to_nan(gt)
-			#plt.imshow(gt, cmap='terrain', alpha=0.9)
+			#plt.imshow(gt, cmap='terrain', alpha=0.8)
 			plt.imshow(gt, cmap='gist_ncar', alpha=0.8)
+
+		if save == True:
+			fn = filename + '.' + ff
+			plt.savefig(fn, dpi=dpi, bbox_inches='tight', pad_inches = 0)
 		plt.show()
 
 def vissegments(image, segments, mask=None):

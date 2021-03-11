@@ -99,6 +99,17 @@ def recompute_from_res_per_slice(idx, fns, k, v, fp):
 		raise ValueError('image {} not found.'.format(fns))
 	save_m_to_image(cld_labels, 'cluster_mask', fp=fp, idx=idx, ff='png')
 
+def correct_idx_feat(basis, new_labels, new_features):
+	'''
+	This function should check and if necessary correct the labeling order and their
+	corresponding features to not mix up different features for the clustering.
+	:param basis:
+	:param new_labels:
+	:param new_features:
+	:returns :
+	'''
+	pass
+
 def convert_dict_mtx(inputs, valn):
 	'''
 	This function converts a dict with labels as keys and values to 2 separate matrices that represent
