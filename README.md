@@ -32,21 +32,29 @@ but there are a few points to consider. This software uses different features fo
 ### Part 1: Training the Variational Autoencoder
 Before training the VAE, you have preprocess the data. This has two main reasons: Consistent input size & individual training samples.
 
-Preprocessing is done by either ...
-- altering the configuration file
-``` yaml
-MODE:
-  PROCESS: 'preprocessing'
-```
-- from the command line by adding ``` --mode preprocessing ```
+- Preprocessing is done by either ...
+  - altering the configuration file
+  ``` yaml
+  MODE:
+    PROCESS: 'preprocessing'
+  ```
+  - from the command line by adding ``` --mode preprocessing ```
 
-Training the VAE is done by either ...
-- altering the configuration file
-``` yaml
-MODE:
-  PROCESS: 'train'
-```
-- from the command line by adding ``` --mode train```
+- Training the VAE is done by either ...
+  - altering the configuration file
+  ``` yaml
+  MODE:
+    PROCESS: 'train'
+  ```
+  - from the command line by adding ``` --mode train```
+
+- Inference of the latent representation which will be used as the features is done by either ...
+    - altering the configuration file
+    ``` yaml
+    MODE:
+      PROCESS: 'infer'
+    ```
+    - from the command line by adding ``` --mode infer```
 
 Hyperparameter Tuning
 ``` yaml

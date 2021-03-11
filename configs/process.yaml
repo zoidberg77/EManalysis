@@ -28,3 +28,4 @@ CLUSTER:
   FEAT_LIST: ['sizef', 'circf']
   WEIGHTSF: [1, 1]
   N_CLUSTER: 6
+  OUTPUTPATH: 'outputs/'

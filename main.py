@@ -63,6 +63,7 @@ def main():
             print("test loss: {}".format(test_total_loss))
         return
     elif cfg.MODE.PROCESS == "infer":
+        print('--- Starting the inference for the features of the autoencoder. --- \n')
         for feature in cfg.AUTOENCODER.FEATURES:
             dl = Dataloader(cfg, feature=feature)
             trainer = train.Trainer(dataset=dl, train_percentage=0.7, optimizer_type="adam", loss_function="l1", cfg=cfg)

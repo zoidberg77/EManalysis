@@ -107,7 +107,7 @@ class Clustermodel():
 
 		return labels, rs_feat_list
 
-	def prep_cluster_matrix(self, labels, feat_list):
+	def prep_cluster_matrix(self, labels, feat_list, load=False, save=False):
 		'''
 		Function computes clustering matrix from different features for the actual clustering.
 		:param labels:
@@ -116,7 +116,7 @@ class Clustermodel():
 		:returns clst_m: (np.array) of NxN clustering distance from each feature to another. N is a sample.
 		'''
 		#Preload if possible.
-		if os.path.exists(os.path.join(self.cfg.DATASET.ROOTF, 'clstm.h5')) \
+		if load and os.path.exists(os.path.join(self.cfg.DATASET.ROOTF, 'clstm.h5')) \
                 and os.stat(os.path.join(self.cfg.DATASET.ROOTF, 'clstm.h5')).st_size != 0:
 			print('preload the clustering matrix.')
 			with h5py.File(os.path.join(self.cfg.DATASET.ROOTF, 'clstm.h5'), "r") as h5f:
@@ -133,14 +133,15 @@ class Clustermodel():
 					clst_m = np.add(clst_m, self.cfg.CLUSTER.WEIGHTSF[idx] * min_max_scale(feat))
 
 			clst_m = np.vstack(clst_m)
-			self.fe.save_feats_h5(labels, clst_m, filen='clstm')
+			if save == True:
+				self.fe.save_feats_h5(labels, clst_m, filen='clstm')
 		return clst_m
 
 	def run(self):
 		'''
 		Running the main clustering algoritm on the features (feature list) extracted.
 		'''
-		labels, feat = self.get_features(feature_list=self.feat_list)
+		labels, feat = self.get_features()
 		clst_m = self.prep_cluster_matrix(labels, feat)
 		res_labels = self.model.fit_predict(clst_m)
 		_, gtfns = self.fe.get_fns()
