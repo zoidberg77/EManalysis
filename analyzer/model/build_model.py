@@ -131,6 +131,7 @@ class Clustermodel():
 				clst_m = np.array(h5f['clstm'])
 				h5f.close()
 		else:
+			#TODO rewriting the ndim.
 			print('computing the clustering matrix.')
 			scaler = MinMaxScaler()
 			clst_m = np.zeros(shape=feat_list[0].shape[0], dtype=np.float16)

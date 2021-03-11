@@ -23,7 +23,7 @@ class UNet3D(nn.Module):
         isotropy (List[bool]): specify each U-Net stage is isotropic or anisotropic. All elements will
             be `True` if :attr:`is_isotropic` is `True`. Default: [False, False, False, True, True]
         pad_mode (str): one of ``'zeros'``, ``'reflect'``, ``'replicate'`` or ``'circular'``. Default: ``'replicate'``
-        act_mode (str): one of ``'relu'``, ``'leaky_relu'``, ``'elu'``, ``'gelu'``, 
+        act_mode (str): one of ``'relu'``, ``'leaky_relu'``, ``'elu'``, ``'gelu'``,
             ``'swish'``, ``'efficient_swish'`` or ``'none'``. Default: ``'relu'``
         norm_mode (str): one of ``'bn'``, ``'sync_bn'`` ``'in'`` or ``'gn'``. Default: ``'bn'``
         init_mode (str): one of ``'xavier'``, ``'kaiming'``, ``'selu'`` or ``'orthogonal'``. Default: ``'orthogonal'``
@@ -67,7 +67,7 @@ class UNet3D(nn.Module):
             'norm_mode': norm_mode}
 
         # input and output layers
-        kernel_size_io, padding_io = self._get_kernal_size(is_isotropic, io_layer=True)
+        kernel_size_io, padding_io = self._get_kernel_size(is_isotropic, io_layer=True)
         self.conv_in = conv3d_norm_act(in_channel, filters[0], kernel_size_io,
                                        padding=padding_io, **shared_kwargs)
         self.conv_out = conv3d_norm_act(filters[0], out_channel, kernel_size_io, bias=True,
@@ -78,7 +78,7 @@ class UNet3D(nn.Module):
         self.out_layer = torch.sigmoid
 
         for i in range(self.depth):
-            kernel_size, padding = self._get_kernal_size(isotropy[i])
+            kernel_size, padding = self._get_kernel_size(isotropy[i])
             previous = max(0, i - 1)
             stride = self._get_stride(isotropy[i], previous, i)
             layer = nn.Sequential(
@@ -103,7 +103,7 @@ class UNet3D(nn.Module):
         # decoding path
         self.up_layers = nn.ModuleList()
         for j in range(1, self.depth):
-            kernel_size, padding = self._get_kernal_size(isotropy[j])
+            kernel_size, padding = self._get_kernel_size(isotropy[j])
             layer = nn.ModuleList([
                 conv3d_norm_act(filters[j], filters[j - 1], kernel_size,
                                 padding=padding, **shared_kwargs),
@@ -158,9 +158,9 @@ class UNet3D(nn.Module):
     def _upsample_add(self, x, y):
         """Upsample and add two feature maps.
 
-        When pooling layer is used, the input size is assumed to be even, 
-        therefore :attr:`align_corners` is set to `False` to avoid feature 
-        mis-match. When downsampling by stride, the input size is assumed 
+        When pooling layer is used, the input size is assumed to be even,
+        therefore :attr:`align_corners` is set to `False` to avoid feature
+        mis-match. When downsampling by stride, the input size is assumed
         to be 2n+1, and :attr:`align_corners` is set to `False`.
         """
         align_corners = False if self.pooling else True
@@ -168,7 +168,7 @@ class UNet3D(nn.Module):
                           align_corners=align_corners)
         return x + y
 
-    def _get_kernal_size(self, is_isotropic, io_layer=False):
+    def _get_kernel_size(self, is_isotropic, io_layer=False):
         if io_layer:  # kernel and padding size of I/O layers
             if is_isotropic:
                 return (5, 5, 5), (2, 2, 2)
@@ -211,29 +211,3 @@ class UNet3D(nn.Module):
 
         out = self.down_layers[-1](out)
         return out.size()[1:]
-
-
-class UNet2D(nn.Module):
-    """2D residual U-Net architecture.
-
-    Args:
-        block_type (str): the block type at each U-Net stage. Default: ``'residual'``
-        in_channel (int): number of input channels. Default: 1
-        out_channel (int): number of output channels. Default: 3
-        filters (List[int]): number of filters at each U-Net stage. Default: [28, 36, 48, 64, 80]
-        pad_mode (str): one of ``'zeros'``, ``'reflect'``, ``'replicate'`` or ``'circular'``. Default: ``'replicate'``
-        act_mode (str): one of ``'relu'``, ``'leaky_relu'``, ``'elu'``, ``'gelu'``, 
-            ``'swish'``, ``'efficient_swish'`` or ``'none'``. Default: ``'relu'``
-        norm_mode (str): one of ``'bn'``, ``'sync_bn'`` ``'in'`` or ``'gn'``. Default: ``'bn'``
-        init_mode (str): one of ``'xavier'``, ``'kaiming'``, ``'selu'`` or ``'orthogonal'``. Default: ``'orthogonal'``
-        pooling (bool): downsample by max-pooling if `True` else using stride. Default: `False`
-        output_act (str): activation function for the output layer. Default: ``'sigmoid'``
-    """
-
-    block_dict = {
-        'residual': BasicBlock2d,
-        'residual_se': BasicBlock2dSE,
-    }
-
-    def __init__(self):
-        pass
