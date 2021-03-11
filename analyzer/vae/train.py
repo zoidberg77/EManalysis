@@ -44,6 +44,7 @@ class Trainer:
                 data = data.to(self.device)
                 self.optimizer.zero_grad()
                 reconstruction, mu, log_var = self.model(data)
+                mu = torch.where(mu.double() > self.cfg.AUTOENCODER.MAX_MEAN, self.cfg.AUTOENCODER.MAX_MEAN, mu.double())
                 loss, recon_loss, kld_loss = self.loss(reconstruction, data, mu, log_var)
                 running_total_loss.append(loss.item())
                 running_reconstruction_loss.append(recon_loss.item())
@@ -92,7 +93,6 @@ class Trainer:
         return train_total_loss, test_loss
 
     def loss(self, reconstruction, input, mu, log_var):
-        recons_loss = 0.0
         if self.loss_function == "l1":
             recons_loss = torch.nn.functional.l1_loss(reconstruction, input, reduction="mean")
         else:
@@ -102,7 +102,9 @@ class Trainer:
         if self.current_epoch == 0:
             kld_weight = self.current_iteration / len(self.train_dl)
 
-        kld_loss = -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp()) * kld_weight
+        kld_loss = -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp())
+        kld_loss /= self.cfg.AUTOENCODER.LATENT_SPACE
+        kld_loss *= kld_weight
         loss = recons_loss + kld_loss
         return loss, recons_loss, kld_loss
 
@@ -159,8 +161,8 @@ class Trainer:
                     reconstruction_image = np.concatenate(
                         (reconstruction_image, reconstruction_item[j].detach().cpu().numpy()), 0)
 
-            reconstruction_image -= reconstruction_image.min()
-            reconstruction_image /= reconstruction_image.max()
+            #reconstruction_image -= reconstruction_image.min()
+            #reconstruction_image /= reconstruction_image.max()
             evaluation_image = np.concatenate((original_image, reconstruction_image), 1)
 
             plt.axis('off')
