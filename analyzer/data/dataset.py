@@ -290,11 +290,15 @@ class Dataloader():
 
             with multiprocessing.Pool(processes=self.cpus) as pool:
                 for i in tqdm(range(0, len(regions), int(self.cpus * self.chunks_per_cpu))):
-                    results = pool.map(self.get_mito_volume, regions[i:i + int(self.cpus * self.chunks_per_cpu)])
-                    for j, result in enumerate(results):
-                        f["id"][i + j] = result[0]
-                        f["shape_volume"][i + j] = result[1]
-                        f["texture_volume"][i + j] = result[2]
+                    try:
+                        results = pool.map(self.get_mito_volume, regions[i:i + int(self.cpus * self.chunks_per_cpu)])
+                        for j, result in enumerate(results):
+                            f["id"][i + j] = result[0]
+                            f["shape_volume"][i + j] = result[1]
+                            f["texture_volume"][i + j] = result[2]
+                    except:
+                        print("error in extraction, i: {}".format(i))
+                        exit()
 
     def get_mito_volume(self, region):
         '''
