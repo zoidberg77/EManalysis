@@ -147,6 +147,15 @@ class Clustermodel():
 				self.fe.save_feats_h5(labels, clst_m, filen='clstm')
 		return clst_m
 
+	def visualize(self, end=True):
+		'''
+		Visualize some results.
+		'''
+		visvol(imageio.imread('datasets/human/human_em_export_8nm/human_em_export_s0220.png'), \
+	    imageio.imread('outputs/cluster_mask_3_sicidi_220.png'), filename='sicidi_3_em_220', ff='png', save=True, dpi=1200)
+		if end:
+			return
+
 	def run(self):
 		'''
 		Running the main clustering algoritm on the features (feature list) extracted.

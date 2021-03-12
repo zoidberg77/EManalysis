@@ -51,10 +51,6 @@ def main():
 
     dl = Dataloader(cfg)
     em, gt = dl.load_chunk(vol='both')
-    import imageio
-    visvol(imageio.imread('datasets/human/human_em_export_8nm/human_em_export_s0220.png'), \
-    imageio.imread('outputs/cluster_mask_3_sicidi_220.png'), filename='sicidi_3_em_220', ff='png', save=True, dpi=1200)
-    return
 
     if cfg.MODE.PROCESS == "preprocessing":
         dl.extract_scale_mitos()
@@ -77,6 +73,7 @@ def main():
         return
 
     model = Clustermodel(cfg, em, gt, dl=dl)
+    model.visualize()
     model.run()
 
 
