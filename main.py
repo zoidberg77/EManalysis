@@ -73,7 +73,7 @@ def main():
         return
 
     model = Clustermodel(cfg, em, gt, dl=dl)
-    model.visualize()
+    #model.visualize()
     model.run()
 
 

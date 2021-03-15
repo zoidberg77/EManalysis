@@ -104,11 +104,15 @@ class Clustermodel():
 				with h5py.File(fn, "r") as h5f:
 					if labels.size == 0:
 						labels = np.array(h5f['id'])
+
+					test = np.array(h5f[fns[:-1]])
+					print('Features {} have shape {}'.format(fn, test.shape))
 					rs_feat_list.append(np.array(h5f[fns[:-1]]))
 					print('Loaded {} features to cache.'.format(fns[:-1]))
 
 			if idx == 0:
-				labels = base_labels
+				pass
+				#labels = base_labels
 			else:
 				#correct_idx_feat(
 				pass
@@ -131,16 +135,18 @@ class Clustermodel():
 				clst_m = np.array(h5f['clstm'])
 				h5f.close()
 		else:
-			#TODO rewriting the ndim.
 			print('computing the clustering matrix.')
 			scaler = MinMaxScaler()
 			clst_m = np.zeros(shape=feat_list[0].shape[0], dtype=np.float16)
 			for idx, feat in enumerate(feat_list):
-				if feat.ndim <= 1:
+				if feat.shape[0] == feat.shape[1]:
+					clst_m = np.add(clst_m, self.cfg.CLUSTER.WEIGHTSF[idx] * min_max_scale(feat))
+				elif feat.ndim <= 1:
 					tmp = scaler.fit_transform(feat.reshape(-1,1))
 					clst_m = np.add(clst_m, self.cfg.CLUSTER.WEIGHTSF[idx] * distance.cdist(tmp, tmp, 'euclidean'))
 				else:
-					clst_m = np.add(clst_m, self.cfg.CLUSTER.WEIGHTSF[idx] * min_max_scale(feat))
+					tmp = min_max_scale(feat)
+					clst_m = np.add(clst_m, self.cfg.CLUSTER.WEIGHTSF[idx] * distance.cdist(tmp, tmp, 'euclidean'))
 
 			clst_m = np.vstack(clst_m)
 			if save == True:

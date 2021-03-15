@@ -26,7 +26,7 @@ MODE:
   DPRC: 'iter'
 CLUSTER:
   ALG: 'kmeans'
-  FEAT_LIST: ['sizef', 'circf']
+  FEAT_LIST: [shapef, texturef]
   WEIGHTSF: [1, 1]
   N_CLUSTER: 3
   OUTPUTPATH: 'outputs/'
