@@ -74,7 +74,7 @@ def main():
 
     model = Clustermodel(cfg, em, gt, dl=dl)
     #model.visualize()
-    model.run()
+    #model.run()
 
 
 if __name__ == "__main__":

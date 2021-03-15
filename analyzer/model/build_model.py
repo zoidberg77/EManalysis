@@ -88,7 +88,7 @@ class Clustermodel():
 					feat = self.fe.compute_seg_dist()
 				elif fns == 'shapef':
 					feat = self.fe.compute_vae_shape()
-				elif fns == 'textf':
+				elif fns == 'texturef':
 					feat = self.fe.compute_vae_texture()
 				elif fns == 'circf':
 					feat = self.fe.compute_seg_circ()
@@ -97,13 +97,13 @@ class Clustermodel():
 
 				label, values = self.fe.save_single_feat_h5(feat, filen=fns)
 				if labels.size == 0:
-					labels = np.array(label)
+					labels = np.array(label, dtype=np.uint16)
 				rs_feat_list.append(np.array(values))
 			else:
 				fn = self.cfg.DATASET.ROOTF + fns + '.h5'
 				with h5py.File(fn, "r") as h5f:
 					if labels.size == 0:
-						labels = np.array(h5f['id'])
+						labels = np.array(h5f['id'], dtype=np.uint16)
 
 					test = np.array(h5f[fns[:-1]])
 					print('Features {} have shape {}'.format(fn, test.shape))
@@ -139,14 +139,15 @@ class Clustermodel():
 			scaler = MinMaxScaler()
 			clst_m = np.zeros(shape=feat_list[0].shape[0], dtype=np.float16)
 			for idx, feat in enumerate(feat_list):
-				if feat.shape[0] == feat.shape[1]:
-					clst_m = np.add(clst_m, self.cfg.CLUSTER.WEIGHTSF[idx] * min_max_scale(feat))
-				elif feat.ndim <= 1:
+				if feat.ndim <= 1:
 					tmp = scaler.fit_transform(feat.reshape(-1,1))
 					clst_m = np.add(clst_m, self.cfg.CLUSTER.WEIGHTSF[idx] * distance.cdist(tmp, tmp, 'euclidean'))
 				else:
-					tmp = min_max_scale(feat)
-					clst_m = np.add(clst_m, self.cfg.CLUSTER.WEIGHTSF[idx] * distance.cdist(tmp, tmp, 'euclidean'))
+					if feat.shape[0] == feat.shape[1]:
+						clst_m = np.add(clst_m, self.cfg.CLUSTER.WEIGHTSF[idx] * min_max_scale(feat))
+					else:
+						tmp = min_max_scale(feat)
+						clst_m = np.add(clst_m, self.cfg.CLUSTER.WEIGHTSF[idx] * distance.cdist(tmp, tmp, 'euclidean'))
 
 			clst_m = np.vstack(clst_m)
 			if save == True:
@@ -158,7 +159,7 @@ class Clustermodel():
 		Visualize some results.
 		'''
 		visvol(imageio.imread('datasets/human/human_em_export_8nm/human_em_export_s0220.png'), \
-	    imageio.imread('outputs/cluster_mask_3_sicidi_220.png'), filename='sicidi_3_em_220', ff='png', save=True, dpi=1200)
+	    imageio.imread('outputs/cluster_mask_3_allf_220.png'), filename='allf_3_em_220', ff='png', save=True, dpi=1200)
 		if end:
 			return
 
