@@ -277,7 +277,7 @@ class Dataloader():
         print("{} objects found in the ground truth".format(len(regions)))
 
         regions = pd.DataFrame(regions)
-        regions = regions[(self.upper_limit > regions['size']) & (self.lower_limit < regions['size'])].values.tolist()
+        regions = regions[(self.upper_limit > regions['size']) & (self.lower_limit < regions['size']) & (len(regions['slices']) > 1)].values.tolist()
         filtered_length = len(regions)
         print("{} within limits {} and {}".format(filtered_length, self.lower_limit, self.upper_limit))
         if self.region_limit is not None:
@@ -322,13 +322,16 @@ class Dataloader():
                   mito_region.bbox[1]:mito_region.bbox[4] + 1,
                   mito_region.bbox[2]:mito_region.bbox[5] + 1].astype(np.float32)
 
-        scaled_shape = resize(shape, self.target_size, order=0, anti_aliasing=False)
-        scaled_shape = scaled_shape / scaled_shape.max()
+        scaled_shape = resize(shape, self.target_size, order=1, anti_aliasing=True)
+        #scaled_shape = scaled_shape / scaled_shape.max()
         scaled_shape = np.expand_dims(scaled_shape, 0)
 
-        scaled_texture = resize(texture, self.target_size, order=0, anti_aliasing=False)
-        scaled_texture = scaled_texture / scaled_texture.max()
+        scaled_texture = resize(texture, self.target_size, order=1, anti_aliasing=True)
+        #scaled_texture = scaled_texture / scaled_texture.max()
         scaled_texture = np.expand_dims(scaled_texture, 0)
+        if scaled_shape.sum() < self.lower_limit*0.1:
+            print("region {} was too small".format(region[0]))
+            return [-1, scaled_shape, scaled_texture]
 
         return [region[0], scaled_shape, scaled_texture]
 
