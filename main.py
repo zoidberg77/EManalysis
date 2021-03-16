@@ -5,7 +5,7 @@ from analyzer.config import get_cfg_defaults
 from analyzer.data import Dataloader
 from analyzer.model import Clustermodel
 from analyzer.vae import train
-from analyzer.vae.utils.pt import point_cloud
+from analyzer.vae.model.utils.pt import point_cloud
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -54,9 +54,11 @@ def main():
     if cfg.MODE.PROCESS == "preprocessing":
         dl.extract_scale_mitos()
         return
-    elif if cfg.MODE.PROCESS == "preptcloud":
-        _, gtfns = dl.get_fns()
-        point_cloud(gtfns)
+    elif cfg.MODE.PROCESS == "ptcprep":
+        #_, gtfns = dl.get_fns()
+        import glob
+        gtfns = sorted(glob.glob('datasets/human/human_gt_export_8nm/' + '*.' + 'png'))
+        point_cloud(gtfns[:1], cfg)
         return
     elif cfg.MODE.PROCESS == "train":
         for feature in cfg.AUTOENCODER.FEATURES:

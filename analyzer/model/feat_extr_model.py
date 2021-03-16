@@ -95,7 +95,7 @@ class FeatureExtractor():
 	def save_feats_h5(self, labels, feat_array, filen='features'):
 		'''
 		Saving arrays to h5 that contains the features.
-		:param rsl_dict: (dict) that contains features.
+		:param feat_array: that contains features.
 		:param filen: (string) filename. (without h5)
 		'''
 		with h5py.File(self.cfg.DATASET.ROOTF + filen + '.h5', 'w') as h5f:

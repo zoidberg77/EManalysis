@@ -7,8 +7,9 @@ from scipy import signal
 from skimage import measure
 from skimage.measure import label, regionprops
 import matplotlib.pyplot as plt
+import h5py
 
-def point_cloud(fns, save=True):
+def point_cloud(fns, cfg, save=True):
 	'''
 	Calculating a point cloud representation for every segment in the Dataset.
 	:param fns: (list) of images within the dataset.
@@ -35,12 +36,14 @@ def point_cloud(fns, save=True):
 			'id': result,
 			'pts': result_dict[result],
 		})
+
 	if save:
-		filen = 'pts'
-		with h5py.File(cfg.DATASET.ROOTF + filen + '.h5', 'w') as h5f:
-			h5f.create_dataset(filen, data=result_array)
+		with h5py.File(cfg.DATASET.ROOTF + 'pts' + '.h5', 'w') as h5f:
+			grp = h5f.create_group('ptcs')
+			for result in result_dict.keys():
+				grp.create_dataset(str(result), data=result_dict[result])
 			h5f.close()
-		print('saved point representations to {}.'.format(self.cfg.DATASET.ROOTF + filen + '.h5'))
+		print('saved point representations to {}.'.format(cfg.DATASET.ROOTF + 'pts' + '.h5'))
 
 	print('Size point cloud generation finished. {} features extracted.'.format(len(result_array)))
 	return (result_array)
@@ -78,22 +81,22 @@ def calc_point_repr(idx, fns):
 
 ### Additional stuff here.
 def get_surface_voxel(seg):
-    assert seg.ndim == 3
-    kernel = np.array([-1, 1])
-    k_size = [1,1,1]
-    seg = seg.copy().astype(int)
-    surface = np.zeros_like(seg)
-    indices, counts = np.unique(seg, return_counts = True)
-    if indices[0] == 0:
-        indices, counts = indices[1:], counts[1:]
-    for i in range(3):
-        temp_k_size = k_size.copy()
-        temp_k_size[i] = 2
-        temp_kernel = kernel.reshape(tuple(temp_k_size))
-        temp = seg.copy()
-        edge = convolve(temp, temp_kernel, mode='constant')
-        surface += (edge!=0).astype(int)
-    seg = seg[::-1, ::-1, ::-1]
-    surface[seg == 0] = 0
-    surface = (surface!=0).astype(int)
-    return surface
+	assert seg.ndim == 3
+	kernel = np.array([-1, 1])
+	k_size = [1,1,1]
+	seg = seg.copy().astype(int)
+	surface = np.zeros_like(seg)
+	indices, counts = np.unique(seg, return_counts = True)
+	if indices[0] == 0:
+		indices, counts = indices[1:], counts[1:]
+	for i in range(3):
+		temp_k_size = k_size.copy()
+		temp_k_size[i] = 2
+		temp_kernel = kernel.reshape(tuple(temp_k_size))
+		temp = seg.copy()
+		edge = convolve(temp, temp_kernel, mode='constant')
+		surface += (edge!=0).astype(int)
+	seg = seg[::-1, ::-1, ::-1]
+	surface[seg == 0] = 0
+	surface = (surface!=0).astype(int)
+	return surface
