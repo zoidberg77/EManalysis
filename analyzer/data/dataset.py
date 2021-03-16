@@ -76,6 +76,12 @@ class Dataloader():
         with h5py.File(self.mito_volume_file_name, 'r') as f:
             return f[self.vae_feature + "_volume"][idx]
 
+    def get_fns(self):
+        '''returns the em and gt filenames of every image.'''
+        emfns = sorted(glob.glob(self.volpath + '*.' + self.ff))
+        gtfns = sorted(glob.glob(self.gtpath + '*.' + self.ff))
+        return emfns, gtfns
+
     def load_chunk(self, vol='both', mode='3d'):
         '''
         Load chunk of em and groundtruth data for further processing.
