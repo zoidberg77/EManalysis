@@ -55,9 +55,7 @@ def main():
         dl.extract_scale_mitos()
         return
     elif cfg.MODE.PROCESS == "ptcprep":
-        #_, gtfns = dl.get_fns()
-        import glob
-        gtfns = sorted(glob.glob('datasets/human/human_gt_export_8nm/' + '*.' + 'png'))
+        _, gtfns = dl.get_fns()
         point_cloud(gtfns[:1], cfg)
         return
     elif cfg.MODE.PROCESS == "train":
