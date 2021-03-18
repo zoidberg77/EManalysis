@@ -9,6 +9,8 @@ from skimage.measure import label, regionprops
 import matplotlib.pyplot as plt
 import h5py
 
+from analyzer.data.ptc_dataset import normalize_ptc
+
 def point_cloud(fns, cfg, save=True):
 	'''
 	Calculating a point cloud representation for every segment in the Dataset.
@@ -32,16 +34,17 @@ def point_cloud(fns, cfg, save=True):
 
 	result_array = []
 	for result in result_dict.keys():
+		std_rs = normalize_ptc(result_dict[result][0])
 		result_array.append({
 			'id': result,
-			'pts': result_dict[result],
+			'pts': std_rs,
 		})
 
 	if save:
 		with h5py.File(cfg.DATASET.ROOTF + 'pts' + '.h5', 'w') as h5f:
 			grp = h5f.create_group('ptcs')
 			for result in result_dict.keys():
-				grp.create_dataset(str(result), data=result_dict[result])
+				grp.create_dataset(str(result), data=normalize_ptc(result_dict[result][0]))
 			h5f.close()
 		print('saved point representations to {}.'.format(cfg.DATASET.ROOTF + 'pts' + '.h5'))
 

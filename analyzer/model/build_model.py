@@ -94,6 +94,7 @@ class Clustermodel():
 					feat = self.fe.compute_seg_circ()
 				else:
 					print('No function for computing {} features.'.format(fns))
+					raise ValueError('Please check {} if it is correct.'.format(fns))
 
 				label, values = self.fe.save_single_feat_h5(feat, filen=fns)
 				if labels.size == 0:
@@ -159,7 +160,7 @@ class Clustermodel():
 		Visualize some results.
 		'''
 		visvol(imageio.imread('datasets/human/human_em_export_8nm/human_em_export_s0220.png'), \
-	    imageio.imread('outputs/cluster_mask_3_allf_220.png'), filename='allf_3_em_220', ff='png', save=True, dpi=1200)
+	    imageio.imread('outputs/cluster_mask_3_teshf_220.png'), filename='teshf_3_em_220', ff='png', save=True, dpi=1200)
 		if end:
 			return
 

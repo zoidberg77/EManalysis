@@ -56,7 +56,7 @@ def main():
         return
     elif cfg.MODE.PROCESS == "ptcprep":
         _, gtfns = dl.get_fns()
-        point_cloud(gtfns[:1], cfg)
+        point_cloud(gtfns, cfg)
         return
     elif cfg.MODE.PROCESS == "train":
         for feature in cfg.AUTOENCODER.FEATURES:
@@ -77,7 +77,7 @@ def main():
 
     model = Clustermodel(cfg, em, gt, dl=dl)
     #model.visualize()
-    #model.run()
+    model.run()
 
 
 if __name__ == "__main__":
