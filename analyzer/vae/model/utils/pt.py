@@ -41,12 +41,12 @@ def point_cloud(fns, cfg, save=True):
 		})
 
 	if save:
-		with h5py.File(cfg.DATASET.ROOTF + 'pts' + '.h5', 'w') as h5f:
+		with h5py.File(cfg.DATASET.ROOTD + 'vae/pts' + '.h5', 'w') as h5f:
 			grp = h5f.create_group('ptcs')
 			for result in result_dict.keys():
 				grp.create_dataset(str(result), data=normalize_ptc(result_dict[result][0]))
 			h5f.close()
-		print('saved point representations to {}.'.format(cfg.DATASET.ROOTF + 'pts' + '.h5'))
+		print('saved point representations to {}.'.format(cfg.DATASET.ROOTD + 'vae/pts' + '.h5'))
 
 	print('Size point cloud generation finished. {} features extracted.'.format(len(result_array)))
 	return (result_array)

@@ -2,7 +2,7 @@ import argparse
 import sys
 
 from analyzer.config import get_cfg_defaults
-from analyzer.data import Dataloader
+from analyzer.data import Dataloader, PtcDataloader
 from analyzer.model import Clustermodel
 from analyzer.vae import train
 from analyzer.vae.model.utils.pt import point_cloud
