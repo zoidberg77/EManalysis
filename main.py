@@ -6,6 +6,7 @@ from analyzer.data import Dataloader, PtcDataloader
 from analyzer.model import Clustermodel
 from analyzer.vae import train
 from analyzer.vae.model.utils.pt import point_cloud
+from analyzer.data.data_vis import visptc
 
 import matplotlib.pyplot as plt
 import numpy as np

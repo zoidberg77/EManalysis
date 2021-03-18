@@ -14,3 +14,4 @@ tensorboardX
 yacs
 pandas
 hdbscan
+open3d
