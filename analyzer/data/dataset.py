@@ -188,7 +188,7 @@ class Dataloader():
         else:
             raise ValueError('Please enter the volume on which \'prep_data_info\' should run on.')
 
-        with multiprocessing.Pool(processes=16) as pool:
+        with multiprocessing.Pool(processes=self.cpus) as pool:
             result = pool.starmap(self.calc_props, enumerate(fns))
 
         added = {}
