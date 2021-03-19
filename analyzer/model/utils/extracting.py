@@ -173,7 +173,6 @@ def compute_circularity(vol, dprc='full', fns=None):
 	result_dict = {}
 	if dprc == 'full':
 		fns = fns[:vol.shape[0]]
-		print(fns)
 
 	with multiprocessing.Pool(processes=multiprocessing.cpu_count()) as pool:
 		tmp = pool.starmap(functools.partial(calc_props, prop_list=['slices', 'circ']), enumerate(fns))

@@ -2,6 +2,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 from skimage.segmentation import mark_boundaries
 import matplotlib.patches as patches
+import open3d as o3d
 
 import cv2
 
@@ -26,6 +27,14 @@ def visvol(vol, gt=None, filename='test', ff='png', save=False, dpi=500):
 			fn = filename + '.' + ff
 			plt.savefig(fn, dpi=dpi, bbox_inches='tight', pad_inches = 0)
 		plt.show()
+
+def visptc(ptc):
+	'''
+	Visualize the pointclouds
+	'''
+	point_cloud = o3d.geometry.PointCloud()
+	point_cloud.points = o3d.utility.Vector3dVector(ptc)
+	o3d.visualization.draw_geometries([point_cloud])
 
 def vissegments(image, segments, mask=None):
 	'''

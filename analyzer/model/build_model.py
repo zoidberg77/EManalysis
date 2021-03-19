@@ -88,27 +88,32 @@ class Clustermodel():
 					feat = self.fe.compute_seg_dist()
 				elif fns == 'shapef':
 					feat = self.fe.compute_vae_shape()
-				elif fns == 'textf':
+				elif fns == 'texturef':
 					feat = self.fe.compute_vae_texture()
 				elif fns == 'circf':
 					feat = self.fe.compute_seg_circ()
 				else:
 					print('No function for computing {} features.'.format(fns))
+					raise ValueError('Please check {} if it is correct.'.format(fns))
 
 				label, values = self.fe.save_single_feat_h5(feat, filen=fns)
 				if labels.size == 0:
-					labels = np.array(label)
+					labels = np.array(label, dtype=np.uint16)
 				rs_feat_list.append(np.array(values))
 			else:
 				fn = self.cfg.DATASET.ROOTF + fns + '.h5'
 				with h5py.File(fn, "r") as h5f:
 					if labels.size == 0:
-						labels = np.array(h5f['id'])
+						labels = np.array(h5f['id'], dtype=np.uint16)
+
+					test = np.array(h5f[fns[:-1]])
+					print('Features {} have shape {}'.format(fn, test.shape))
 					rs_feat_list.append(np.array(h5f[fns[:-1]]))
 					print('Loaded {} features to cache.'.format(fns[:-1]))
 
 			if idx == 0:
-				labels = base_labels
+				pass
+				#labels = base_labels
 			else:
 				#correct_idx_feat(
 				pass
@@ -131,7 +136,6 @@ class Clustermodel():
 				clst_m = np.array(h5f['clstm'])
 				h5f.close()
 		else:
-			#TODO rewriting the ndim.
 			print('computing the clustering matrix.')
 			scaler = MinMaxScaler()
 			clst_m = np.zeros(shape=feat_list[0].shape[0], dtype=np.float16)
@@ -140,7 +144,11 @@ class Clustermodel():
 					tmp = scaler.fit_transform(feat.reshape(-1,1))
 					clst_m = np.add(clst_m, self.cfg.CLUSTER.WEIGHTSF[idx] * distance.cdist(tmp, tmp, 'euclidean'))
 				else:
-					clst_m = np.add(clst_m, self.cfg.CLUSTER.WEIGHTSF[idx] * min_max_scale(feat))
+					if feat.shape[0] == feat.shape[1]:
+						clst_m = np.add(clst_m, self.cfg.CLUSTER.WEIGHTSF[idx] * min_max_scale(feat))
+					else:
+						tmp = min_max_scale(feat)
+						clst_m = np.add(clst_m, self.cfg.CLUSTER.WEIGHTSF[idx] * distance.cdist(tmp, tmp, 'euclidean'))
 
 			clst_m = np.vstack(clst_m)
 			if save == True:
@@ -152,7 +160,7 @@ class Clustermodel():
 		Visualize some results.
 		'''
 		visvol(imageio.imread('datasets/human/human_em_export_8nm/human_em_export_s0220.png'), \
-	    imageio.imread('outputs/cluster_mask_3_sicidi_220.png'), filename='sicidi_3_em_220', ff='png', save=True, dpi=1200)
+	    imageio.imread('outputs/cluster_mask_3_teshf_220.png'), filename='teshf_3_em_220', ff='png', save=True, dpi=1200)
 		if end:
 			return
 

@@ -2,11 +2,11 @@ import argparse
 import sys
 
 from analyzer.config import get_cfg_defaults
-from analyzer.data import Dataloader
+from analyzer.data import Dataloader, PtcDataloader
 from analyzer.model import Clustermodel
 from analyzer.vae import train
-
-from analyzer.data.data_vis import visvol
+from analyzer.vae.model.utils.pt import point_cloud
+from analyzer.data.data_vis import visptc
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -55,6 +55,10 @@ def main():
     if cfg.MODE.PROCESS == "preprocessing":
         dl.extract_scale_mitos()
         return
+    elif cfg.MODE.PROCESS == "ptcprep":
+        _, gtfns = dl.get_fns()
+        point_cloud(gtfns, cfg)
+        return
     elif cfg.MODE.PROCESS == "train":
         for feature in cfg.AUTOENCODER.FEATURES:
             dl = Dataloader(cfg, feature=feature)
@@ -73,7 +77,7 @@ def main():
         return
 
     model = Clustermodel(cfg, em, gt, dl=dl)
-    model.visualize()
+    #model.visualize()
     model.run()
 
 
