@@ -346,11 +346,11 @@ class Dataloader():
                   mito_region.bbox[2]:mito_region.bbox[5] + 1].astype(np.float32)
 
         scaled_shape = resize(shape, self.target_size, order=1, anti_aliasing=True)
-        #scaled_shape = scaled_shape / scaled_shape.max()
+        scaled_shape = scaled_shape / scaled_shape.max()
         scaled_shape = np.expand_dims(scaled_shape, 0)
 
         scaled_texture = resize(texture, self.target_size, order=1, anti_aliasing=True)
-        #scaled_texture = scaled_texture / scaled_texture.max()
+        scaled_texture = scaled_texture / scaled_texture.max()
         scaled_texture = np.expand_dims(scaled_texture, 0)
         if scaled_shape.sum() < self.lower_limit*0.1:
             print("region {} was too small".format(region[0]))
