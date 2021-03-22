@@ -40,7 +40,7 @@ def point_cloud(fns, cfg, save=True):
 				grp.create_dataset(str(result), data=normalize_ptc(std_rs))
 			h5f.close()
 		print('saved point representations to {}.'.format(cfg.DATASET.ROOTD + 'vae/pts' + '.h5'))
-	print('Size point cloud generation finished.')
+	print('point cloud generation finished.')
 
 def calc_point_repr(idx, fns):
 	'''
