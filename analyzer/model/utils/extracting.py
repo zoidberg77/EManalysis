@@ -197,8 +197,42 @@ def compute_circularity(vol, dprc='full', fns=None):
 	print('Circularity feature extraction finished. {} features extracted.'.format(len(result_array)))
 	return (result_array)
 
+def compute_surface_to_volume(vol, dprc='full', fns=None):
+	'''
+	This function aims to calculate the surface to volume ratio of an object.
+	'''
+	print('Starting to compute a surface to volume estimation of mitochondria.')
+	result_dict = {}
+	if dprc == 'full':
+		fns = fns[:vol.shape[0]]
+
+	with multiprocessing.Pool(processes=multiprocessing.cpu_count()) as pool:
+		tmp = pool.starmap(functools.partial(calc_props, prop_list=['slices', 'surface_to_volume']), enumerate(fns))
+
+	for dicts in tmp:
+		for key, value in dicts.items():
+			if key in result_dict:
+				result_dict[key][0].append(value[0])
+				result_dict[key][1] += value[1][0]
+				result_dict[key][2] += value[1][1]
+			else:
+				result_dict.setdefault(key, [])
+				result_dict[key].append([value[0]])
+				result_dict[key].append([value[1][0]])
+				result_dict[key].append([value[1][1]])
+
+	result_array = []
+	for result in result_dict.keys():
+		result_array.append({
+			'id': result,
+			'surface_to_volume': (result_dict[result][2][0]/result_dict[result][1][0]),
+		})
+
+	print('Circularity feature extraction finished. {} features extracted.'.format(len(result_array)))
+	return (result_array)
+
 ### HELPER SECTION ###
-def calc_props(idx, fns, prop_list=['size', 'slices', 'centroid', 'circ']):
+def calc_props(idx, fns, prop_list=['size', 'slices', 'centroid', 'circ', 'surface_to_volume']):
 	'''
 	Helper function for 'compute_regions'
 	:param fns: (string) list of filenames. sorted.
@@ -215,27 +249,33 @@ def calc_props(idx, fns, prop_list=['size', 'slices', 'centroid', 'circ']):
 		num_labels = []
 		c_list = []
 		circ_list = []
+		surface_to_volume_list = []
 		for props in regions:
 			labels.append(props.label)
-			if any('size' in s for s in prop_list):
+			if 'size' in prop_list:
 				num_labels.append(props.area)
-			if any('centroid' in s for s in prop_list):
+			if 'centroid' in prop_list:
 				c_list.append(tuple(map(int, props.centroid)))
-			if any('circ' in s for s in prop_list):
+			if 'circ' in prop_list:
 				circ_list.append(cc(props.area, props.perimeter))
+			if 'surface_to_volume' in prop_list:
+				surface_to_volume_list.append((props.area, props.perimeter))
 
 		for l in range(len(labels)):
 			if labels[l] == 0:
 				continue
 			result.setdefault(labels[l], [])
-			if any('size' in s for s in prop_list):
+			if 'size' in prop_list:
 				result[labels[l]].append(num_labels[l])
-			if any('slices' in s for s in prop_list):
+			if 'slices' in prop_list:
 				result[labels[l]].append(idx)
-			if any('centroid' in s for s in prop_list):
+			if 'centroid' in prop_list:
 				result[labels[l]].append(c_list[l])
-			if any('circ' in s for s in prop_list):
+			if 'circ' in prop_list:
 				result[labels[l]].append(circ_list[l])
+			if 'surface_to_volume' in prop_list:
+				result[labels[l]].append(surface_to_volume_list[l])
+
 
 	return result
 

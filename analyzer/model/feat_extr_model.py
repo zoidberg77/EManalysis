@@ -5,7 +5,7 @@ import glob
 import h5py
 from numpyencoder import NumpyEncoder
 
-from analyzer.model.utils.extracting import compute_region_size, compute_dist_graph, compute_circularity, compute_intentsity
+from analyzer.model.utils.extracting import compute_region_size, compute_dist_graph, compute_circularity, compute_intentsity, compute_surface_to_volume
 from analyzer.model.utils.helper import convert_dict_mtx
 
 class FeatureExtractor():
@@ -76,6 +76,12 @@ class FeatureExtractor():
 		Computes the circularity features from mitochondria volume.
 		'''
 		return compute_circularity(self.gtvol, fns=self.gtfns, dprc=self.dprc)
+
+	def compute_seg_surface_to_volume(self):
+		'''
+		Computes the surface to volume ratio features from mitochondria volume.
+		'''
+		return compute_surface_to_volume(self.gtvol, fns=self.gtfns, dprc=self.dprc)
 
 	def save_single_feat_h5(self, rsl_dict, filen='feature_vector'):
 		'''

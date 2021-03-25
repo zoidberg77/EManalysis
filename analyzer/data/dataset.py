@@ -334,7 +334,7 @@ class Dataloader():
         mito_region = mito_regions[0]
 
         if len(mito_region.bbox) < 6:
-            return [-1, np.zeros(shape=(64,64,64)), np.zeros(shape=(64,64,64))]
+            return [-1, np.zeros(shape=(1, *self.target_size)), np.zeros(shape=(1, *self.target_size))]
 
 
         shape = gt_volume[mito_region.bbox[0]:mito_region.bbox[3] + 1,
@@ -346,15 +346,15 @@ class Dataloader():
                   mito_region.bbox[2]:mito_region.bbox[5] + 1].astype(np.float32)
 
         scaled_shape = resize(shape, self.target_size, order=1, anti_aliasing=True)
-        #scaled_shape = scaled_shape / scaled_shape.max()
+        scaled_shape = scaled_shape / scaled_shape.max()
         scaled_shape = np.expand_dims(scaled_shape, 0)
 
         scaled_texture = resize(texture, self.target_size, order=1, anti_aliasing=True)
-        #scaled_texture = scaled_texture / scaled_texture.max()
+        scaled_texture = scaled_texture / scaled_texture.max()
         scaled_texture = np.expand_dims(scaled_texture, 0)
         if scaled_shape.sum() < self.lower_limit*0.1:
             print("region {} was too small".format(region[0]))
-            return [-1, np.zeros(shape=(64,64,64)), np.zeros(shape=(64,64,64))]
+            return [-1, np.zeros(shape=(1, *self.target_size)), np.zeros(shape=(1, *self.target_size))]
 
         return [region[0], scaled_shape, scaled_texture]
 

@@ -92,6 +92,8 @@ class Clustermodel():
 					feat = self.fe.compute_vae_texture()
 				elif fns == 'circf':
 					feat = self.fe.compute_seg_circ()
+				elif fns == 'surface_to_volumef':
+					feat = self.fe.compute_seg_surface_to_volume()
 				else:
 					print('No function for computing {} features.'.format(fns))
 					raise ValueError('Please check {} if it is correct.'.format(fns))
