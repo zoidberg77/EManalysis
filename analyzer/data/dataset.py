@@ -294,9 +294,22 @@ class Dataloader():
             f.create_dataset("texture_volume", (len(regions), 1, *self.target_size))
             f.create_dataset("id", (len(regions),))
 
+            if self.cpus < 2 and self.chunks_per_cpu < 2:
+                print("single cpu mode")
+                for i in tqdm(range(0, len(regions))):
+                    if i < 11000:
+                        continue
+                    print(i)
+                    result = self.get_mito_volume(regions[i])
+                    f["id"][i] = result[0]
+                    f["shape_volume"][i] = result[1]
+                    f["texture_volume"][i] = result[2]
+
             with multiprocessing.Pool(processes=self.cpus) as pool:
                 for i in tqdm(range(0, len(regions), int(self.cpus * self.chunks_per_cpu))):
                     try:
+                        if i < 11329:
+                            continue
                         results = pool.map(self.get_mito_volume, regions[i:i + int(self.cpus * self.chunks_per_cpu)])
                         for j, result in enumerate(results):
                             f["id"][i + j] = result[0]
@@ -320,6 +333,10 @@ class Dataloader():
 
         mito_region = mito_regions[0]
 
+        if len(mito_region.bbox) < 6:
+            return [-1, np.zeros(shape=(1, *self.target_size)), np.zeros(shape=(1, *self.target_size))]
+
+
         shape = gt_volume[mito_region.bbox[0]:mito_region.bbox[3] + 1,
                 mito_region.bbox[1]:mito_region.bbox[4] + 1,
                 mito_region.bbox[2]:mito_region.bbox[5] + 1].astype(np.float32)
@@ -329,15 +346,15 @@ class Dataloader():
                   mito_region.bbox[2]:mito_region.bbox[5] + 1].astype(np.float32)
 
         scaled_shape = resize(shape, self.target_size, order=1, anti_aliasing=True)
-        #scaled_shape = scaled_shape / scaled_shape.max()
+        scaled_shape = scaled_shape / scaled_shape.max()
         scaled_shape = np.expand_dims(scaled_shape, 0)
 
         scaled_texture = resize(texture, self.target_size, order=1, anti_aliasing=True)
-        #scaled_texture = scaled_texture / scaled_texture.max()
+        scaled_texture = scaled_texture / scaled_texture.max()
         scaled_texture = np.expand_dims(scaled_texture, 0)
         if scaled_shape.sum() < self.lower_limit*0.1:
             print("region {} was too small".format(region[0]))
-            return [-1, scaled_shape, scaled_texture]
+            return [-1, np.zeros(shape=(1, *self.target_size)), np.zeros(shape=(1, *self.target_size))]
 
         return [region[0], scaled_shape, scaled_texture]
 

@@ -2,10 +2,11 @@ import argparse
 import sys
 
 from analyzer.config import get_cfg_defaults
-from analyzer.data import Dataloader
+from analyzer.data import Dataloader, PtcDataloader
 from analyzer.model import Clustermodel
 from analyzer.vae import train
 from analyzer.vae.model.utils.pt import point_cloud
+from analyzer.data.data_vis import visptc
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -50,6 +51,9 @@ def main():
 
     dl = Dataloader(cfg)
     em, gt = dl.load_chunk(vol='both')
+    #from analyzer.utils.eval import cluster_res_single
+    #cluster_res_single('outputs/cluster_mask_5_shapef_220.png', 'datasets/eval/220/')
+    #return
 
     if cfg.MODE.PROCESS == "preprocessing":
         dl.extract_scale_mitos()

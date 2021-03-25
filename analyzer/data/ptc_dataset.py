@@ -1,5 +1,6 @@
 import os, sys
 import numpy as np
+import h5py
 from sklearn.preprocessing import normalize
 
 def normalize_ptc(ptc):
@@ -30,5 +31,27 @@ def rotate_point_cloud(batch_data):
     pass
 
 class PtcDataloader():
-    def __init__(self):
-        pass
+    '''
+    This is the Data module for the pointcloud autoencoder.
+    '''
+    def __init__(self, cfg):
+        self.cfg = cfg
+        self.ptfn = cfg.DATASET.ROOTD + 'vae/pts' + '.h5'
+
+    def __len__(self):
+        '''
+        Required by torch to return the length of the dataset.
+        :returns: integer
+        '''
+        #with h5py.File(self.ptfn, 'r') as h5f:
+            #return len(h5f[self.vae_feature + "_volume"])
+
+    def __getitem__(self, idx):
+        '''
+        Required by torch to return one item of the dataset.
+        :param idx: (int) index of the object. Please note that this is the actual label e.g. 1325 not a pure index like 0,1,2, ... ,n
+        :returns: object from the volume. (np.array)
+        '''
+        with h5py.File(self.ptfn, 'r') as h5f:
+            group = h5f.get('ptcs')
+            return np.array(group[str(idx)])

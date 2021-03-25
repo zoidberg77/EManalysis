@@ -27,29 +27,20 @@ def point_cloud(fns, cfg, save=True):
 	for dicts in tmp:
 		for key, value in dicts.items():
 			if key in result_dict:
-				np.vstack((result_dict[key][0], value[0]))
+				result_dict[key][0] = np.vstack((result_dict[key][0], value[0]))
 			else:
 				result_dict.setdefault(key, [])
 				result_dict[key].append(value[0])
 
-	result_array = []
-	for result in result_dict.keys():
-		std_rs = normalize_ptc(result_dict[result][0])
-		result_array.append({
-			'id': result,
-			'pts': std_rs,
-		})
-
 	if save:
-		with h5py.File(cfg.DATASET.ROOTF + 'pts' + '.h5', 'w') as h5f:
+		with h5py.File(cfg.DATASET.ROOTD + 'vae/pts' + '.h5', 'w') as h5f:
 			grp = h5f.create_group('ptcs')
 			for result in result_dict.keys():
-				grp.create_dataset(str(result), data=normalize_ptc(result_dict[result][0]))
+				std_rs = normalize_ptc(result_dict[result][0])
+				grp.create_dataset(str(result), data=normalize_ptc(std_rs))
 			h5f.close()
-		print('saved point representations to {}.'.format(cfg.DATASET.ROOTF + 'pts' + '.h5'))
-
-	print('Size point cloud generation finished. {} features extracted.'.format(len(result_array)))
-	return (result_array)
+		print('saved point representations to {}.'.format(cfg.DATASET.ROOTD + 'vae/pts' + '.h5'))
+	print('point cloud generation finished.')
 
 def calc_point_repr(idx, fns):
 	'''
