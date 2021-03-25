@@ -4,6 +4,7 @@ import glob
 from skimage.measure import label, regionprops
 from analyzer.data.data_vis import visvol
 from scipy.ndimage.measurements import center_of_mass
+from sklearn.metrics import normalized_mutual_info_score, pair_confusion_matrix
 
 def clusteravg(values, labels):
     '''
@@ -31,27 +32,10 @@ def cluster_res_single(imgn, gtfp):
     gt = register_folder(gtfp, ff='png')
     img = imageio.imread(imgn)
     em = imageio.imread('datasets/human/human_em_export_8nm/human_em_export_s0220.png')
-    #visvol(em, img)
     #visvol(em, gt)
-    '''
-    zer = np.zeros(shape=img.shape, dtype=np.uint16)
-    for label_val in list(np.unique(gt)):
-        if label_val == 0:
-            continue
-        print(label_val)
-        tmp = np.where(gt == label_val, label_val, zer)
-        labels, num_label = label(tmp, return_num=True)
-        for idx in list(np.unique(labels)):
-            if idx == 0:
-                continue
-            single = np.where(labels == idx, idx, zer)
-            for k in range(1, 6):
-                if img[int(center_of_mass(single)[0])][int(center_of_mass(single)[1])] == \
-                gt[int(center_of_mass(single)[0])][int(center_of_mass(single)[1])]:
-                    result[0] = result[0] + 1
-                else:
-                    result[1] = result[1] + 1
-    '''
+    #visvol(em, gt, filename='teshf_3_em_220', ff='png', save=True, dpi=1200)
+    labels_pred = list()
+    labels_true = list()
     labels, num_label = label(img, return_num=True)
     tmp = np.zeros(shape=img.shape, dtype=np.uint16)
     result = np.zeros(shape=(2,), dtype=np.uint16)
@@ -59,14 +43,22 @@ def cluster_res_single(imgn, gtfp):
         if label_val == 0:
             continue
         new = np.where(labels == label_val, label_val, tmp)
-        if img[int(center_of_mass(new)[0])][int(center_of_mass(new)[1])] == \
-        gt[int(center_of_mass(new)[0])][int(center_of_mass(new)[1])]:
-            result[0] = result[0] + 1
+        if np.unique(np.where(new == label_val, gt, tmp)).size == 1:
+            labels_true.append(np.unique(np.where(new == label_val, gt, tmp))[0])
         else:
-            result[1] = result[1] + 1
-            
-    acc = result[0] / (result[0] + result[1])
-    print(acc)
+            labels_true.append(np.unique(np.where(new == label_val, gt, tmp))[1])
+        labels_pred.append(np.unique(np.where(new == label_val, img, tmp))[1])
+
+    print(labels_pred)
+    _, counts_pred = np.unique(labels_pred, return_counts=True)
+    print('preds: ', counts_pred)
+    print(labels_true)
+    _, counts_true = np.unique(labels_true, return_counts=True)
+    print('true: ', counts_true)
+
+    test = normalized_mutual_info_score(labels_true, labels_pred)
+    #test = pair_confusion_matrix(labels_true, labels_pred)
+    print(test)
 
 
 ### Helper section

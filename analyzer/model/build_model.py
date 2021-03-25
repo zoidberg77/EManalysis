@@ -160,7 +160,7 @@ class Clustermodel():
 		Visualize some results.
 		'''
 		visvol(imageio.imread('datasets/human/human_em_export_8nm/human_em_export_s0220.png'), \
-	    imageio.imread('outputs/cluster_mask_3_teshf_220.png'), filename='teshf_3_em_220', ff='png', save=True, dpi=1200)
+	    imageio.imread('outputs/cluster_mask_5_circf_220.png'), filename='circf_5_em_220', ff='png', save=True, dpi=1200)
 		if end:
 			return
 

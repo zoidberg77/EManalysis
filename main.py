@@ -51,9 +51,7 @@ def main():
 
     dl = Dataloader(cfg)
     em, gt = dl.load_chunk(vol='both')
-    #from analyzer.utils.eval import cluster_res_single
-    #cluster_res_single('outputs/cluster_mask_5_shapef_220.png', 'datasets/eval/220/')
-    #return
+
 
     if cfg.MODE.PROCESS == "preprocessing":
         dl.extract_scale_mitos()
@@ -81,7 +79,7 @@ def main():
 
     model = Clustermodel(cfg, em, gt, dl=dl)
     #model.visualize()
-    model.run()
+    #model.run()
 
 
 if __name__ == "__main__":
