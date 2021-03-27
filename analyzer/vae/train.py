@@ -91,6 +91,7 @@ class Trainer:
             plt.ylabel("train reconstruction_loss")
             plt.xlabel("# iterations")
             # plt.yscale("log")
+            plt.ylim(0, 1)
             plt.title("Train Loss in Epoch {}/{} ".format(self.current_epoch, self.epochs))
             plt.savefig(
                 "datasets/vae/evaluation/{}/train_loss_curve_{}.png".format(self.vae_feature, self.current_epoch))
@@ -151,6 +152,7 @@ class Trainer:
             plt.ylabel("test reconstruction_loss")
             plt.xlabel("# iterations")
             # plt.yscale("log")
+            plt.ylim(0, 1)
             plt.title("Test Loss over in Epoch {}/{} ".format(self.current_epoch, self.epochs))
             plt.savefig(
                 "datasets/vae/evaluation/{}/test_loss_curve_{}.png".format(self.vae_feature, self.current_epoch))
