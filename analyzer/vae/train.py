@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 from tqdm import tqdm
+import os
+import glob
 
 from analyzer.vae.model import unet
 
@@ -38,13 +40,21 @@ class Trainer:
         running_total_loss = []
         running_reconstruction_loss = []
         running_kld_loss = []
+        evaluation_files = glob.glob("datasets/vae/evaluation/{}/*.png".format(self.vae_feature))
+        for filePath in evaluation_files:
+            try:
+                os.remove(filePath)
+            except:
+                print("Error while deleting file : ", filePath)
+
         for epoch in range(1, self.epochs + 1):
             for i, data in enumerate(self.train_dl):
                 self.current_iteration = i
                 data = data.to(self.device)
                 self.optimizer.zero_grad()
                 reconstruction, mu, log_var = self.model(data)
-                mu = torch.where(mu.double() > self.cfg.AUTOENCODER.MAX_MEAN, self.cfg.AUTOENCODER.MAX_MEAN, mu.double())
+                mu = torch.where(mu.double() > self.cfg.AUTOENCODER.MAX_MEAN, self.cfg.AUTOENCODER.MAX_MEAN,
+                                 mu.double())
                 loss, recon_loss, kld_loss = self.loss(reconstruction, data, mu, log_var)
                 running_total_loss.append(loss.item())
                 running_reconstruction_loss.append(recon_loss.item())
@@ -80,7 +90,7 @@ class Trainer:
             # plt.plot(running_kld_loss)
             plt.ylabel("train reconstruction_loss")
             plt.xlabel("# iterations")
-            #plt.yscale("log")
+            # plt.yscale("log")
             plt.title("Train Loss in Epoch {}/{} ".format(self.current_epoch, self.epochs))
             plt.savefig(
                 "datasets/vae/evaluation/{}/train_loss_curve_{}.png".format(self.vae_feature, self.current_epoch))
@@ -135,12 +145,12 @@ class Trainer:
             plt.clf()
             plt.axis("on")
             # plt.legend(["total loss", "reconstruction loss", "kld loss"])
-            #plt.plot(running_total_loss)
+            # plt.plot(running_total_loss)
             plt.plot(running_reconstruction_loss)
             # plt.plot(running_kld_loss)
             plt.ylabel("test reconstruction_loss")
             plt.xlabel("# iterations")
-            #plt.yscale("log")
+            # plt.yscale("log")
             plt.title("Test Loss over in Epoch {}/{} ".format(self.current_epoch, self.epochs))
             plt.savefig(
                 "datasets/vae/evaluation/{}/test_loss_curve_{}.png".format(self.vae_feature, self.current_epoch))
@@ -161,13 +171,13 @@ class Trainer:
                     reconstruction_image = np.concatenate(
                         (reconstruction_image, reconstruction_item[j].detach().cpu().numpy()), 0)
 
-            #reconstruction_image -= reconstruction_image.min()
-            #reconstruction_image /= reconstruction_image.max()
+            # reconstruction_image -= reconstruction_image.min()
+            # reconstruction_image /= reconstruction_image.max()
             evaluation_image = np.concatenate((original_image, reconstruction_image), 1)
 
             plt.axis('off')
             plt.imsave(
-                'datasets/vae/evaluation/'+self.vae_feature+'/{}_{}_{}.png'.format(prefix, epoch, iteration + i),
+                'datasets/vae/evaluation/' + self.vae_feature + '/{}_{}_{}.png'.format(prefix, epoch, iteration + i),
                 evaluation_image,
                 cmap="gray")
             return
@@ -188,7 +198,7 @@ class Trainer:
                 f.create_dataset(name=self.vae_feature,
                                  shape=(len(all_regions), self.cfg.AUTOENCODER.LATENT_SPACE))
                 f.create_dataset(name="id",
-                                 shape=(len(all_regions), ))
+                                 shape=(len(all_regions),))
                 with torch.no_grad():
                     for i, region in tqdm(enumerate(all_regions), total=len(all_regions)):
                         x = torch.zeros(self.cfg.AUTOENCODER.LATENT_SPACE)
