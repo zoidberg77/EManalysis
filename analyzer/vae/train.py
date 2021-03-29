@@ -55,12 +55,14 @@ class Trainer:
                 reconstruction, mu, log_var = self.model(data)
                 mu = torch.where(mu.double() > self.cfg.AUTOENCODER.MAX_MEAN, self.cfg.AUTOENCODER.MAX_MEAN,
                                  mu.double())
+                log_var = torch.where(log_var.double() > self.cfg.AUTOENCODER.MAX_VAR, self.cfg.AUTOENCODER.MAX_VAR,
+                                 log_var.double())
                 loss, recon_loss, kld_loss = self.loss(reconstruction, data, mu, log_var)
                 running_total_loss.append(loss.item())
                 running_reconstruction_loss.append(recon_loss.item())
                 running_kld_loss.append(kld_loss.item())
                 loss.backward()
-                torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=1.0)
+                torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=self.cfg.AUTOENCODER.MAX_GRADIENT)
                 self.optimizer.step()
                 if not i % self.cfg.AUTOENCODER.LOG_INTERVAL and i > 0:
                     self.save_images(data, reconstruction, i, epoch, "train")

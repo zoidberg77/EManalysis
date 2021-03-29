@@ -14,6 +14,8 @@ AUTOENCODER:
   FEATURES: ['shape', 'texture']
   LATENT_SPACE: 100
   MAX_MEAN: 0.001
+  MAX_VAR: 0.001
+  MAX_GRADIENT: 0.001
   LOG_INTERVAL: 10
 DATASET:
   EM_PATH: 'datasets/human/human_em_export_8nm/'
