@@ -29,7 +29,7 @@ _C.AUTOENCODER.LOG_INTERVAL = 10
 _C.AUTOENCODER.LATENT_SPACE = 100
 _C.AUTOENCODER.MAX_MEAN = 0.001
 _C.AUTOENCODER.MAX_VAR = 0.001
-_C.AUTOENCODER.MAX_GRADIENT = 0.001
+_C.AUTOENCODER.MAX_GRADIENT = 1.0
 _C.AUTOENCODER.FEATURES = ['shape', 'texture']
 # -----------------------------------------------------------------------------
 # Dataset
