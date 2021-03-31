@@ -34,6 +34,7 @@ def visptc(ptc):
 	'''
 	point_cloud = o3d.geometry.PointCloud()
 	point_cloud.points = o3d.utility.Vector3dVector(ptc)
+	point_cloud.paint_uniform_color([0.9, 0.1, 0.1])
 	o3d.visualization.draw_geometries([point_cloud])
 
 def vissegments(image, segments, mask=None):

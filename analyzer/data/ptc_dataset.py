@@ -43,8 +43,8 @@ class PtcDataloader():
         Required by torch to return the length of the dataset.
         :returns: integer
         '''
-        #with h5py.File(self.ptfn, 'r') as h5f:
-            #return len(h5f[self.vae_feature + "_volume"])
+        with h5py.File(self.ptfn, 'r') as h5f:
+            return len(list(h5f.get('ptcs').keys()))
 
     def __getitem__(self, idx):
         '''
@@ -54,4 +54,12 @@ class PtcDataloader():
         '''
         with h5py.File(self.ptfn, 'r') as h5f:
             group = h5f.get('ptcs')
-            return np.array(group[str(idx)])
+            tmp = np.array(group[str(idx)])
+            return tmp[None,:,:]
+
+    @property
+    def keys(self):
+        '''property that gives to a list of keys (ints) that are in the dataset.
+        '''
+        with h5py.File(self.ptfn, 'r') as h5f:
+            return list(map(int, list(h5f.get('ptcs').keys())))

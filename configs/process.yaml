@@ -7,9 +7,9 @@ AUTOENCODER:
   CHUNKS_CPU: 4
   UPPER_BOUND: 100000
   LOWER_BOUND: 100
-  TARGET: (128, 128, 128)
-  EPOCHS: 5
-  BATCH_SIZE: 2
+  TARGET: (64, 64, 64)
+  EPOCHS: 1
+  BATCH_SIZE: 1
   OUTPUT_FOLDER: 'features/'
   FEATURES: ['shape', 'texture']
   LATENT_SPACE: 100
@@ -24,7 +24,7 @@ DATASET:
   CHUNK_SIZE: [2, 4096, 4096]
   DATAINFO: 'features/data_info.json'
 MODE:
-  PROCESS: 'leaveitoutfornow'
+  PROCESS: 'ptctrain'
   DPRC: 'iter'
 CLUSTER:
   ALG: 'kmeans'
