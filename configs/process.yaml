@@ -8,7 +8,7 @@ AUTOENCODER:
   UPPER_BOUND: 100000
   LOWER_BOUND: 100
   TARGET: (64, 64, 64)
-  EPOCHS: 1
+  EPOCHS: 2
   BATCH_SIZE: 1
   OUTPUT_FOLDER: 'features/'
   FEATURES: ['shape', 'texture']

@@ -248,11 +248,9 @@ class PtcTrainer():
 			self.device = 'cpu'
 
 		train_length = int(train_percentage * len(self.dataset))
-		#test_length = len(dataset) - train_length
 		train_dataset, test_dataset = torch.utils.data.random_split(self.dataset, (train_length, len(self.dataset) - train_length))
 		self.train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=cfg.AUTOENCODER.BATCH_SIZE, shuffle=False)
 		num_points = next(iter(self.train_dl)).shape[2]
-		#print(test.shape[2])
 		self.test_dl = torch.utils.data.DataLoader(test_dataset, batch_size=cfg.AUTOENCODER.BATCH_SIZE, shuffle=True)
 
 		self.model = PTCvae(num_points=num_points, latent_space=cfg.AUTOENCODER.LATENT_SPACE)
@@ -260,36 +258,36 @@ class PtcTrainer():
 			self.optimizer = torch.optim.Adam(self.model.parameters(), lr=0.0001, weight_decay=0.0001)
 
 	def train(self):
+
 		self.model.train()
 		self.model.to(self.device)
-		nsamples = 1
+		#nsamples = 1
 		globaldata = 0
+		running_loss = list()
 		for epoch in range(1, self.epochs + 1):
-			if epoch % 100 == 0:
-				self.save_ptcs(globaldata)
-				self.save_ptcs(x)
 			for i, data in enumerate(self.train_dl):
-				if i >= nsamples:
-					break
+				#if i >= nsamples:
+					#break
 				data = data.to(self.device).float()
 				self.optimizer.zero_grad()
-				#x, test = self.model(data)
 				x = self.model(data)
-				#print('data shape: ', data.shape)
-				#print('result shape: ', x.shape)
-				#print('tensor: ', x)
 
 				loss = self.loss(x, data)
 				loss.backward()
 				self.optimizer.step()
 				globaldata = data
 
-			if epoch % 10 == 0:
-				print('loss: {}'.format(loss))
+				if i % 10 == 0:
+					print('loss: {}'.format(loss))
+
+			if epoch % 2 == 0:
+				self.save_ptcs(globaldata)
+				self.save_ptcs(x)
 
 	def loss(self, reconstruction, org_data):
-		dist1, dist2, _, _ = self.dist(reconstruction, org_data)
-		rec_loss = (torch.mean(dist1)) + (torch.mean(dist2))
+		rec = torch.squeeze(reconstruction, axis=0)
+		org = torch.squeeze(org_data, axis=0)
+		rec_loss = self.dist(rec, org)
 		return rec_loss
 
 	def save_ptcs(self, reconstructions, save=True):
