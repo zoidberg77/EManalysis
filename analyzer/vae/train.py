@@ -9,6 +9,7 @@ import glob
 from analyzer.data.data_vis import visptc
 from analyzer.vae.model import unet
 from analyzer.vae.model.ptc_vae import PTCvae
+from chamferdist import ChamferDistance
 
 
 class Trainer:
@@ -238,6 +239,7 @@ class PtcTrainer():
 		self.train_percentage = train_percentage
 		self.optimizer_type = optimizer_type
 		self.loss_function = loss_function
+		self.dist = ChamferDistance()
 		#self.model_type = cfg.AUTOENCODER.ARCHITECTURE
 		self.epochs = cfg.AUTOENCODER.EPOCHS
 		if cfg.SYSTEM.NUM_GPUS > 0 and torch.cuda.is_available():
@@ -285,12 +287,10 @@ class PtcTrainer():
 			if epoch % 10 == 0:
 				print('loss: {}'.format(loss))
 
-	def loss(self, reconstruction, input):
-		if self.loss_function == "l1":
-			recons_loss = torch.nn.functional.l1_loss(reconstruction, input, reduction="mean")
-		else:
-			recons_loss = torch.nn.functional.mse_loss(reconstruction, input)
-		return recons_loss
+	def loss(self, reconstruction, org_data):
+		dist1, dist2, _, _ = self.dist(reconstruction, org_data)
+		rec_loss = (torch.mean(dist1)) + (torch.mean(dist2))
+		return rec_loss
 
 	def save_ptcs(self, reconstructions, save=True):
 		'''

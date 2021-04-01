@@ -50,7 +50,7 @@ def main():
 		print(cfg, '\n')
 
 	dl = Dataloader(cfg)
-	#em, gt = dl.load_chunk(vol='both')
+	em, gt = dl.load_chunk(vol='both')
 
 	if cfg.MODE.PROCESS == "preprocessing":
 		dl.extract_scale_mitos()
