@@ -233,13 +233,14 @@ class PtcTrainer():
 	:params optimizer_type:
 	:params loss_function:
 	'''
-	def __init__(self, cfg, dataset, train_percentage, optimizer_type, loss_function):
+	def __init__(self, cfg, dataset, num_points, train_percentage, optimizer_type, loss_function):
 		self.cfg = cfg
 		self.dataset = dataset
 		self.train_percentage = train_percentage
 		self.optimizer_type = optimizer_type
 		self.loss_function = loss_function
 		self.dist = ChamferDistance()
+		self.num_points = num_points
 		#self.model_type = cfg.AUTOENCODER.ARCHITECTURE
 		self.epochs = cfg.AUTOENCODER.EPOCHS
 		if cfg.SYSTEM.NUM_GPUS > 0 and torch.cuda.is_available():
@@ -247,42 +248,64 @@ class PtcTrainer():
 		else:
 			self.device = 'cpu'
 
+		#self.keys = self.dataset.keys
 		train_length = int(train_percentage * len(self.dataset))
 		train_dataset, test_dataset = torch.utils.data.random_split(self.dataset, (train_length, len(self.dataset) - train_length))
 		self.train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=cfg.AUTOENCODER.BATCH_SIZE, shuffle=False)
-		num_points = next(iter(self.train_dl)).shape[2]
-		self.test_dl = torch.utils.data.DataLoader(test_dataset, batch_size=cfg.AUTOENCODER.BATCH_SIZE, shuffle=True)
+		#self.num_points = next(iter(self.train_dl)).shape[2]
+		self.test_dl = torch.utils.data.DataLoader(test_dataset, batch_size=cfg.AUTOENCODER.BATCH_SIZE, shuffle=False)
 
 		self.model = PTCvae(num_points=num_points, latent_space=cfg.AUTOENCODER.LATENT_SPACE)
 		if self.optimizer_type == "adam":
 			self.optimizer = torch.optim.Adam(self.model.parameters(), lr=0.0001, weight_decay=0.0001)
 
 	def train(self):
-
 		self.model.train()
 		self.model.to(self.device)
-		#nsamples = 1
-		globaldata = 0
+
 		running_loss = list()
 		for epoch in range(1, self.epochs + 1):
 			for i, data in enumerate(self.train_dl):
-				#if i >= nsamples:
-					#break
 				data = data.to(self.device).float()
 				self.optimizer.zero_grad()
 				x = self.model(data)
-
 				loss = self.loss(x, data)
+
+				running_loss.append(loss.item())
 				loss.backward()
 				self.optimizer.step()
-				globaldata = data
 
-				if i % 10 == 0:
-					print('loss: {}'.format(loss))
+				if not i % self.cfg.AUTOENCODER.LOG_INTERVAL and i > 0:
+					print("[{}/{}] Train total loss: {} \n".format(i, int(\
+					len(self.train_dl.dataset) / self.train_dl.batch_size),\
+					(sum(running_loss) / len(running_loss))))
 
-			if epoch % 2 == 0:
-				self.save_ptcs(globaldata)
-				self.save_ptcs(x)
+			self.current_epoch = epoch
+			train_total_loss = sum(running_loss) / len(running_loss)
+			print("Epoch {}: Train total loss: {} \n".format(self.current_epoch, train_total_loss))
+
+			test_loss = self.test()
+			torch.save(self.model.state_dict(), cfg.DATASET.ROOTD + 'datasets/vae/vae_ptc_model.pt')
+
+		return train_total_loss, test_loss
+
+	def test(self):
+		self.model.eval()
+		self.model.to(self.device)
+		running_loss = list()
+		with torch.no_grad():
+			for i, data in enumerate(self.test_dl):
+				data = data.to(self.device)
+				x = self.model(data)
+				loss = self.loss(x, data)
+				running_loss.append(loss.item())
+				if not i % self.cfg.AUTOENCODER.LOG_INTERVAL and i > 0:
+					self.save_ptcs(x)
+
+			test_total_loss = sum(running_loss) / len(running_loss)
+			print("Epoch {}: Test total loss: {} \n".format(self.current_epoch, test_total_loss))
+
+			return test_total_loss
 
 	def loss(self, reconstruction, org_data):
 		rec = torch.squeeze(reconstruction, axis=0)
@@ -290,11 +313,17 @@ class PtcTrainer():
 		rec_loss = self.dist(rec, org)
 		return rec_loss
 
-	def save_ptcs(self, reconstructions, save=True):
+	def save_latent_feature(self):
+		'''saving the latent space representation of every point cloud.'''
+		pass
+
+	def save_ptcs(self, reconstructions, idx, save=True):
 		'''
 		Save the reconstructed point clouds to h5
 		'''
 		rec_ptc = reconstructions.view(reconstructions.size(2), reconstructions.size(3))
 		ptc = rec_ptc.detach().numpy()
-		print(ptc.shape)
-		visptc(ptc)
+		with h5py.File(cfg.DATASET.ROOTD + 'datasets/eval/rec_pts' + '.h5', 'w') as h5f:
+			grp = h5f.create_group('ptcs')
+			grp.create_dataset(idx, data=ptc)
+			h5f.close()

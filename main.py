@@ -62,7 +62,8 @@ def main():
 	elif cfg.MODE.PROCESS == "ptctrain":
 		print('--- Starting the training process for the vae based on point clouds. --- \n')
 		ptcdl = PtcDataloader(cfg)
-		trainer = train.PtcTrainer(cfg=cfg, dataset=ptcdl, train_percentage=0.7, optimizer_type="adam", loss_function="l1")
+		num_pts = 10000
+		trainer = train.PtcTrainer(cfg=cfg, dataset=ptcdl, num_points=num_pts, train_percentage=0.7, optimizer_type="adam", loss_function="l1")
 		trainer.train()
 		#ptc = np.squeeze(ptcdl[1325], axis=0)
 		#visptc(np.squeeze(ptc, axis=0))
@@ -74,21 +75,6 @@ def main():
 		#bbox = point_cloud.get_axis_aligned_bounding_box()
 		#print(np.array(bbox))
 		#o3d.visualization.draw_geometries([voxel_grid])
-		'''
-		max = 0
-		min = 10000000
-		points_list = list()
-		for _, idx in enumerate(test.keys):
-			if test[idx].shape[0] > max:
-				max = test[idx].shape[0]
-			if test[idx].shape[0] < min:
-				min = test[idx].shape[0]
-			points_list.append(test[idx].shape)
-
-		print('max value: {} -- min value: {}'.format(max, min))
-		plt.plot(points_list)
-		plt.show()
-		'''
 		return
 	elif cfg.MODE.PROCESS == "train":
 		for feature in cfg.AUTOENCODER.FEATURES:

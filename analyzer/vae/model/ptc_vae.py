@@ -60,7 +60,7 @@ class PTCvae(nn.Module):
 					   )
 
 	def forward(self, x):
-		print(self.num_points)
+		#print(self.num_points)
 		x = self.encoder(x)
 		x = self.pool(x)
 		x = torch.flatten(x, start_dim=1)
