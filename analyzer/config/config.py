@@ -27,10 +27,12 @@ _C.AUTOENCODER.BATCH_SIZE = 2
 _C.AUTOENCODER.OUTPUT_FOLDER = 'features/'
 _C.AUTOENCODER.LOG_INTERVAL = 10
 _C.AUTOENCODER.LATENT_SPACE = 100
+_C.AUTOENCODER.LATENT_SPACE_PTC = 512
 _C.AUTOENCODER.MAX_MEAN = 0.001
 _C.AUTOENCODER.MAX_VAR = 0.001
 _C.AUTOENCODER.MAX_GRADIENT = 1.0
 _C.AUTOENCODER.FEATURES = ['shape', 'texture']
+_C.AUTOENCODER.PTC_NUM_POINTS = 10000
 # -----------------------------------------------------------------------------
 # Dataset
 # -----------------------------------------------------------------------------

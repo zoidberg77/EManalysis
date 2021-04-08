@@ -60,10 +60,15 @@ class PTCvae(nn.Module):
 					   )
 
 	def forward(self, x):
-		#print(self.num_points)
 		x = self.encoder(x)
 		x = self.pool(x)
 		x = torch.flatten(x, start_dim=1)
 		x = self.decoder(x)
 		x = x.view(x.size(0), x.size(0), -1, 3)
+		return x
+
+	def latent_representation(self, x):
+		x = self.encoder(x)
+		x = self.pool(x)
+		x = torch.flatten(x, start_dim=0)
 		return x

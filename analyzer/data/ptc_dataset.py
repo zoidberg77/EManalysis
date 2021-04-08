@@ -54,7 +54,8 @@ class PtcDataloader():
         '''
         with h5py.File(self.ptfn, 'r') as h5f:
             group = h5f.get('ptcs')
-            tmp = np.array(group[str(idx)])
+            #tmp = np.array(group[str(idx)])
+            tmp, _ = self.recur(group, idx)
             return tmp[None,:,:]
 
     @property
@@ -63,3 +64,26 @@ class PtcDataloader():
         '''
         with h5py.File(self.ptfn, 'r') as h5f:
             return list(map(int, list(h5f.get('ptcs').keys())))
+
+    @property
+    def dimlist(self):
+        '''returns list of number of points that every point cloud contains.'''
+        dim_list = list()
+        with h5py.File(self.ptfn, 'r') as h5f:
+            group = h5f.get('ptcs')
+            for _, idx in enumerate(list(h5f.get('ptcs').keys())):
+                dim_list.append(np.array(group[str(idx)]).shape[0])
+        return dim_list
+
+    def split_dataset(self):
+        '''split dataset and keep order (avoid loss of label information).'''
+        pass
+
+    def recur(self, group, idx):
+        '''helper to overcome a missed label'''
+        if str(idx) in list(group.keys()):
+            tmp = np.array(group[str(idx)])
+            return tmp, idx
+        else:
+            idx = idx + 1
+            tmp, idx = self.recur(group, idx)

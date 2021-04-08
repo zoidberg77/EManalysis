@@ -233,15 +233,16 @@ class PtcTrainer():
 	:params optimizer_type:
 	:params loss_function:
 	'''
-	def __init__(self, cfg, dataset, num_points, train_percentage, optimizer_type, loss_function):
+	def __init__(self, cfg, dataset, train_percentage, optimizer_type, loss_function):
 		self.cfg = cfg
 		self.dataset = dataset
 		self.train_percentage = train_percentage
 		self.optimizer_type = optimizer_type
 		self.loss_function = loss_function
 		self.dist = ChamferDistance()
-		self.num_points = num_points
+		self.num_points = cfg.AUTOENCODER.PTC_NUM_POINTS
 		#self.model_type = cfg.AUTOENCODER.ARCHITECTURE
+		self.vae_ptc_feature = 'ptc'
 		self.epochs = cfg.AUTOENCODER.EPOCHS
 		if cfg.SYSTEM.NUM_GPUS > 0 and torch.cuda.is_available():
 			self.device = 'cuda'
@@ -252,10 +253,9 @@ class PtcTrainer():
 		train_length = int(train_percentage * len(self.dataset))
 		train_dataset, test_dataset = torch.utils.data.random_split(self.dataset, (train_length, len(self.dataset) - train_length))
 		self.train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=cfg.AUTOENCODER.BATCH_SIZE, shuffle=False)
-		#self.num_points = next(iter(self.train_dl)).shape[2]
 		self.test_dl = torch.utils.data.DataLoader(test_dataset, batch_size=cfg.AUTOENCODER.BATCH_SIZE, shuffle=False)
 
-		self.model = PTCvae(num_points=num_points, latent_space=cfg.AUTOENCODER.LATENT_SPACE)
+		self.model = PTCvae(num_points=self.num_points, latent_space=cfg.AUTOENCODER.LATENT_SPACE_PTC)
 		if self.optimizer_type == "adam":
 			self.optimizer = torch.optim.Adam(self.model.parameters(), lr=0.0001, weight_decay=0.0001)
 
@@ -266,6 +266,7 @@ class PtcTrainer():
 		running_loss = list()
 		for epoch in range(1, self.epochs + 1):
 			for i, data in enumerate(self.train_dl):
+				print('data shape: ', data.shape)
 				data = data.to(self.device).float()
 				self.optimizer.zero_grad()
 				x = self.model(data)
@@ -285,9 +286,11 @@ class PtcTrainer():
 			print("Epoch {}: Train total loss: {} \n".format(self.current_epoch, train_total_loss))
 
 			test_loss = self.test()
-			torch.save(self.model.state_dict(), cfg.DATASET.ROOTD + 'datasets/vae/vae_ptc_model.pt')
+			torch.save(self.model.state_dict(), self.cfg.DATASET.ROOTD + 'vae/vae_ptc_model.pt')
 
-		return train_total_loss, test_loss
+		print('Training and Testing of the point cloud based autoencoder is done.')
+		print("train loss: {}".format(train_total_loss))
+		print("test loss: {}".format(test_loss))
 
 	def test(self):
 		self.model.eval()
@@ -315,7 +318,28 @@ class PtcTrainer():
 
 	def save_latent_feature(self):
 		'''saving the latent space representation of every point cloud.'''
-		pass
+		self.model.load_state_dict(torch.load(self.cfg.DATASET.ROOTD + "vae/" + "vae_ptc_model.pt"))
+		self.model.eval()
+		self.model.to(self.device)
+		keys = self.dataset.keys
+
+		with h5py.File('features/{}f.h5'.format(self.vae_ptc_feature), 'w') as h5f:
+			h5f.create_dataset(name='ptcs', shape=(len(keys), self.cfg.AUTOENCODER.LATENT_SPACE_PTC))
+			h5f.create_dataset(name='id', shape=(len(keys),))
+
+			with torch.no_grad():
+				for c, idx in enumerate(self.dataset.keys):
+					print(c)
+					print(self.dataset[idx].shape)
+					data = torch.from_numpy(self.dataset[idx])
+					data = data.unsqueeze(0).float()
+					print(data)
+					data.to(self.device)
+					x = self.model.latent_representation(data).cpu().numpy()
+					print(x.shape)
+
+					h5f['ptcs'][c] = x
+					h5f['id'][c] = idx
 
 	def save_ptcs(self, reconstructions, idx, save=True):
 		'''
@@ -323,7 +347,7 @@ class PtcTrainer():
 		'''
 		rec_ptc = reconstructions.view(reconstructions.size(2), reconstructions.size(3))
 		ptc = rec_ptc.detach().numpy()
-		with h5py.File(cfg.DATASET.ROOTD + 'datasets/eval/rec_pts' + '.h5', 'w') as h5f:
+		with h5py.File(self.cfg.DATASET.ROOTD + 'eval/rec_pts' + '.h5', 'w') as h5f:
 			grp = h5f.create_group('ptcs')
 			grp.create_dataset(idx, data=ptc)
 			h5f.close()

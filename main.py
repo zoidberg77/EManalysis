@@ -62,19 +62,14 @@ def main():
 	elif cfg.MODE.PROCESS == "ptctrain":
 		print('--- Starting the training process for the vae based on point clouds. --- \n')
 		ptcdl = PtcDataloader(cfg)
-		num_pts = 10000
-		trainer = train.PtcTrainer(cfg=cfg, dataset=ptcdl, num_points=num_pts, train_percentage=0.7, optimizer_type="adam", loss_function="l1")
+		trainer = train.PtcTrainer(cfg=cfg, dataset=ptcdl, train_percentage=0.7, optimizer_type="adam", loss_function="l1")
 		trainer.train()
-		#ptc = np.squeeze(ptcdl[1325], axis=0)
-		#visptc(np.squeeze(ptc, axis=0))
-		#import open3d as o3d
-		#point_cloud = o3d.geometry.PointCloud()
-		#open3d.geometry.VoxelGrid()
-		#point_cloud.points = o3d.utility.Vector3dVector(ptc)
-		#voxel_grid = o3d.geometry.VoxelGrid.create_from_point_cloud(point_cloud, voxel_size=0.005)
-		#bbox = point_cloud.get_axis_aligned_bounding_box()
-		#print(np.array(bbox))
-		#o3d.visualization.draw_geometries([voxel_grid])
+		return
+	elif cfg.MODE.PROCESS == "ptcinfer":
+		print('--- Starting to infer the features of the autoencoder based on point clouds. --- \n')
+		ptcdl = PtcDataloader(cfg)
+		trainer = train.PtcTrainer(cfg=cfg, dataset=ptcdl, train_percentage=0.7, optimizer_type="adam", loss_function="l1")
+		trainer.save_latent_feature()
 		return
 	elif cfg.MODE.PROCESS == "train":
 		for feature in cfg.AUTOENCODER.FEATURES:
