@@ -155,15 +155,17 @@ def min_max_scale(X, desired_range=(0,1)):
 	X_scaled = X_std * (max_v - min_v) + min_v
 	return X_scaled
 
-def recompute_from_res_per_slice_h5(volfns, emfns, k, v, fp):
+def recompute_from_res_per_slice_h5(volfns, emfns, k, v, fp, limit=100):
 	'''
 	Helper function to iterate over the whole dataset in order to replace the labels with its
 	clustering labels and save them in h5 files.
 	'''
 	with h5py.File(fp+'neuroglancer.h5', 'w') as f:
+		if limit is not None:
+			volfns = volfns[:limit]
 		vol = imageio.imread(volfns[0])
-		ds = f.create_dataset('labels', shape=(len(volfns), *vol.shape))
-		ds2 = f.create_dataset('images', shape=(len(volfns), *vol.shape))
+		ds = f.create_dataset('label', shape=(len(volfns), *vol.shape))
+		ds2 = f.create_dataset('image', shape=(len(volfns), *vol.shape))
 		for idx, fns in tqdm(enumerate(volfns), total=len(volfns)):
 			if os.path.exists(fns):
 				vol = imageio.imread(fns)
@@ -174,5 +176,5 @@ def recompute_from_res_per_slice_h5(volfns, emfns, k, v, fp):
 			else:
 				raise ValueError('image {} not found.'.format(fns))
 
-			ds[idx] = cld_labels
+			ds[idx] = cld_labels/cld_labels.max()
 			ds2[idx] = em/em.max()

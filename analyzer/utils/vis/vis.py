@@ -10,7 +10,7 @@ port = 13333 # change to an unused port number
 neuroglancer.set_server_bind_address(bind_address=ip, bind_port=port)
 #Create a new viewer. This starts a webserver in a background thread, which serves a copy of the Neuroglancer client.
 viewer = neuroglancer.Viewer()
-file = '/mnt/c/Users/kevin/code/EManalysis/outputs/neuroglancer.h5'
+file = 'outputs/neuroglancer.h5'
 # resolution & dimension of the data
 res = [4, 4, 40];
 dim = neuroglancer.CoordinateSpace(names=['x', 'y', 'z'],
@@ -25,7 +25,7 @@ with viewer.txn() as s:
 # Image section
 print('load image')
 image = h5py.File(file, 'r')
-tmp_im = np.array(image['images'][:100, :1000, :1000])
+tmp_im = np.array(image['image'][:100, :1000, :1000])
 data_im = np.swapaxes(tmp_im, 0, 2)
 with viewer.txn() as s:
     s.layers.append(
@@ -37,19 +37,19 @@ with viewer.txn() as s:
             dimensions = dim
         ))
     #s.projection_scale=2000000000
-
 # Segmentation section
 print('load segmentation')
 image = h5py.File(file, 'r')
-tmp_gt = np.array(image['labels'][:100, :1000, :1000])
+tmp_gt = np.array(image['label'][:100, :1000, :1000])
 data_gt = np.swapaxes(tmp_gt, 0, 2)
 with viewer.txn() as s:
     s.layers.append(
         name = 'segmentation',
         layer = neuroglancer.LocalVolume(
             data = data_gt,
-            #voxel_size = res
-            dimensions = dim
+            #voxel_size = res,
+            dimensions = dim,
+            volume_type = "segmentation"
         ))
     s.layout = '3d'
 print(viewer)
