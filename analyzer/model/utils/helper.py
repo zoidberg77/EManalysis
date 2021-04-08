@@ -1,9 +1,13 @@
+import glob
 import os, sys
 import numpy as np
 import multiprocessing
 import functools
 import imageio
+import h5py
 from scipy.sparse import bsr_matrix, coo_matrix, csr_matrix
+from skimage.color import label2rgb
+from tqdm import tqdm
 
 from analyzer.data.data_raw import save_m_to_image
 
@@ -36,7 +40,7 @@ def convert_to_sparse(inputs):
 
 	return (sparse)
 
-def recompute_from_res(labels, result, vol= None, volfns=None, dprc='full', fp='', mode='3d'):
+def recompute_from_res(labels, result, vol= None, volfns=None, dprc='full', fp='', mode='3d', neuroglancer=False, em_path=None):
 	'''
 	Take the result labels from clustering algorithm and adjust the old labels. NOTE: '3d' mode is way faster.
 	:param labels: (np.array) vector that contains old labels that you want to adjust.
@@ -77,8 +81,12 @@ def recompute_from_res(labels, result, vol= None, volfns=None, dprc='full', fp='
 		k = np.array(list(ldict.keys()))
 		v = np.array(list(ldict.values()))
 
-		with multiprocessing.Pool(processes=multiprocessing.cpu_count()) as pool:
-			pool.starmap(functools.partial(recompute_from_res_per_slice, k=k, v=v, fp=fp), enumerate(volfns))
+		if neuroglancer:
+			emfns = glob.glob(em_path+"*.png")
+			recompute_from_res_per_slice_h5(volfns, emfns, k=k, v=v, fp=fp)
+		else:
+			with multiprocessing.Pool(processes=multiprocessing.cpu_count()) as pool:
+				pool.starmap(functools.partial(recompute_from_res_per_slice, k=k, v=v, fp=fp), enumerate(volfns))
 		cld_labels = 0 #Just to avoid error message.
 	else:
 		raise ValueError('No valid data processing option choosen. Please choose \'full\' or \'iter\'.')
@@ -146,3 +154,25 @@ def min_max_scale(X, desired_range=(0,1)):
 	X_std = (X - X.min()) / (X.max() - X.min())
 	X_scaled = X_std * (max_v - min_v) + min_v
 	return X_scaled
+
+def recompute_from_res_per_slice_h5(volfns, emfns, k, v, fp):
+	'''
+	Helper function to iterate over the whole dataset in order to replace the labels with its
+	clustering labels and save them in h5 files.
+	'''
+	with h5py.File(fp+'neuroglancer.h5', 'w') as f:
+		vol = imageio.imread(volfns[0])
+		ds = f.create_dataset('labels', shape=(len(volfns), *vol.shape))
+		ds2 = f.create_dataset('images', shape=(len(volfns), *vol.shape))
+		for idx, fns in tqdm(enumerate(volfns), total=len(volfns)):
+			if os.path.exists(fns):
+				vol = imageio.imread(fns)
+				em = imageio.imread(emfns[idx])
+				mapv = np.zeros(k.max() + 1)
+				mapv[k] = v
+				cld_labels = mapv[vol]
+			else:
+				raise ValueError('image {} not found.'.format(fns))
+
+			ds[idx] = cld_labels
+			ds2[idx] = em/em.max()

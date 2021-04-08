@@ -32,3 +32,4 @@ CLUSTER:
   WEIGHTSF: [1, 1, 1, 1, 1]
   N_CLUSTER: 3
   OUTPUTPATH: 'outputs/'
+  NEUROGLANCER: False
