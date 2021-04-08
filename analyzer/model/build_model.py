@@ -174,7 +174,7 @@ class Clustermodel():
 		clst_m = self.prep_cluster_matrix(labels, feat)
 		res_labels = self.model.fit_predict(clst_m)
 		_, gtfns = self.fe.get_fns()
-		_ = recompute_from_res(labels, res_labels, volfns=gtfns, dprc=self.cfg.MODE.DPRC, fp=self.cfg.CLUSTER.OUTPUTPATH)
+		_ = recompute_from_res(labels, res_labels, volfns=gtfns, dprc=self.cfg.MODE.DPRC, fp=self.cfg.CLUSTER.OUTPUTPATH, neuroglancer=self.cfg.CLUSTER.NEUROGLANCER, em_path=self.cfg.DATASET.EM_PATH)
 
 		print('\nfinished clustering.')
 

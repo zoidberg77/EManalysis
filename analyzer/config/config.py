@@ -67,6 +67,7 @@ _C.CLUSTER.FEAT_LIST = ['sizef', 'distf', 'shapef', 'textf', 'circf']
 _C.CLUSTER.WEIGHTSF = [1, 1, 1 ,1, 1]
 _C.CLUSTER.N_CLUSTER = 6
 _C.CLUSTER.OUTPUTPATH = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'outputs/')
+_C.CLUSTER.NEUROGLANCER = False
 
 def get_cfg_defaults():
     '''
