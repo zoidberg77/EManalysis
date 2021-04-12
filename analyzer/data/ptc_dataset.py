@@ -54,9 +54,9 @@ class PtcDataloader():
         '''
         with h5py.File(self.ptfn, 'r') as h5f:
             group = h5f.get('ptcs')
-            #tmp = np.array(group[str(idx)])
-            tmp, _ = self.recur(group, idx)
-            return tmp[None,:,:]
+            #ptc = np.array(group[str(idx)])
+            ptc, idx = self.recur(group, idx)
+            return ptc[None,:,:]
 
     @property
     def keys(self):
@@ -87,3 +87,4 @@ class PtcDataloader():
         else:
             idx = idx + 1
             tmp, idx = self.recur(group, idx)
+            return tmp, idx
