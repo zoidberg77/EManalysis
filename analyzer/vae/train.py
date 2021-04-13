@@ -266,7 +266,6 @@ class PtcTrainer():
 		running_loss = list()
 		for epoch in range(1, self.epochs + 1):
 			for i, data in enumerate(self.train_dl):
-				print('data shape: ', data.shape)
 				data = data.to(self.device).float()
 				self.optimizer.zero_grad()
 				x = self.model(data)
@@ -298,7 +297,7 @@ class PtcTrainer():
 		running_loss = list()
 		with torch.no_grad():
 			for i, data in enumerate(self.test_dl):
-				data = data.to(self.device)
+				data = data.to(self.device).float()
 				x = self.model(data)
 				loss = self.loss(x, data)
 				running_loss.append(loss.item())
@@ -329,14 +328,10 @@ class PtcTrainer():
 
 			with torch.no_grad():
 				for c, idx in enumerate(self.dataset.keys):
-					print(c)
-					print(self.dataset[idx].shape)
 					data = torch.from_numpy(self.dataset[idx])
 					data = data.unsqueeze(0).float()
-					print(data)
 					data.to(self.device)
 					x = self.model.latent_representation(data).cpu().numpy()
-					print(x.shape)
 
 					h5f['ptcs'][c] = x
 					h5f['id'][c] = idx
