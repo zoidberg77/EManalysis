@@ -2,13 +2,14 @@ from typing import List
 
 import numpy as np
 import torch
+from chamferdist import ChamferDistance
 from torch import nn
 from torch.nn import functional as F
 import pytorch_lightning as pl
 from torchvision import transforms
 
 from analyzer.vae.model.block import conv2d_norm_act
-
+from torch.utils.data import random_split, DataLoader
 
 class RandomPtcVae(pl.LightningModule):
     def __init__(self,
@@ -36,6 +37,7 @@ class RandomPtcVae(pl.LightningModule):
         self.latent_space = latent_space
         self.sample_size = sample_size
         self.lr = lr
+        self.dist = ChamferDistance()
 
         shared_kwargs = {
             'pad_mode': pad_mode,
@@ -78,16 +80,15 @@ class RandomPtcVae(pl.LightningModule):
 
     def step(self, batch, batch_idx):
         x = batch
-        print(x.min().item(), x.max().item(), x.shape)
+        #print(x.min().item(), x.max().item(), x.shape)
         x = self.encoder(x)
         x = torch.flatten(x, start_dim=1)
         feats = self.encoder_last(x)
         z = self.fc(feats)
         z = z.view(-1, *self.encoder_dim)
         x_hat = self.decoder(z)
-        print(x_hat.min().item(), x_hat.max().item())
-        loss = F.l1_loss(x_hat, batch)
-
+        #print(x_hat.min().item(), x_hat.max().item())
+        loss = self.loss(x_hat, batch)
         return loss, {"loss": loss}
 
     def training_step(self, batch, batch_idx):
@@ -103,8 +104,16 @@ class RandomPtcVae(pl.LightningModule):
     def configure_optimizers(self):
         return torch.optim.Adam(self.parameters(), lr=self.lr)
 
+    def loss(self, reconstruction, org_data):
+        rec = torch.squeeze(reconstruction)
+        org = torch.squeeze(org_data)
+        #loss = [self.dist(rec[batch].float(), org[batch].float()) for batch in range(rec.shape[0])]
+        loss = self.dist(rec.float(), org.float())
+        #torch.mean(torch.Tensor(loss))
+        return loss
 
-from torch.utils.data import random_split, DataLoader
+
+
 
 
 class RandomPtcDataModule(pl.LightningDataModule):
