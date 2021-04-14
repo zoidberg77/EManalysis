@@ -22,7 +22,7 @@ class RandomPtcVae(pl.LightningModule):
                  isotropy: List[bool] = [False, False, False, True, True],
                  pad_mode: str = 'replicate',
                  act_mode: str = 'elu',
-                 norm_mode: str = 'bn',
+                 norm_mode: str = 'None',
                  pooling: bool = False,
                  sample_size=1000,
                  lr = 1e-4,
@@ -45,9 +45,11 @@ class RandomPtcVae(pl.LightningModule):
             'norm_mode': norm_mode}
 
         encoder_modules = []
-        encoder_modules.append(conv2d_norm_act(self.in_channel, self.filters[0], self.kernel_size, self.padding, **shared_kwargs))
+        encoder_modules.append(nn.Conv2d(self.in_channel, self.filters[0], kernel_size=self.kernel_size, padding=self.padding))
+        encoder_modules.append(nn.ReLU())
         for i, filter in enumerate(self.filters[:-1]):
-            encoder_modules.append(conv2d_norm_act(filter, self.filters[i+1], self.kernel_size, self.padding, **shared_kwargs))
+            encoder_modules.append(nn.Conv2d(filter, self.filters[i+1], kernel_size=self.kernel_size, padding=self.padding))
+            encoder_modules.append(nn.ReLU())
 
         self.encoder = nn.Sequential(*encoder_modules)
         self.encoder_dim = self.encoder(torch.zeros(1, 1, self.sample_size, 3)).size()[1:]
@@ -59,7 +61,7 @@ class RandomPtcVae(pl.LightningModule):
             self.decoder_modules.append(
                 nn.ConvTranspose2d(self.filters[i], self.filters[i-1], kernel_size=self.kernel_size, padding=self.padding))
             self.decoder_modules.append(nn.ReLU())
-            self.decoder_modules.append(nn.BatchNorm2d(self.filters[i-1]))
+            #self.decoder_modules.append(nn.BatchNorm2d(self.filters[i-1]))
 
         self.decoder_modules.append(
             nn.ConvTranspose2d(self.filters[0], self.out_channel, kernel_size=self.kernel_size, padding=self.padding))
