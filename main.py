@@ -1,15 +1,20 @@
 import argparse
 import sys
 
+import torch
+
 from analyzer.config import get_cfg_defaults
 from analyzer.data import Dataloader, PtcDataloader
+from analyzer.data.random_ptc_dataset import RandomPtcDataset
 from analyzer.model import Clustermodel
 from analyzer.vae import train
 from analyzer.vae.model.utils.pt import point_cloud
 from analyzer.data.data_vis import visptc
+from analyzer.vae.model.random_ptc_vae import RandomPtcVae, RandomPtcDataModule
 
 import matplotlib.pyplot as plt
 import numpy as np
+import pytorch_lightning as pl
 
 # RUN THE SCRIPT LIKE: $ python main.py --cfg configs/process.yaml
 # Apply your specification within the .yaml file.
@@ -87,7 +92,15 @@ def main():
 			trainer = train.Trainer(dataset=dl, train_percentage=0.7, optimizer_type="adam", loss_function="l1", cfg=cfg)
 			trainer.save_latent_feature()
 		return
+	elif cfg.MODE.PROCESS == "rptctrain":
+		print('--- Starting the training process for the vae based on point clouds(random). --- \n')
+		rptc_model = RandomPtcVae()
+		ptc_dataset = RandomPtcDataset(cfg, 1000)
+		trainer = pl.Trainer(gradient_clip_val=0.5)
+		ptc_datamodule= RandomPtcDataModule(dataset=ptc_dataset, batch_size=cfg.AUTOENCODER.BATCH_SIZE)
+		trainer.fit(rptc_model.double(), ptc_datamodule)
 
+		return
 	model = Clustermodel(cfg, em, gt, dl=dl)
 	#model.visualize()
 	model.run()

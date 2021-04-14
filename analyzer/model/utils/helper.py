@@ -176,5 +176,5 @@ def recompute_from_res_per_slice_h5(volfns, emfns, k, v, fp, limit=100):
 			else:
 				raise ValueError('image {} not found.'.format(fns))
 
-			ds[idx] = cld_labels/cld_labels.max()
+			ds[idx] = cld_labels.astype(np.uint16)
 			ds2[idx] = em/em.max()
