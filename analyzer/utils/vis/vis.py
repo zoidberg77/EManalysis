@@ -13,9 +13,6 @@ viewer = neuroglancer.Viewer()
 file = 'outputs/neuroglancer.h5'
 # resolution & dimension of the data
 res = [4, 4, 40];
-dim = neuroglancer.CoordinateSpace(names=['x', 'y', 'z'],
-                                   units='nm',
-                                   scales=[4, 4, 40])
 # Adapting viewer config
 '''
 with viewer.txn() as s:
@@ -33,8 +30,8 @@ with viewer.txn() as s:
         layer=neuroglancer.LocalVolume(
             data=data_im,
             #data=np.array(image['main'][:100, :1000, :1000]),
-            #voxel_size=res
-            dimensions = dim
+            #voxel_size=res,
+            volume_type='image'
         ))
     #s.projection_scale=2000000000
 # Segmentation section
@@ -47,8 +44,7 @@ with viewer.txn() as s:
         name = 'segmentation',
         layer = neuroglancer.LocalVolume(
             data = data_gt,
-            #voxel_size = res,
-            dimensions = dim,
+            voxel_size = res,
             volume_type = "segmentation"
         ))
     s.layout = '3d'

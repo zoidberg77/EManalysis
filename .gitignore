@@ -18,3 +18,4 @@ notebooks/analyzer
 
 .vscode
 configs/vae.yaml
+/lightning_logs/
