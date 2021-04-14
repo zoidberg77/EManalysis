@@ -10,7 +10,7 @@ AUTOENCODER:
   TARGET: (64, 64, 64)
   EPOCHS: 5
   BATCH_SIZE: 1
-  OUTPUT_FOLDER: 'features/human/'
+  OUTPUT_FOLDER: 'features/mouseA/'
   FEATURES: ['shape', 'texture']
   LATENT_SPACE: 100
   MAX_MEAN: 0.001
@@ -19,19 +19,19 @@ AUTOENCODER:
   LOG_INTERVAL: 10
   PTC_NUM_POINTS: 10000
 DATASET:
-  EM_PATH: 'datasets/human/human_em_export_8nm/'
-  LABEL_PATH: 'datasets/human/human_gt_export_8nm/'
+  EM_PATH: 'datasets/mouseA/em_export/'
+  LABEL_PATH: 'datasets/mouseA/mito_export_maingroups/'
   FILE_FORMAT: 'png'
   CHUNK_SIZE: [2, 4096, 4096]
-  DATAINFO: 'features/human/data_info.json'
-  ROOTF: 'features/human/'
+  DATAINFO: 'features/mouseA/data_info.json'
+  ROOTF: 'features/mouseA/'
 MODE:
   PROCESS: ''
   DPRC: 'iter'
 CLUSTER:
   ALG: 'kmeans'
-  FEAT_LIST: ['sizef', 'distf', 'circf', 'shapef', 'texturef']
-  WEIGHTSF: [1, 1, 1, 1, 1]
-  N_CLUSTER: 3
-  OUTPUTPATH: 'outputs/human/'
+  FEAT_LIST: ['sizef', 'distf', 'circf']
+  WEIGHTSF: [1, 1, 1]
+  N_CLUSTER: 4
+  OUTPUTPATH: 'outputs/mouseA/'
   NEUROGLANCER: False

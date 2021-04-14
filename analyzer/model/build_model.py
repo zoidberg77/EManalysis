@@ -2,7 +2,7 @@ import os, sys
 import numpy as np
 import h5py
 import imageio
-#import hdbscan
+import hdbscan
 from scipy.spatial import distance
 from sklearn.cluster import KMeans, AffinityPropagation, SpectralClustering, DBSCAN
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
@@ -61,8 +61,7 @@ class Clustermodel():
 		elif mn == 'dbscan':
 			model = DBSCAN()
 		elif mn == 'hdbscan':
-			#model = hdbscan.HDBSCAN(min_cluster_size=self.n_cluster, gen_min_span_tree=True)
-			pass
+			model = hdbscan.HDBSCAN(min_cluster_size=self.n_cluster, gen_min_span_tree=True)
 		else:
 			raise ValueError('Please enter a valid clustering algorithm. -- \'kmeans\', \'affprop\', \'specCl\', \'dbscan\', \'hdbscan\'')
 
@@ -161,6 +160,7 @@ class Clustermodel():
 		'''
 		Visualize some results.
 		'''
+		#TODO: write that function out properly.
 		visvol(imageio.imread('datasets/human/human_em_export_8nm/human_em_export_s0220.png'), \
 	    imageio.imread('outputs/cluster_mask_5_circf_220.png'), filename='circf_5_em_220', ff='png', save=True, dpi=1200)
 		if end:

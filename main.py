@@ -52,6 +52,9 @@ def main():
 	dl = Dataloader(cfg)
 	em, gt = dl.load_chunk(vol='both')
 
+	#from analyzer.data.data_vis import visvol
+	#visvol(em[0], gt[0])
+
 	if cfg.MODE.PROCESS == "preprocessing":
 		dl.extract_scale_mitos()
 		return

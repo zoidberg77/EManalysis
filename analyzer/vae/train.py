@@ -301,8 +301,8 @@ class PtcTrainer():
 				x = self.model(data)
 				loss = self.loss(x, data)
 				running_loss.append(loss.item())
-				if not i % self.cfg.AUTOENCODER.LOG_INTERVAL and i > 0:
-					self.save_ptcs(x)
+				#if not i % self.cfg.AUTOENCODER.LOG_INTERVAL and i > 0:
+					#self.save_ptcs(x)
 
 			test_total_loss = sum(running_loss) / len(running_loss)
 			print("Epoch {}: Test total loss: {} \n".format(self.current_epoch, test_total_loss))
