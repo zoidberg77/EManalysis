@@ -105,8 +105,8 @@ class RandomPtcVae(pl.LightningModule):
         return torch.optim.Adam(self.parameters(), lr=self.lr)
 
     def loss(self, reconstruction, org_data):
-        rec = torch.squeeze(reconstruction)
-        org = torch.squeeze(org_data)
+        rec = torch.squeeze(reconstruction, dim=1)
+        org = torch.squeeze(org_data, dim=1)
         #loss = [self.dist(rec[batch].float(), org[batch].float()) for batch in range(rec.shape[0])]
         loss = self.dist(rec.float(), org.float())
         #torch.mean(torch.Tensor(loss))
