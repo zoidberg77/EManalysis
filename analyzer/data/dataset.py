@@ -21,16 +21,16 @@ class Dataloader():
     '''
     Dataloader class for handling the em dataset and the related labels.
 
-    :param volpath: (string) path to the directory that contains the em volume(s).
-    :param gtpath: (string) path to the directory that contains the groundtruth volume(s).
-    :param volume:
-    :param label:
+    :param cfg: configuration manager.
+    :param volume: the EM volume.
+    :param labels: labels that are defined by human or segmentation and will be clustered soon.
+    :param gt: groundtruth data (cluster)
+    :param feature: Defines the feature that the VAE should go for.
     :param chunk_size: (tuple) defines the chunks in which the data is loaded. Can help to overcome Memory errors.
-    :param mode: (string) Sets the mode in which the volume should be clustered (3d || 2d).
     :param ff: (string) defines the file format that you want to work with. (default: png)
     '''
 
-    def __init__(self, cfg, volume=None, label=None, feature="shape"):
+    def __init__(self, cfg, volume=None, labels=None, gt=None, feature="shape"):
         self.cfg = cfg
         if volume is not None:
             print('em data loaded: ', self.volume.shape)
@@ -38,11 +38,17 @@ class Dataloader():
             self.volpath = self.cfg.DATASET.EM_PATH
             self.volume = volume
 
-        if label is not None:
-            print('gt data loaded: ', self.label.shape)
+        if labels is not None:
+            print('label data loaded: ', self.labels.shape)
         else:
-            self.gtpath = self.cfg.DATASET.LABEL_PATH
-            self.label = label
+            self.labelpath = self.cfg.DATASET.LABEL_PATH
+            self.labels = labels
+
+        if labels is not None:
+            print('gt data loaded: ', self.labels.shape)
+        else:
+            self.gtpath = self.cfg.DATASET.GT_PATH
+            self.gt = gt
 
         self.chunk_size = self.cfg.DATASET.CHUNK_SIZE
         self.ff = self.cfg.DATASET.FILE_FORMAT
@@ -77,43 +83,55 @@ class Dataloader():
             return f[self.vae_feature + "_volume"][idx]
 
     def get_fns(self):
-        '''returns the em and gt filenames of every image.'''
+        '''returns the em and label filenames of every image.'''
         emfns = sorted(glob.glob(self.volpath + '*.' + self.ff))
-        gtfns = sorted(glob.glob(self.gtpath + '*.' + self.ff))
-        return emfns, gtfns
+        labelfns = sorted(glob.glob(self.labelpath + '*.' + self.ff))
+        return emfns, labelfns
 
-    def load_chunk(self, vol='both', mode='3d'):
+    def get_fns(self):
+        '''returns the em, label and gt filenames of every image.'''
+        emfns = sorted(glob.glob(self.volpath + '*.' + self.ff))
+        labelfns = sorted(glob.glob(self.labelpath + '*.' + self.ff))
+        gtfns = sorted(glob.glob(self.gtpath + '*.' + self.ff))
+        return (emfns, labelfns, gtfns)
+
+    def load_chunk(self, vol='all', mode='3d'):
         '''
         Load chunk of em and groundtruth data for further processing.
-        :param vol: (string) choose between -> 'both', 'em', 'gt' in order to specify
+        :param vol: (string) choose between -> 'all', 'em', 'label' in order to specify
                      with volume you want to load.
         '''
         emfns = sorted(glob.glob(self.volpath + '*.' + self.ff))
-        gtfns = sorted(glob.glob(self.gtpath + '*.' + self.ff))
+        labelfns = sorted(glob.glob(self.labelpath + '*.' + self.ff))
         emdata = 0
+        labels = 0
         gt = 0
 
         if mode == '2d':
-            if (vol == 'em') or (vol == 'both'):
+            if (vol == 'em') or (vol == 'all'):
                 emdata = readvol(emfns[0])
                 emdata = np.squeeze(emdata)
                 print('em data loaded: ', emdata.shape)
-            if (vol == 'gt') or (vol == 'both'):
-                gt = readvol(gtfns[0])
-                gt = np.squeeze(gt)
-                print('gt data loaded: ', gt.shape)
+            if (vol == 'label') or (vol == 'all'):
+                labels = readvol(labelfns[0])
+                labels = np.squeeze(labels)
+                print('label data loaded: ', labels.shape)
 
         if mode == '3d':
-            if (vol == 'em') or (vol == 'both'):
+            if (vol == 'em') or (vol == 'all'):
                 if self.volume is None:
                     emdata = folder2Vol(self.volpath, self.chunk_size, file_format=self.ff)
                     print('em data loaded: ', emdata.shape)
-            if (vol == 'gt') or (vol == 'both'):
-                if self.label is None:
+            if (vol == 'label') or (vol == 'all'):
+                if self.labels is None:
+                    labels = folder2Vol(self.labelpath, self.chunk_size, file_format=self.ff)
+                    print('label data loaded: ', labels.shape)
+            if (vol == 'gt') or (vol == 'all'):
+                if self.gt is None:
                     gt = folder2Vol(self.gtpath, self.chunk_size, file_format=self.ff)
                     print('gt data loaded: ', gt.shape)
 
-        return (emdata, gt)
+        return (emdata, labels, gt)
 
     def list_segments(self, vol, labels, min_size=2000, os=0, mode='3d'):
         '''
@@ -172,7 +190,7 @@ class Dataloader():
 
         return (bbox_dict)
 
-    def prep_data_info(self, volopt='gt', save=False):
+    def prep_data_info(self, volopt='label', save=False):
         '''
         This function aims as an inbetween function iterating over the whole dataset in efficient
         and memory proof fashion in order to preserve information that is needed for further steps.
@@ -181,8 +199,8 @@ class Dataloader():
 
         :returns added: (dict) that contains the labels with respective information as (list): [pixelsize, [slice_index(s)]]
         '''
-        if volopt == 'gt':
-            fns = sorted(glob.glob(self.gtpath + '*.' + self.ff))
+        if volopt == 'label':
+            fns = sorted(glob.glob(self.labelpath + '*.' + self.ff))
         elif volopt == 'em':
             fns = sorted(glob.glob(self.volpath + '*.' + self.ff))
         else:
@@ -364,7 +382,7 @@ class Dataloader():
         :param region:
         :returns gt_volume, em_volume:
         '''
-        gt_all_fn = sorted(glob.glob(self.gtpath + '*.' + self.ff))
+        gt_all_fn = sorted(glob.glob(self.labelpath + '*.' + self.ff))
         em_all_fn = sorted(glob.glob(self.volpath + '*.' + self.ff))
 
         gt_fns = [gt_all_fn[id] for id in region[2]]

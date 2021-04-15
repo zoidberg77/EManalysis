@@ -276,7 +276,6 @@ def calc_props(idx, fns, prop_list=['size', 'slices', 'centroid', 'circ', 'surfa
 			if 'surface_to_volume' in prop_list:
 				result[labels[l]].append(surface_to_volume_list[l])
 
-
 	return result
 
 def cc(area, perimeter):

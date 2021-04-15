@@ -9,7 +9,6 @@ from analyzer.data.random_ptc_dataset import RandomPtcDataset
 from analyzer.model import Clustermodel
 from analyzer.vae import train
 from analyzer.vae.model.utils.pt import point_cloud
-from analyzer.data.data_vis import visptc
 from analyzer.vae.model.random_ptc_vae import RandomPtcVae, RandomPtcDataModule
 
 import matplotlib.pyplot as plt
@@ -55,10 +54,15 @@ def main():
 		print(cfg, '\n')
 
 	dl = Dataloader(cfg)
-	em, gt = dl.load_chunk(vol='both')
+	em, labels, gt = dl.load_chunk()
+	#print(np.unique(gt[0]))
 
 	#from analyzer.data.data_vis import visvol
-	#visvol(em[0], gt[0])
+	#visvol(em[0], labels[0], gt[0])
+
+	#from analyzer.utils import Evaluationmodel
+	#eval = Evaluationmodel(cfg, dl)
+	#eval.create_gt_vector()
 
 	if cfg.MODE.PROCESS == "preprocessing":
 		dl.extract_scale_mitos()
@@ -102,8 +106,8 @@ def main():
 		trainer = pl.Trainer(gradient_clip_val=0.5)
 		ptc_datamodule= RandomPtcDataModule(dataset=ptc_dataset, batch_size=cfg.AUTOENCODER.BATCH_SIZE)
 		trainer.fit(rptc_model.double(), ptc_datamodule)
-
 		return
+
 	model = Clustermodel(cfg, em, gt, dl=dl)
 	#model.visualize()
 	model.run()

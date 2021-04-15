@@ -59,7 +59,7 @@ class Clustermodel():
 		elif mn == 'specCl':
 			model = SpectralClustering(n_clusters=self.n_cluster)
 		elif mn == 'dbscan':
-			model = DBSCAN()
+			model = DBSCAN(eps=0.5)
 		elif mn == 'hdbscan':
 			model = hdbscan.HDBSCAN(min_cluster_size=self.n_cluster, gen_min_span_tree=True)
 		else:

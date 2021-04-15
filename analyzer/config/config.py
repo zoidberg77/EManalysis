@@ -39,6 +39,7 @@ _C.AUTOENCODER.PTC_NUM_POINTS = 10000
 _C.DATASET = CN()
 _C.DATASET.EM_PATH = ''
 _C.DATASET.LABEL_PATH = ''
+_C.DATASET.GT_PATH = ''
 _C.DATASET.CHUNK_SIZE = [100, 4096, 4096]
 _C.DATASET.FILE_FORMAT = 'png'
 _C.DATASET.ROOTF = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'features/')

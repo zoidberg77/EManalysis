@@ -6,22 +6,36 @@ import open3d as o3d
 
 import cv2
 
-def visvol(vol, gt=None, filename='test', ff='png', save=False, dpi=500):
+def visvol(vol, gt=None, add=None, filename='test', ff='png', save=False, dpi=500):
 	'''
 	Visualizing data and results for simplicity.
 	:param vol: (np.array) em data volume.
-	:param vol: (np.array) groundtruth data volume.
-	'''
+	:param gt: (np.array) groundtruth data volume.
+	:param add: (np.array) additional volume that can be shown.
+ 	'''
 	if vol.ndim >= 3:
 		raise ValueError('The input volume is higher than 2 dimensions.')
 	else:
-		plt.figure()
-		plt.axis('off')
-		plt.imshow(vol, cmap = plt.cm.gray)
-		if gt is not None:
-			gt = zero_to_nan(gt)
-			#plt.imshow(gt, cmap='terrain', alpha=0.8)
-			plt.imshow(gt, cmap='gist_ncar', alpha=0.8)
+		fig = plt.figure()
+		if gt is not None and add is not None:
+			axes_list = list()
+			axes_list.append(zero_to_nan(gt))
+			axes_list.append(zero_to_nan(add))
+			for i, element in enumerate(axes_list):
+				fig.add_subplot(1, 2, i + 1)
+				plt.axis('off')
+				plt.imshow(vol, cmap = plt.cm.gray)
+				plt.imshow(element, cmap='gist_ncar', alpha=0.8)
+		else:
+			plt.axis('off')
+			plt.imshow(vol, cmap = plt.cm.gray)
+			if gt is not None and add is None:
+				gt = zero_to_nan(gt)
+				#plt.imshow(gt, cmap='terrain', alpha=0.8)
+				plt.imshow(gt, cmap='gist_ncar', alpha=0.8)
+			if gt is None and add is not None:
+				add = zero_to_nan(add)
+				plt.imshow(add, cmap='gist_ncar', alpha=0.8)
 
 		if save == True:
 			fn = filename + '.' + ff
