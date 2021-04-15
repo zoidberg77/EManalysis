@@ -2,13 +2,14 @@ from typing import List
 
 import numpy as np
 import torch
+from chamferdist import ChamferDistance
 from torch import nn
 from torch.nn import functional as F
 import pytorch_lightning as pl
 from torchvision import transforms
 
 from analyzer.vae.model.block import conv2d_norm_act
-
+from torch.utils.data import random_split, DataLoader
 
 class RandomPtcVae(pl.LightningModule):
     def __init__(self,
@@ -21,7 +22,7 @@ class RandomPtcVae(pl.LightningModule):
                  isotropy: List[bool] = [False, False, False, True, True],
                  pad_mode: str = 'replicate',
                  act_mode: str = 'elu',
-                 norm_mode: str = 'bn',
+                 norm_mode: str = 'None',
                  pooling: bool = False,
                  sample_size=1000,
                  lr = 1e-4,
@@ -36,6 +37,7 @@ class RandomPtcVae(pl.LightningModule):
         self.latent_space = latent_space
         self.sample_size = sample_size
         self.lr = lr
+        self.dist = ChamferDistance()
 
         shared_kwargs = {
             'pad_mode': pad_mode,
@@ -43,9 +45,11 @@ class RandomPtcVae(pl.LightningModule):
             'norm_mode': norm_mode}
 
         encoder_modules = []
-        encoder_modules.append(conv2d_norm_act(self.in_channel, self.filters[0], self.kernel_size, self.padding, **shared_kwargs))
+        encoder_modules.append(nn.Conv2d(self.in_channel, self.filters[0], kernel_size=self.kernel_size, padding=self.padding))
+        encoder_modules.append(nn.ReLU())
         for i, filter in enumerate(self.filters[:-1]):
-            encoder_modules.append(conv2d_norm_act(filter, self.filters[i+1], self.kernel_size, self.padding, **shared_kwargs))
+            encoder_modules.append(nn.Conv2d(filter, self.filters[i+1], kernel_size=self.kernel_size, padding=self.padding))
+            encoder_modules.append(nn.ReLU())
 
         self.encoder = nn.Sequential(*encoder_modules)
         self.encoder_dim = self.encoder(torch.zeros(1, 1, self.sample_size, 3)).size()[1:]
@@ -57,7 +61,7 @@ class RandomPtcVae(pl.LightningModule):
             self.decoder_modules.append(
                 nn.ConvTranspose2d(self.filters[i], self.filters[i-1], kernel_size=self.kernel_size, padding=self.padding))
             self.decoder_modules.append(nn.ReLU())
-            self.decoder_modules.append(nn.BatchNorm2d(self.filters[i-1]))
+            #self.decoder_modules.append(nn.BatchNorm2d(self.filters[i-1]))
 
         self.decoder_modules.append(
             nn.ConvTranspose2d(self.filters[0], self.out_channel, kernel_size=self.kernel_size, padding=self.padding))
@@ -78,16 +82,15 @@ class RandomPtcVae(pl.LightningModule):
 
     def step(self, batch, batch_idx):
         x = batch
-        print(x.min().item(), x.max().item(), x.shape)
+        #print(x.min().item(), x.max().item(), x.shape)
         x = self.encoder(x)
         x = torch.flatten(x, start_dim=1)
         feats = self.encoder_last(x)
         z = self.fc(feats)
         z = z.view(-1, *self.encoder_dim)
         x_hat = self.decoder(z)
-        print(x_hat.min().item(), x_hat.max().item())
-        loss = F.l1_loss(x_hat, batch)
-
+        #print(x_hat.min().item(), x_hat.max().item())
+        loss = self.loss(x_hat, batch)
         return loss, {"loss": loss}
 
     def training_step(self, batch, batch_idx):
@@ -103,8 +106,16 @@ class RandomPtcVae(pl.LightningModule):
     def configure_optimizers(self):
         return torch.optim.Adam(self.parameters(), lr=self.lr)
 
+    def loss(self, reconstruction, org_data):
+        rec = torch.squeeze(reconstruction, dim=1)
+        org = torch.squeeze(org_data, dim=1)
+        #loss = [self.dist(rec[batch].float(), org[batch].float()) for batch in range(rec.shape[0])]
+        loss = self.dist(rec.float(), org.float())
+        #torch.mean(torch.Tensor(loss))
+        return loss
 
-from torch.utils.data import random_split, DataLoader
+
+
 
 
 class RandomPtcDataModule(pl.LightningDataModule):
