@@ -23,9 +23,9 @@ class Evaluationmodel():
 	def __init__(self, cfg, dl, rsl_vector):
 		self.cfg = cfg
 		self.dl = dl
-		self.rsl_vector = rsl_vector
+		#self.rsl_vector = rsl_vector
 
-	def eval(self):
+	def eval(self, rsl_vector):
 		'''
 		Evaluation of the clustering by comparing the gt to the results.
 		'''

@@ -10,6 +10,7 @@ from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from analyzer.model.utils.helper import convert_to_sparse, recompute_from_res, convert_dict_mtx, min_max_scale
 from analyzer.data.data_vis import visvol, vissegments
 from analyzer.utils.eval import clusteravg
+from analyzer.utils import Evaluationmodel
 
 from .feat_extr_model import FeatureExtractor
 
@@ -44,6 +45,7 @@ class Clustermodel():
 
 		self.model = self.set_model(mn=self.alg)
 		self.fe = FeatureExtractor(self.cfg)
+		self.eval = Evaluationmodel(self.cfg, self.dl)
 
 		print(' --- model is set. algorithm: {}, clustering by the features: {} --- '.format(self.alg, str(self.feat_list).strip('[]')))
 
@@ -173,6 +175,8 @@ class Clustermodel():
 		labels, feat = self.get_features()
 		clst_m = self.prep_cluster_matrix(labels, feat)
 		res_labels = self.model.fit_predict(clst_m)
+		self.eval.eval(res_labels)
+
 		_, gtfns = self.fe.get_fns()
 		_ = recompute_from_res(labels, res_labels, volfns=gtfns, dprc=self.cfg.MODE.DPRC, fp=self.cfg.CLUSTER.OUTPUTPATH, neuroglancer=self.cfg.CLUSTER.NEUROGLANCER, em_path=self.cfg.DATASET.EM_PATH)
 
