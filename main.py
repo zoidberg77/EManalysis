@@ -115,7 +115,7 @@ def main():
 	em, labels, gt = dl.load_chunk()
 	model = Clustermodel(cfg, em, gt, dl=dl)
 	#model.visualize()
-	model.run()
+	#model.run()
 
 
 if __name__ == "__main__":
