@@ -53,16 +53,6 @@ def main():
 		print("Configuration details:")
 		print(cfg, '\n')
 
-
-	#print(np.unique(gt[0]))
-
-	#from analyzer.data.data_vis import visvol
-	#visvol(em[0], labels[0], gt[0])
-
-	#from analyzer.utils import Evaluationmodel
-	#eval = Evaluationmodel(cfg, dl)
-	#eval.create_gt_vector()
-
 	if cfg.MODE.PROCESS == "preprocessing":
 		dl = Dataloader(cfg)
 		em, labels, gt = dl.load_chunk()
@@ -113,7 +103,15 @@ def main():
 
 	dl = Dataloader(cfg)
 	em, labels, gt = dl.load_chunk()
-	model = Clustermodel(cfg, em, gt, dl=dl)
+
+	from analyzer.data.data_vis import visvol
+	visvol(em[0], labels[0], gt[0])
+
+	#from analyzer.utils import Evaluationmodel
+	#eval = Evaluationmodel(cfg, dl)
+	#eval.create_gt_vector()
+
+	#model = Clustermodel(cfg, em, gt, dl=dl)
 	#model.visualize()
 	#model.run()
 
