@@ -53,8 +53,7 @@ def main():
 		print("Configuration details:")
 		print(cfg, '\n')
 
-	dl = Dataloader(cfg)
-	em, labels, gt = dl.load_chunk()
+
 	#print(np.unique(gt[0]))
 
 	#from analyzer.data.data_vis import visvol
@@ -65,9 +64,13 @@ def main():
 	#eval.create_gt_vector()
 
 	if cfg.MODE.PROCESS == "preprocessing":
+		dl = Dataloader(cfg)
+		em, labels, gt = dl.load_chunk()
 		dl.extract_scale_mitos()
 		return
 	elif cfg.MODE.PROCESS == "ptcprep":
+		dl = Dataloader(cfg)
+		em, labels, gt = dl.load_chunk()
 		_, gtfns = dl.get_fns()
 		point_cloud(gtfns, cfg)
 		return
@@ -101,13 +104,15 @@ def main():
 		return
 	elif cfg.MODE.PROCESS == "rptctrain":
 		print('--- Starting the training process for the vae based on point clouds(random). --- \n')
-		rptc_model = RandomPtcVae()
-		ptc_dataset = RandomPtcDataset(cfg, 1000)
-		trainer = pl.Trainer(gradient_clip_val=0.5)
-		ptc_datamodule= RandomPtcDataModule(dataset=ptc_dataset, batch_size=cfg.AUTOENCODER.BATCH_SIZE)
-		trainer.fit(rptc_model.double(), ptc_datamodule)
+		rptc_model = RandomPtcVae(cfg).double()
+		ptc_dataset = RandomPtcDataset(cfg)
+		trainer = pl.Trainer()
+		ptc_datamodule = RandomPtcDataModule(cfg=cfg, dataset=ptc_dataset)
+		trainer.fit(rptc_model, ptc_datamodule)
 		return
 
+	dl = Dataloader(cfg)
+	em, labels, gt = dl.load_chunk()
 	model = Clustermodel(cfg, em, gt, dl=dl)
 	#model.visualize()
 	#model.run()

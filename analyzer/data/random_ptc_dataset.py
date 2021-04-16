@@ -34,7 +34,7 @@ class RandomPtcDataset():
     '''
     This is the Data module for the pointcloud autoencoder.
     '''
-    def __init__(self, cfg, sample_size):
+    def __init__(self, cfg, sample_size=2000):
         self.cfg = cfg
         self.sample_size = sample_size
         self.ptfn = cfg.DATASET.ROOTD + 'vae/pts' + '.h5'
@@ -57,9 +57,10 @@ class RandomPtcDataset():
             group = h5f.get('ptcs')
             #ptc = np.array(group[str(idx)])
             ptc, idx = self.recur(group, idx)
-            randome_indices = np.random.random_integers(ptc.shape[0] - 1, size=(self.sample_size))
-            ptc = ptc[randome_indices, :]
-            return ptc[None,:,:].astype(np.double)
+            if ptc.shape[0] > 10000:
+                randome_indices = np.random.random_integers(ptc.shape[0] - 1, size=(self.sample_size))
+                ptc = ptc[randome_indices, :]
+            return ptc[None,:,:]
 
     @property
     def keys(self):
