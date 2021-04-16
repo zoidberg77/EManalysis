@@ -7,6 +7,7 @@ import functools
 from numpyencoder import NumpyEncoder
 import imageio
 
+from sklearn.metrics import normalized_mutual_info_score, pair_confusion_matrix
 from analyzer.model.utils.extracting import calc_props
 
 class Evaluationmodel():
@@ -16,17 +17,23 @@ class Evaluationmodel():
 	keep it unsupervised.
 	:param cfg: configuration manager.
 	:param dl: Dataloader
+	:param rsl_vector: This is the resulting vector extracted from the clustering model.
+					   (n,) (np.array) with n beeing the number of samples.
 	'''
-	def __init__(self, cfg, dl):
+	def __init__(self, cfg, dl, rsl_vector):
 		self.cfg = cfg
 		self.dl = dl
+		self.rsl_vector = rsl_vector
 
-	def load_gt_vector(self, fn='gt_vector.json'):
-		if os.path.exists(os.path.join(self.cfg.DATASET.ROOTF, fn)) \
-				and os.stat(os.path.join(self.cfg.DATASET.ROOTF, fn)).st_size != 0:
-			with open(os.path.join(self.cfg.DATASET.ROOTF, fn), 'r') as f:
-				gt_vector = json.loads(f.read())
-		return gt_vector
+	def eval(self):
+		'''
+		Evaluation of the clustering by comparing the gt to the results.
+		'''
+		score = normalized_mutual_info_score(self.get_gt_vector(), rsl_vector)
+		print(score)
+
+	def get_gt_vector(self, fn='gt_vector.json'):
+		return self.create_gt_vector()
 
 	def create_gt_vector(self, fn='gt_vector.json', save=True):
 		'''
@@ -53,46 +60,27 @@ class Evaluationmodel():
 			for key, value in data_info.items():
 				slices = value[0]
 				centerpoints = value[1]
-				gt = imageio.imread(fns[slices[0]])
-
-				gt_vector[gt_ids.index(int(key))] = gt[centerpoints[0][0], centerpoints[0][1]]
+				for i, s in enumerate(slices):
+					gt = imageio.imread(fns[s])
+					if gt[centerpoints[i][0], centerpoints[i][1]] == 0:
+						continue
+					else:
+						gt_vector[gt_ids.index(int(key))] = gt[centerpoints[i][0], centerpoints[i][1]]
+						break
+				#gt = imageio.imread(fns[slices[0]])
+				#gt_vector[gt_ids.index(int(key))] = gt[centerpoints[0][0], centerpoints[0][1]]
 
 				if gt_ids.index(int(key)) % 1000 == 0:
-					print('altered {} labels for ground truth vector of {} labels.'.format(gt_ids.index(int(key)), len(gt_ids)))
+					print('altered [{}/{}] labels for ground truth vector.'.format(gt_ids.index(int(key)), len(gt_ids)))
 			if save:
 				with open(os.path.join(self.cfg.DATASET.ROOTF, 'gt_vector.json'), 'w') as f:
 					json.dump(gt_vector, f, cls=NumpyEncoder)
 					f.close()
 
-
-		#### Testing part #####
-		if os.path.exists(os.path.join(self.cfg.SYSTEM.ROOT_DIR, self.cfg.DATASET.DATAINFO)) \
-				and os.stat(os.path.join(self.cfg.SYSTEM.ROOT_DIR, self.cfg.DATASET.DATAINFO)).st_size != 0:
-			with open(os.path.join(self.cfg.SYSTEM.ROOT_DIR, self.cfg.DATASET.DATAINFO), 'r') as f:
-				data_info = json.loads(f.read())
-		else:
-			data_info = self.prep_data_info(save=True)
-
-		fns = sorted(glob.glob(self.dl.gtpath + '*.' + self.cfg.DATASET.FILE_FORMAT))
-		gt_ids = list(map(int, data_info.keys()))
-		for key, value in data_info.items():
-			if gt_vector[gt_ids.index(int(key))] == 0:
-				slices = value[0]
-				centerpoints = value[1]
-				gt = imageio.imread(fns[slices[1]])
-
-				gt_vector[gt_ids.index(int(key))] = gt[centerpoints[1][0], centerpoints[1][1]]
-			else:
-				continue
-
-		if save:
-			with open(os.path.join(self.cfg.DATASET.ROOTF, 'gt_vector.json'), 'w') as f:
-				json.dump(gt_vector, f, cls=NumpyEncoder)
-				f.close()
-
-		values, counts = np.unique(gt_vector, return_counts=True)
-		print(values)
-		print(counts)
+		#values, counts = np.unique(gt_vector, return_counts=True)
+		#print(values)
+		#print(counts)
+		return gt_vector
 
 	def prep_data_info(self, save=False):
 		'''
