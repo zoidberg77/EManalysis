@@ -57,7 +57,7 @@ class RandomPtcDataset():
             group = h5f.get('ptcs')
             #ptc = np.array(group[str(idx)])
             ptc, idx = self.recur(group, idx)
-            if ptc.shape[0] > 6000:
+            if ptc.shape[0] > 10000:
                 randome_indices = np.random.random_integers(ptc.shape[0] - 1, size=(self.sample_size))
                 ptc = ptc[randome_indices, :]
             return ptc[None,:,:]
