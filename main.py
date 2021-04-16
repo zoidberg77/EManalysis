@@ -106,7 +106,7 @@ def main():
 		print('--- Starting the training process for the vae based on point clouds(random). --- \n')
 		rptc_model = RandomPtcVae(cfg).double()
 		ptc_dataset = RandomPtcDataset(cfg)
-		trainer = pl.Trainer()
+		trainer = pl.Trainer(default_root_dir='datasets/vae/checkpoints')
 		ptc_datamodule = RandomPtcDataModule(cfg=cfg, dataset=ptc_dataset)
 		trainer.fit(rptc_model, ptc_datamodule)
 		return
