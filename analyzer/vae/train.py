@@ -11,6 +11,8 @@ from analyzer.vae.model import unet
 from analyzer.vae.model.ptc_vae import PTCvae
 from chamferdist import ChamferDistance
 
+from analyzer.vae.model.random_ptc_vae import RandomPtcDataModule
+
 
 class Trainer:
 	'''
@@ -321,7 +323,6 @@ class PtcTrainer():
 		self.model.eval()
 		self.model.to(self.device)
 		keys = self.dataset.keys
-
 		with h5py.File('features/{}f.h5'.format(self.vae_ptc_feature), 'w') as h5f:
 			h5f.create_dataset(name='ptcs', shape=(len(keys), self.cfg.AUTOENCODER.LATENT_SPACE_PTC))
 			h5f.create_dataset(name='id', shape=(len(keys),))
@@ -346,3 +347,18 @@ class PtcTrainer():
 			grp = h5f.create_group('ptcs')
 			grp.create_dataset(idx, data=ptc)
 			h5f.close()
+
+
+def random_ptc_infer(model, dataset):
+	ptc_datamodule = RandomPtcDataModule(cfg=dataset.cfg, dataset=dataset)
+	ptc_datamodule.setup()
+	ptc_dataloader = ptc_datamodule.train_dataloader()
+	keys = dataset.keys
+	with h5py.File('features/ptc_shapef.h', 'w') as f:
+		f.create_dataset(name='id', shape=(len(keys),))
+		for i, x in tqdm(enumerate(ptc_dataloader), total=len(keys)):
+			f['id'][i] = i
+			latent_space = model.save_latent(x)
+			if 'ptcs' not in f.keys():
+				f.create_dataset(name='ptcs', shape=(len(keys), latent_space.shape[-1]))
+			f['ptcs'][i] = latent_space

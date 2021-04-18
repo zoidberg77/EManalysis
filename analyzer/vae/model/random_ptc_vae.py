@@ -12,7 +12,7 @@ from analyzer.vae.model.block import conv2d_norm_act
 from torch.utils.data import random_split, DataLoader
 
 
-class RandomPtcVae(pl.LightningModule):
+class RandomPtcAe(pl.LightningModule):
     '''point cloud autoencoder. https://github.com/charlesq34/pointnet-autoencoder
 
     @InProceedings{Yang_2018_CVPR,
@@ -78,12 +78,8 @@ class RandomPtcVae(pl.LightningModule):
         return x
 
     def step(self, batch, batch_idx):
-        x = self.encoder(batch)
-        x = self.pool(x)
-        x = torch.flatten(x, start_dim=1)
-        x = self.decoder(x)
-        x = x.view(x.size(0), x.size(0), -1, 3)
-        loss = self.loss(x, batch)
+        x_hat = self.forward(batch)
+        loss = self.loss(batch, x_hat)
         return loss, {"loss": loss}
 
     def training_step(self, batch, batch_idx):
@@ -106,6 +102,12 @@ class RandomPtcVae(pl.LightningModule):
         loss = self.dist(rec.float(), org.float())
         # torch.mean(torch.Tensor(loss))
         return loss
+
+    def save_latent(self, x):
+        x = self.encoder(x)
+        x = self.pool(x)
+        x = torch.flatten(x, start_dim=1)
+        return x[0]
 
 
 class RandomPtcDataModule(pl.LightningDataModule):

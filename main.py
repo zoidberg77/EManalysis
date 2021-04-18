@@ -1,6 +1,8 @@
 import argparse
 import sys
+from glob import glob
 
+import h5py
 import torch
 
 from analyzer.config import get_cfg_defaults
@@ -9,7 +11,7 @@ from analyzer.data.random_ptc_dataset import RandomPtcDataset
 from analyzer.model import Clustermodel
 from analyzer.vae import train
 from analyzer.vae.model.utils.pt import point_cloud
-from analyzer.vae.model.random_ptc_vae import RandomPtcVae, RandomPtcDataModule
+from analyzer.vae.model.random_ptc_vae import RandomPtcAe, RandomPtcDataModule
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -17,6 +19,8 @@ import pytorch_lightning as pl
 
 # RUN THE SCRIPT LIKE: $ python main.py --cfg configs/process.yaml
 # Apply your specification within the .yaml file.
+from analyzer.vae.train import random_ptc_infer
+
 
 def create_arg_parser():
 	'''
@@ -94,11 +98,19 @@ def main():
 		return
 	elif cfg.MODE.PROCESS == "rptctrain":
 		print('--- Starting the training process for the vae based on point clouds(random). --- \n')
-		rptc_model = RandomPtcVae(cfg).double()
+		rptc_model = RandomPtcAe(cfg).double()
 		ptc_dataset = RandomPtcDataset(cfg)
 		trainer = pl.Trainer(default_root_dir='datasets/vae/checkpoints', max_epochs=cfg.AUTOENCODER.EPOCHS)
 		ptc_datamodule = RandomPtcDataModule(cfg=cfg, dataset=ptc_dataset)
 		trainer.fit(rptc_model, ptc_datamodule)
+		return
+	elif cfg.MODE.PROCESS == "rptcinfer":
+		print('--- Starting the training process for the vae based on point clouds(random). --- \n')
+		last_checkpoint = glob('datasets/vae/checkpoints/lightning_logs/**/*.ckpt', recursive=True)[0]
+		rptc_model = RandomPtcAe(cfg).load_from_checkpoint(last_checkpoint, cfg=cfg).double()
+		rptc_model.freeze()
+		ptc_dataset = RandomPtcDataset(cfg)
+		random_ptc_infer(rptc_model, ptc_dataset)
 		return
 
 	dl = Dataloader(cfg)
