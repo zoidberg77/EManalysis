@@ -108,7 +108,7 @@ class RandomPtcAe(pl.LightningModule):
         x = self.encoder(batch.double())
         x = self.pool(x)
         x = torch.flatten(x, start_dim=1)
-        with h5py.File('features/ptc_shapef.h', 'a') as f:
+        with h5py.File('features/ptc_shapef.h5', 'a') as f:
             f['id'][batch_idx] = batch_idx
             latent_space = x[0]
             f['ptcs'][batch_idx] = latent_space

@@ -354,7 +354,7 @@ def random_ptc_infer(model, dataset):
 	ptc_datamodule.setup()
 	ptc_dataloader = ptc_datamodule.train_dataloader()
 	keys = dataset.keys
-	with h5py.File('features/ptc_shapef.h', 'w') as f:
+	with h5py.File('features/ptc_shapef.h5', 'w') as f:
 		f.create_dataset(name='id', shape=(len(keys),))
 		for i, x in tqdm(enumerate(ptc_dataloader), total=len(keys)):
 			f['id'][i] = i
