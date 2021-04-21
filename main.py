@@ -125,11 +125,11 @@ def main():
 	from analyzer.data.data_vis import visvol
 	visvol(em[0], labels[0], gt[0])
 
-	#from analyzer.utils import Evaluationmodel
-	#eval = Evaluationmodel(cfg, dl)
-	#eval.create_gt_vector()
+	from analyzer.utils import Evaluationmodel
+	eval = Evaluationmodel(cfg, dl)
+	eval.create_gt_vector()
 
-	#model = Clustermodel(cfg, em, gt, dl=dl)
+	model = Clustermodel(cfg, em, gt, dl=dl)
 	#model.visualize()
 	#model.run()
 
