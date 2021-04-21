@@ -45,6 +45,7 @@ class RandomPtcDataset():
         :returns: integer
         '''
         with h5py.File(self.ptfn, 'r') as h5f:
+            return 10
             return len(list(h5f.get('ptcs').keys()))
 
     def __getitem__(self, idx):
