@@ -100,7 +100,7 @@ def main():
 		print('--- Starting the training process for the vae based on point clouds(random). --- \n')
 		rptc_model = RandomPtcAe(cfg).double()
 		ptc_dataset = RandomPtcDataset(cfg)
-		trainer = pl.Trainer(default_root_dir='datasets/vae/checkpoints', max_epochs=cfg.AUTOENCODER.EPOCHS)
+		trainer = pl.Trainer(default_root_dir='datasets/vae/checkpoints', max_epochs=cfg.AUTOENCODER.EPOCHS, gpus=cfg.SYSTEM.NUM_GPUS)
 		ptc_datamodule = RandomPtcDataModule(cfg=cfg, dataset=ptc_dataset)
 		trainer.fit(rptc_model, ptc_datamodule)
 		return
@@ -110,7 +110,7 @@ def main():
 		rptc_model = RandomPtcAe(cfg).load_from_checkpoint(last_checkpoint, cfg=cfg).double()
 		rptc_model.freeze()
 		ptc_dataset = RandomPtcDataset(cfg)
-		trainer = pl.Trainer(default_root_dir='datasets/vae/checkpoints', max_epochs=cfg.AUTOENCODER.EPOCHS, checkpoint_callback=False)
+		trainer = pl.Trainer(default_root_dir='datasets/vae/checkpoints', max_epochs=cfg.AUTOENCODER.EPOCHS, checkpoint_callback=False, gpus=cfg.SYSTEM.NUM_GPUS)
 		ptc_datamodule = RandomPtcDataModule(cfg=cfg, dataset=ptc_dataset)
 
 		with h5py.File('features/ptc_shapef.h5', 'w') as f:
