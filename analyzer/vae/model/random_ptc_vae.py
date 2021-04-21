@@ -1,5 +1,6 @@
 from typing import List
 
+import h5py
 import numpy as np
 import torch
 from chamferdist import ChamferDistance
@@ -103,11 +104,18 @@ class RandomPtcAe(pl.LightningModule):
         # torch.mean(torch.Tensor(loss))
         return loss
 
-    def save_latent(self, x):
-        x = self.encoder(x)
+    def test_step(self, batch, batch_idx):
+        x = self.encoder(batch.double())
         x = self.pool(x)
         x = torch.flatten(x, start_dim=1)
-        return x[0]
+        with h5py.File('features/ptc_shapef.h', 'a') as f:
+            f['id'][batch_idx] = batch_idx
+            latent_space = x[0]
+            f['ptcs'][batch_idx] = latent_space
+        x = self.decoder(x)
+        x = x.view(x.size(0), x.size(0), -1, 3)
+        loss = self.loss(batch.double(), x)
+        return loss
 
 
 class RandomPtcDataModule(pl.LightningDataModule):
@@ -125,13 +133,13 @@ class RandomPtcDataModule(pl.LightningDataModule):
     def setup(self, stage=None):
         train_length = int(0.7 * len(self.dataset))
         test_length = len(self.dataset) - train_length
-        self.train_dataset, self.test_dataset = torch.utils.data.random_split(self.dataset, (train_length, test_length))
+        self.train_dataset, self.val_dataset = torch.utils.data.random_split(self.dataset, (train_length, test_length))
 
     def train_dataloader(self):
-        return DataLoader(self.train_dataset, batch_size=1, num_workers=self.cpus)
+        return DataLoader(self.train_dataset, batch_size=1, num_workers=self.cpus, shuffle=True)
 
     def val_dataloader(self):
-        return DataLoader(self.test_dataset, batch_size=1, num_workers=self.cpus)
+        return DataLoader(self.val_dataset, batch_size=1, num_workers=self.cpus, shuffle=False)
 
     def test_dataloader(self):
-        pass
+        return DataLoader(self.dataset, batch_size=1, num_workers=self.cpus, shuffle=False)
