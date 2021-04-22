@@ -46,9 +46,9 @@ class Evaluationmodel():
 				gt_vector = json.loads(f.read())
 		else:
 			print('gt vector not found. Will be computed.')
-			if os.path.exists(os.path.join(self.cfg.SYSTEM.ROOT_DIR, self.cfg.DATASET.DATAINFO)) \
-					and os.stat(os.path.join(self.cfg.SYSTEM.ROOT_DIR, self.cfg.DATASET.DATAINFO)).st_size != 0:
-				with open(os.path.join(self.cfg.SYSTEM.ROOT_DIR, self.cfg.DATASET.DATAINFO), 'r') as f:
+			if os.path.exists(os.path.join(self.cfg.SYSTEM.ROOT_DIR, self.cfg.DATASET.ROOTF, 'eval_data_info.json')) \
+					and os.stat(os.path.join(self.cfg.SYSTEM.ROOT_DIR, self.cfg.DATASET.ROOTF, 'eval_data_info.json')).st_size != 0:
+				with open(os.path.join(self.cfg.SYSTEM.ROOT_DIR, self.cfg.DATASET.ROOTF, 'eval_data_info.json'), 'r') as f:
 					data_info = json.loads(f.read())
 			else:
 				print('data info not found. Will be computed.')
@@ -111,7 +111,7 @@ class Evaluationmodel():
 					result_dict[key].append([value[2]])
 
 		if save:
-			with open(os.path.join(self.cfg.SYSTEM.ROOT_DIR, self.cfg.DATASET.DATAINFO), 'w') as f:
+			with open(os.path.join(self.cfg.SYSTEM.ROOT_DIR, self.cfg.DATASET.ROOTF, 'eval_data_info.json'), 'w') as f:
 				json.dump(result_dict, f, cls=NumpyEncoder)
 				f.close()
 		return result_array

@@ -7,9 +7,8 @@ from scipy.spatial import distance
 from sklearn.cluster import KMeans, AffinityPropagation, SpectralClustering, DBSCAN
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 
-from analyzer.model.utils.helper import convert_to_sparse, recompute_from_res, convert_dict_mtx, min_max_scale
+from analyzer.model.utils.helper import *
 from analyzer.data.data_vis import visvol, vissegments
-from analyzer.utils.eval import clusteravg
 from analyzer.utils import Evaluationmodel
 
 from .feat_extr_model import FeatureExtractor
@@ -115,11 +114,12 @@ class Clustermodel():
 					print('Loaded {} features to cache.'.format(fns[:-1]))
 
 			if idx == 0:
-				pass
-				#labels = base_labels
+				base_labels = labels
 			else:
-				#correct_idx_feat(
-				pass
+				if check_feature_order(base_labels, labels) is False:
+					print('ORDER IS WRONG. Correct the order of {} features.'.format(fns))
+					ordered_feat = correct_idx_feat(base_labels, labels, rs_feat_list[idx])
+					rs_feat_list[idx] = ordered_feat
 
 		return labels, rs_feat_list
 

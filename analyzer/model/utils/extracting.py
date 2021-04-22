@@ -8,7 +8,6 @@ import imageio
 import matplotlib.pyplot as plt
 from skimage.measure import label, regionprops
 from scipy.spatial import distance
-from analyzer.data.data_vis import visvol
 
 def compute_region_size(vol, dprc='full', fns=None, mode='3d'):
 	'''

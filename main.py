@@ -19,8 +19,6 @@ import pytorch_lightning as pl
 
 # RUN THE SCRIPT LIKE: $ python main.py --cfg configs/process.yaml
 # Apply your specification within the .yaml file.
-from analyzer.vae.train import random_ptc_infer
-
 
 def create_arg_parser():
 	'''
@@ -120,9 +118,7 @@ def main():
 		return
 
 	dl = Dataloader(cfg)
-	em, labels, gt = dl.load_chunk()
-
-	model = Clustermodel(cfg, em, gt, dl=dl)
+	model = Clustermodel(cfg, dl=dl)
 	model.run()
 
 

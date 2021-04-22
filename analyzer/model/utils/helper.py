@@ -107,16 +107,25 @@ def recompute_from_res_per_slice(idx, fns, k, v, fp):
 		raise ValueError('image {} not found.'.format(fns))
 	save_m_to_image(cld_labels, 'cluster_mask', fp=fp, idx=idx, ff='png')
 
-def correct_idx_feat(basis, new_labels, new_features):
+def correct_idx_feat(base_labels, labels, features):
 	'''
 	This function should check and if necessary correct the labeling order and their
 	corresponding features to not mix up different features for the clustering.
-	:param basis:
-	:param new_labels:
-	:param new_features:
-	:returns :
+	:param base_labels: (np.array) This is the reference labels order.
+	:param labels: (np.array) labels that do not fit the base_labels.
+	:param features: features that should be aligned according to the base_labels.
+	:returns : ordered features.
 	'''
-	pass
+	ordered_feat = np.array(shape=features.shape)
+	for i in range(base_labels.shape[0]):
+		feat_idx = np.where(labels == base_labels[i])
+		ordered_feat[i] = features[feat_idx]
+
+	return ordered_feat
+
+
+def check_feature_order(base_labels, labels):
+	return (base_labels == labels).all()
 
 def convert_dict_mtx(inputs, valn):
 	'''

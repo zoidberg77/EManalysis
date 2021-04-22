@@ -44,8 +44,8 @@ class Dataloader():
             self.labelpath = self.cfg.DATASET.LABEL_PATH
             self.labels = labels
 
-        if labels is not None:
-            print('gt data loaded: ', self.labels.shape)
+        if gt is not None:
+            print('gt data loaded: ', self.gt.shape)
         else:
             self.gtpath = self.cfg.DATASET.GT_PATH
             self.gt = gt
@@ -103,9 +103,9 @@ class Dataloader():
         '''
         emfns = sorted(glob.glob(self.volpath + '*.' + self.ff))
         labelfns = sorted(glob.glob(self.labelpath + '*.' + self.ff))
-        emdata = 0
-        labels = 0
-        gt = 0
+        #emdata = 0
+        #labels = 0
+        #gt = 0
 
         if mode == '2d':
             if (vol == 'em') or (vol == 'all'):
