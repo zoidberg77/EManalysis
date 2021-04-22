@@ -20,7 +20,7 @@ class Evaluationmodel():
 	:param rsl_vector: This is the resulting vector extracted from the clustering model.
 					   (n,) (np.array) with n beeing the number of samples.
 	'''
-	def __init__(self, cfg, dl, rsl_vector):
+	def __init__(self, cfg, dl):
 		self.cfg = cfg
 		self.dl = dl
 		#self.rsl_vector = rsl_vector
@@ -51,6 +51,7 @@ class Evaluationmodel():
 				with open(os.path.join(self.cfg.SYSTEM.ROOT_DIR, self.cfg.DATASET.DATAINFO), 'r') as f:
 					data_info = json.loads(f.read())
 			else:
+				print('data info not found. Will be computed.')
 				data_info = self.prep_data_info(save=True)
 
 			fns = sorted(glob.glob(self.dl.gtpath + '*.' + self.cfg.DATASET.FILE_FORMAT))
@@ -60,15 +61,17 @@ class Evaluationmodel():
 			for key, value in data_info.items():
 				slices = value[0]
 				centerpoints = value[1]
+				randompts = value[2]
 				for i, s in enumerate(slices):
 					gt = imageio.imread(fns[s])
-					if gt[centerpoints[i][0], centerpoints[i][1]] == 0:
+					if gt[centerpoints[i][0], centerpoints[i][1]] == 0 and gt[randompts[i][0], randompts[i][1]] == 0:
 						continue
 					else:
-						gt_vector[gt_ids.index(int(key))] = gt[centerpoints[i][0], centerpoints[i][1]]
+						if gt[centerpoints[i][0], centerpoints[i][1]] != 0:
+							gt_vector[gt_ids.index(int(key))] = gt[centerpoints[i][0], centerpoints[i][1]]
+						else:
+							gt_vector[gt_ids.index(int(key))] = gt[randompts[i][0], randompts[i][1]]
 						break
-				#gt = imageio.imread(fns[slices[0]])
-				#gt_vector[gt_ids.index(int(key))] = gt[centerpoints[0][0], centerpoints[0][1]]
 
 				if gt_ids.index(int(key)) % 1000 == 0:
 					print('altered [{}/{}] labels for ground truth vector.'.format(gt_ids.index(int(key)), len(gt_ids)))
@@ -77,9 +80,12 @@ class Evaluationmodel():
 					json.dump(gt_vector, f, cls=NumpyEncoder)
 					f.close()
 
-		#values, counts = np.unique(gt_vector, return_counts=True)
-		#print(values)
-		#print(counts)
+		values, counts = np.unique(gt_vector, return_counts=True)
+		if (values == 0).any():
+			print('gt vector contains 0 as label.')
+			print('values: ', values)
+			print('counts: ', counts)
+
 		return gt_vector
 
 	def prep_data_info(self, save=False):
@@ -89,7 +95,7 @@ class Evaluationmodel():
 		fns = sorted(glob.glob(self.dl.labelpath + '*.' + self.cfg.DATASET.FILE_FORMAT))
 
 		with multiprocessing.Pool(processes=multiprocessing.cpu_count()) as pool:
-			tmp = pool.starmap(functools.partial(calc_props, prop_list=['slices', 'centroid']), enumerate(fns))
+			tmp = pool.starmap(functools.partial(calc_props, prop_list=['slices', 'centroid', 'random_pt']), enumerate(fns))
 
 		result_dict = {}
 		for dicts in tmp:
@@ -97,18 +103,12 @@ class Evaluationmodel():
 				if key in result_dict:
 					result_dict[key][0].append(value[0])
 					result_dict[key][1].append(value[1])
+					result_dict[key][2].append(value[2])
 				else:
 					result_dict.setdefault(key, [])
 					result_dict[key].append([value[0]])
 					result_dict[key].append([value[1]])
-
-		result_array = []
-		for result in result_dict.keys():
-			result_array.append({
-				'id': result,
-				'slices': result_dict[result][0],
-				'ctps': result_dict[result][1]
-			})
+					result_dict[key].append([value[2]])
 
 		if save:
 			with open(os.path.join(self.cfg.SYSTEM.ROOT_DIR, self.cfg.DATASET.DATAINFO), 'w') as f:

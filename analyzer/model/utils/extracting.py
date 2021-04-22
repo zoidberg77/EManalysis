@@ -239,6 +239,7 @@ def calc_props(idx, fns, prop_list=['size', 'slices', 'centroid', 'circ', 'surfa
 	:param prop_list: (list) of (strings) that contain the properties that should be stored in result.
 	:returns result: (dict) with each segment. key: idx of segment -- value: [number of pixels in segment, idx of slice].
 	'''
+	print(idx)
 	result = {}
 	if os.path.exists(fns):
 		tmp = imageio.imread(fns)
@@ -250,6 +251,7 @@ def calc_props(idx, fns, prop_list=['size', 'slices', 'centroid', 'circ', 'surfa
 		c_list = []
 		circ_list = []
 		surface_to_volume_list = []
+		random_pt_list = []
 		for props in regions:
 			labels.append(props.label)
 			if 'size' in prop_list:
@@ -260,6 +262,8 @@ def calc_props(idx, fns, prop_list=['size', 'slices', 'centroid', 'circ', 'surfa
 				circ_list.append(cc(props.area, props.perimeter))
 			if 'surface_to_volume' in prop_list:
 				surface_to_volume_list.append((props.area, props.perimeter))
+			if 'random_pt' in prop_list:
+				random_pt_list.append(np.argwhere(tmp == props.label)[0])
 
 		for l in range(len(labels)):
 			if labels[l] == 0:
@@ -275,6 +279,8 @@ def calc_props(idx, fns, prop_list=['size', 'slices', 'centroid', 'circ', 'surfa
 				result[labels[l]].append(circ_list[l])
 			if 'surface_to_volume' in prop_list:
 				result[labels[l]].append(surface_to_volume_list[l])
+			if 'random_pt' in prop_list:
+				result[labels[l]].append(random_pt_list[l])
 
 	return result
 

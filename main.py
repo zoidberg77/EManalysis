@@ -116,16 +116,8 @@ def main():
 	dl = Dataloader(cfg)
 	em, labels, gt = dl.load_chunk()
 
-	from analyzer.data.data_vis import visvol
-	visvol(em[0], labels[0], gt[0])
-
-	#from analyzer.utils import Evaluationmodel
-	#eval = Evaluationmodel(cfg, dl)
-	#eval.create_gt_vector()
-
-	#model = Clustermodel(cfg, em, gt, dl=dl)
-	#model.visualize()
-	#model.run()
+	model = Clustermodel(cfg, em, gt, dl=dl)
+	model.run()
 
 
 if __name__ == "__main__":
