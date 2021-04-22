@@ -84,12 +84,14 @@ class RandomPtcAe(pl.LightningModule):
         return loss, {"loss": loss}
 
     def training_step(self, batch, batch_idx):
-        loss, logs = self.step(batch.double(), batch_idx)
+        raw_x, y = batch
+        loss, logs = self.step(raw_x, batch_idx)
         self.log_dict({f"train_{k}": v for k, v in logs.items()}, on_step=True, on_epoch=False)
         return loss
 
     def validation_step(self, batch, batch_idx):
-        loss, logs = self.step(batch, batch_idx)
+        raw_x, y = batch
+        loss, logs = self.step(raw_x, batch_idx)
         self.log_dict({f"val_{k}": v for k, v in logs.items()})
         return loss
 
@@ -105,16 +107,17 @@ class RandomPtcAe(pl.LightningModule):
         return loss
 
     def test_step(self, batch, batch_idx):
-        x = self.encoder(batch.double())
+        raw_x, y = batch
+        x = self.encoder(raw_x)
         x = self.pool(x)
         x = torch.flatten(x, start_dim=1)
         with h5py.File('features/ptc_shapef.h5', 'a') as f:
-            f['id'][batch_idx] = batch_idx
+            f['id'][batch_idx] = y
             latent_space = x[0]
             f['ptcs'][batch_idx] = latent_space.cpu()
         x = self.decoder(x)
         x = x.view(x.size(0), x.size(0), -1, 3)
-        loss = self.loss(batch.double(), x)
+        loss = self.loss(raw_x, x)
         return loss
 
 

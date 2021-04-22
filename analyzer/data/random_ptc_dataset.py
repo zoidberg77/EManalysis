@@ -59,8 +59,8 @@ class RandomPtcDataset():
             ptc, idx = self.recur(group, idx)
             if ptc.shape[0] > 10000:
                 randome_indices = np.random.random_integers(ptc.shape[0] - 1, size=(self.sample_size))
-                ptc = ptc[randome_indices, :]
-            return ptc[None,:,:]
+                return np.expand_dims(ptc[randome_indices, :], axis=0), idx
+            return np.expand_dims(ptc, axis=0), idx
 
     @property
     def keys(self):
