@@ -100,17 +100,23 @@ def main():
 		print('--- Starting the training process for the vae based on point clouds(random). --- \n')
 		rptc_model = RandomPtcAe(cfg).double()
 		ptc_dataset = RandomPtcDataset(cfg)
-		trainer = pl.Trainer(default_root_dir='datasets/vae/checkpoints', max_epochs=cfg.AUTOENCODER.EPOCHS)
+		trainer = pl.Trainer(default_root_dir='datasets/vae/checkpoints', max_epochs=cfg.AUTOENCODER.EPOCHS, gpus=cfg.SYSTEM.NUM_GPUS)
 		ptc_datamodule = RandomPtcDataModule(cfg=cfg, dataset=ptc_dataset)
 		trainer.fit(rptc_model, ptc_datamodule)
 		return
 	elif cfg.MODE.PROCESS == "rptcinfer":
-		print('--- Starting the training process for the vae based on point clouds(random). --- \n')
-		last_checkpoint = glob('datasets/vae/checkpoints/lightning_logs/**/*.ckpt', recursive=True)[0]
+		print('--- Starting the inference process for the vae based on point clouds(random). --- \n')
+		last_checkpoint = glob('datasets/vae/checkpoints/lightning_logs/**/*.ckpt', recursive=True)[-1]
 		rptc_model = RandomPtcAe(cfg).load_from_checkpoint(last_checkpoint, cfg=cfg).double()
 		rptc_model.freeze()
 		ptc_dataset = RandomPtcDataset(cfg)
-		random_ptc_infer(rptc_model, ptc_dataset)
+		trainer = pl.Trainer(default_root_dir='datasets/vae/checkpoints', max_epochs=cfg.AUTOENCODER.EPOCHS, checkpoint_callback=False, gpus=cfg.SYSTEM.NUM_GPUS)
+		ptc_datamodule = RandomPtcDataModule(cfg=cfg, dataset=ptc_dataset)
+
+		with h5py.File('features/ptc_shapef.h5', 'w') as f:
+			f.create_dataset(name='id', shape=(len(ptc_dataset),))
+			f.create_dataset(name='ptcs', shape=(len(ptc_dataset), 512))
+		trainer.test(model=rptc_model, test_dataloaders=ptc_datamodule.test_dataloader())
 		return
 
 	dl = Dataloader(cfg)
