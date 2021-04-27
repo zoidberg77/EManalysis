@@ -6,8 +6,7 @@ import h5py
 import torch
 
 from analyzer.config import get_cfg_defaults
-from analyzer.data import Dataloader, PtcDataloader
-from analyzer.data.random_ptc_dataset import RandomPtcDataset
+from analyzer.data import Dataloader, PtcDataset
 from analyzer.model import Clustermodel
 from analyzer.vae import train
 from analyzer.vae.model.utils.pt import point_cloud
@@ -64,17 +63,17 @@ def main():
 		dl = Dataloader(cfg)
 		em, labels, gt = dl.load_chunk()
 		emfns, labelfns, gtfns = dl.get_fns()
-		point_cloud(gtfns, cfg)
+		point_cloud(labelfns, cfg)
 		return
 	elif cfg.MODE.PROCESS == "ptctrain":
 		print('--- Starting the training process for the vae based on point clouds. --- \n')
-		ptcdl = PtcDataloader(cfg)
+		ptcdl = PtcDataset(cfg)
 		trainer = train.PtcTrainer(cfg=cfg, dataset=ptcdl, train_percentage=0.7, optimizer_type="adam", loss_function="l1")
 		trainer.train()
 		return
 	elif cfg.MODE.PROCESS == "ptcinfer":
 		print('--- Starting to infer the features of the autoencoder based on point clouds. --- \n')
-		ptcdl = PtcDataloader(cfg)
+		ptcdl = PtcDataset(cfg)
 		trainer = train.PtcTrainer(cfg=cfg, dataset=ptcdl, train_percentage=0.7, optimizer_type="adam", loss_function="l1")
 		trainer.save_latent_feature()
 		return
@@ -97,7 +96,7 @@ def main():
 	elif cfg.MODE.PROCESS == "rptctrain":
 		print('--- Starting the training process for the vae based on point clouds(random). --- \n')
 		rptc_model = RandomPtcAe(cfg).double()
-		ptc_dataset = RandomPtcDataset(cfg)
+		ptc_dataset = PtcDataset(cfg, sample_mode='partial')
 		trainer = pl.Trainer(default_root_dir='datasets/vae/checkpoints', max_epochs=cfg.AUTOENCODER.EPOCHS, gpus=cfg.SYSTEM.NUM_GPUS)
 		ptc_datamodule = RandomPtcDataModule(cfg=cfg, dataset=ptc_dataset)
 		trainer.fit(rptc_model, ptc_datamodule)
@@ -107,7 +106,7 @@ def main():
 		last_checkpoint = glob('datasets/vae/checkpoints/lightning_logs/**/*.ckpt', recursive=True)[-1]
 		rptc_model = RandomPtcAe(cfg).load_from_checkpoint(last_checkpoint, cfg=cfg).double()
 		rptc_model.freeze()
-		ptc_dataset = RandomPtcDataset(cfg)
+		ptc_dataset = PtcDataset(cfg, sample_mode='partial')
 		trainer = pl.Trainer(default_root_dir='datasets/vae/checkpoints', max_epochs=cfg.AUTOENCODER.EPOCHS, checkpoint_callback=False, gpus=cfg.SYSTEM.NUM_GPUS)
 		ptc_datamodule = RandomPtcDataModule(cfg=cfg, dataset=ptc_dataset)
 

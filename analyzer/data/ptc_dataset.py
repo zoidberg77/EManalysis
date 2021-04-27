@@ -30,13 +30,15 @@ def rotate_point_cloud(batch_data):
     '''
     pass
 
-class PtcDataloader():
+class PtcDataset():
     '''
     This is the Data module for the pointcloud autoencoder.
     '''
-    def __init__(self, cfg):
+    def __init__(self, cfg, sample_size=2000, sample_mode=None):
         self.cfg = cfg
+        self.sample_size = sample_size
         self.ptfn = cfg.DATASET.ROOTD + 'vae/pts' + '.h5'
+        self.sample_mode = sample_mode
 
     def __len__(self):
         '''
@@ -56,7 +58,11 @@ class PtcDataloader():
             group = h5f.get('ptcs')
             #ptc = np.array(group[str(idx)])
             ptc, idx = self.recur(group, idx)
-            return ptc[None,:,:]
+            if self.sample_mode == 'partial':
+                if ptc.shape[0] > 10000:
+                    randome_indices = np.random.random_integers(ptc.shape[0] - 1, size=(self.sample_size))
+                    return np.expand_dims(ptc[randome_indices, :], axis=0), idx
+            return np.expand_dims(ptc, axis=0), idx
 
     @property
     def keys(self):

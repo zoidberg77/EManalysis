@@ -21,7 +21,7 @@ def point_cloud(fns, cfg, save=True):
 	print('Starting to compute the point representation of every segments.')
 	result_dict = {}
 
-	with multiprocessing.Pool(processes=multiprocessing.cpu_count()) as pool:
+	with multiprocessing.Pool(processes=cfg.SYSTEM.NUM_CPUS) as pool:
 		tmp = pool.starmap(calc_point_repr, enumerate(fns))
 
 	for dicts in tmp:
@@ -31,6 +31,7 @@ def point_cloud(fns, cfg, save=True):
 			else:
 				result_dict.setdefault(key, [])
 				result_dict[key].append(value[0])
+				print(key)
 
 	if save:
 		with h5py.File(cfg.DATASET.ROOTD + 'vae/pts' + '.h5', 'w') as h5f:
