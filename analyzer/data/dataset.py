@@ -83,12 +83,6 @@ class Dataloader():
             return f[self.vae_feature + "_volume"][idx]
 
     def get_fns(self):
-        '''returns the em and label filenames of every image.'''
-        emfns = sorted(glob.glob(self.volpath + '*.' + self.ff))
-        labelfns = sorted(glob.glob(self.labelpath + '*.' + self.ff))
-        return emfns, labelfns
-
-    def get_fns(self):
         '''returns the em, label and gt filenames of every image.'''
         emfns = sorted(glob.glob(self.volpath + '*.' + self.ff))
         labelfns = sorted(glob.glob(self.labelpath + '*.' + self.ff))

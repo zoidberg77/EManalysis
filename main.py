@@ -63,7 +63,7 @@ def main():
 	elif cfg.MODE.PROCESS == "ptcprep":
 		dl = Dataloader(cfg)
 		em, labels, gt = dl.load_chunk()
-		_, gtfns = dl.get_fns()
+		emfns, labelfns, gtfns = dl.get_fns()
 		point_cloud(gtfns, cfg)
 		return
 	elif cfg.MODE.PROCESS == "ptctrain":
