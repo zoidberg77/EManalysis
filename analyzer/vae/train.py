@@ -268,6 +268,7 @@ class PtcTrainer():
 		running_loss = list()
 		for epoch in range(1, self.epochs + 1):
 			for i, data in enumerate(self.train_dl):
+				data, y = data
 				data = data.to(self.device).float()
 				self.optimizer.zero_grad()
 				x = self.model(data)
