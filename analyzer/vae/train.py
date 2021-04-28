@@ -300,6 +300,7 @@ class PtcTrainer():
 		running_loss = list()
 		with torch.no_grad():
 			for i, data in enumerate(self.test_dl):
+				data, y = data
 				data = data.to(self.device).float()
 				x = self.model(data)
 				loss = self.loss(x, data)
