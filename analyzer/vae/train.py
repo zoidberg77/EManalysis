@@ -246,10 +246,7 @@ class PtcTrainer():
 		#self.model_type = cfg.AUTOENCODER.ARCHITECTURE
 		self.vae_ptc_feature = 'ptc'
 		self.epochs = cfg.AUTOENCODER.EPOCHS
-		if cfg.SYSTEM.NUM_GPUS > 0 and torch.cuda.is_available():
-			self.device = 'cuda'
-		else:
-			self.device = 'cpu'
+		self.device = 'cpu'
 
 		#self.keys = self.dataset.keys
 		train_length = int(train_percentage * len(self.dataset))
