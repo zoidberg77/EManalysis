@@ -35,23 +35,17 @@ class FeatureExtractor():
 			self.gtfns = None
 
 	def get_fns(self):
-		'''
-		Funtion returns the attribute fns of the feature extractor.
-		'''
+		'''Funtion returns the attribute fns of the feature extractor.'''
 		return self.emfns, self.gtfns
 
 	def compute_seg_size(self):
-		'''
-		Extract the size of each mitochondria segment.
+		'''Extract the size of each mitochondria segment.
 		:returns result_dict: (dict) where the label is the key and the size of the segment is the corresponding value.
 		'''
 		return compute_region_size(self.gtvol, fns=self.gtfns, dprc=self.dprc)
 
 	def compute_seg_dist(self):
-		'''
-		Compute the distances of mitochondria to each other and extract it as a graph matrix.
-		:returns
-		'''
+		'''Compute the distances of mitochondria to each other and extract it as a graph matrix.'''
 		return compute_dist_graph(self.gtvol, fns=self.gtfns, dprc=self.dprc)
 
 	def compute_vae_shape(self):
@@ -70,17 +64,12 @@ class FeatureExtractor():
 		with h5py.File("features/texturef.h5", 'r') as f:
 			return f["texture"]
 
-
 	def compute_seg_circ(self):
-		'''
-		Computes the circularity features from mitochondria volume.
-		'''
+		'''Computes the circularity features from mitochondria volume.'''
 		return compute_circularity(self.gtvol, fns=self.gtfns, dprc=self.dprc)
 
 	def compute_seg_surface_to_volume(self):
-		'''
-		Computes the surface to volume ratio features from mitochondria volume.
-		'''
+		'''Computes the surface to volume ratio features from mitochondria volume.'''
 		return compute_surface_to_volume(self.gtvol, fns=self.gtfns, dprc=self.dprc)
 
 	def save_single_feat_h5(self, rsl_dict, filen='feature_vector'):

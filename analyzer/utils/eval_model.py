@@ -40,7 +40,7 @@ class Evaluationmodel():
 		score = normalized_mutual_info_score(self.get_gt_vector(fast=True), rsl_vector)
 		print('mutual information score: {}'.format(score))
 
-	def get_gt_vector(self, fn='gt_vector.json', fast=False):
+	def get_gt_vector(self, fn='gt_vector.json', fast=True):
 		if fast:
 			return self.fast_create_gt_vector(fn)
 		return self.create_gt_vector()
@@ -143,7 +143,6 @@ class Evaluationmodel():
 					f.close()
 
 		values, counts = np.unique(gt_vector, return_counts=True)
-
 		if (values == 0).any():
 			print('gt vector contains 0 as label.')
 			print('values: ', values)

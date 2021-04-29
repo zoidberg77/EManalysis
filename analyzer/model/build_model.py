@@ -16,21 +16,20 @@ from .feat_extr_model import FeatureExtractor
 class Clustermodel():
 	'''
 	Setups up the model for running a clustering algoritm on the loaded data.
+	:param cfg: configuration management. This sets basically all the parameters.
 	:param emvol & gtvol: (np.array) Both are the data volumes.
 	:param dl: (class object) This is the dataloader class object.
 	:param alg: sets the clustering algorithm that should be used. (default: KMeans)
 				- 'kmeans': KMeans
 				- 'affprop': AffinityPropagation
 				- 'specCl': SpectralClustering
+				- 'aggloCl': AgglomerativeClustering
 				- 'dbscan': DBSCAN
 				- 'hdbscan': HDBSCAN (https://hdbscan.readthedocs.io/en/latest/index.html)
 
-	:param clstby: choose how you want to cluster and label the segments.
-				- 'bysize': cluster segements by their size.
-				- 'bytext': cluster segments by texture. EM needed.
-
 	:param n_cluster: (int) sets the number of cluster that should be found.
-	:param mode: (string) Analyze either by 2d or 3d slizes.
+	:param feat_list: ['sizef', 'distf', 'shapef', 'textf', 'circf'] -- choose from different features you want to use for clustering.
+	:param weightsf: [1, 1, 1 ,1, 1] -- weight each individual feature and therefore their influence on the clustering.
 	'''
 	def __init__(self, cfg, emvol=None, gtvol=None, dl=None):
 		self.cfg = cfg
@@ -59,8 +58,6 @@ class Clustermodel():
 			model = AffinityPropagation()
 		elif mn == 'specCl':
 			model = SpectralClustering(n_clusters=self.n_cluster)
-		elif mn == 'agglo':
-			model = AgglomerativeClustering(n_clusters=self.n_cluster, linkage='ward')
 		elif mn == 'dbscan':
 			model = DBSCAN(eps=0.05, n_jobs=-1)
 		elif mn == 'hdbscan':
@@ -68,7 +65,7 @@ class Clustermodel():
 		elif mn == 'aggloCl':
 			model = AgglomerativeClustering(n_clusters=self.n_cluster, affinity='precomputed', linkage='single')
 		else:
-			raise ValueError('Please enter a valid clustering algorithm. -- \'kmeans\', \'affprop\', \'specCl\', \'dbscan\', \'hdbscan\'')
+			raise ValueError('Please enter a valid clustering algorithm. -- \'kmeans\', \'affprop\', \'specCl\', \'dbscan\', \'hdbscan\', \'aggloCl\'')
 
 		return model
 
@@ -175,7 +172,7 @@ class Clustermodel():
 			_, gtfns = self.fe.get_fns()
 			_ = recompute_from_res(labels, res_labels, volfns=gtfns, dprc=self.cfg.MODE.DPRC, fp=self.cfg.CLUSTER.OUTPUTPATH + "masks/", neuroglancer=self.cfg.CLUSTER.NEUROGLANCER, em_path=self.cfg.DATASET.EM_PATH)
 			self.eval.eval_volume(res_labels)
-			
+
 		if self.cfg.CLUSTER.VISUALIZATION:
 			# For visualization purposes.
 			em_files = glob.glob(self.cfg.DATASET.EM_PATH + '*.' + self.cfg.DATASET.FILE_FORMAT)

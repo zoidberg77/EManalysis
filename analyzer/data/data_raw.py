@@ -65,12 +65,10 @@ def folder2Vol(filepath, chunk_size=None, fns=None, file_format='png', dt=np.uin
 	'''
 	if fns is None:
 		fns = sorted(glob.glob(filepath + '*.' + file_format))
-
 	if len(fns) == 0:
 		raise ValueError("Please enter valid filepath.")
 
 	sz = np.array(imageio.imread(fns[0]).shape)[:2]
-
 	if chunk_size is None:
 		vol = np.zeros((len(fns), sz[0], sz[1]), dtype=dt)
 		for zi in range(len(fns)):
@@ -107,7 +105,6 @@ def folder2Vol(filepath, chunk_size=None, fns=None, file_format='png', dt=np.uin
 						vol[i, zi, :, :] = splitarr[i]
 				else:
 					vol[zi] = tmp
-
 	return vol
 
 def savelabvol(vol, filename, labels=None, dataset='main', format='h5'):
@@ -134,7 +131,6 @@ def savelabvol(vol, filename, labels=None, dataset='main', format='h5'):
 		if labels is not None:
 			ld = h5.create_dataset('labels', vol.shape, compression="gzip")
 			ld[:] = labels
-
 	h5.close()
 
 def save_m_to_image(img, filename, fp, idx=None, ff='png'):
@@ -148,4 +144,3 @@ def save_m_to_image(img, filename, fp, idx=None, ff='png'):
 	else:
 		fn = filename + '.' + ff
 	imageio.imwrite(os.path.join(fp, fn), img.astype(np.uint8))
-	#print('saving resulting image as {} to {}'.format(fn, fp))

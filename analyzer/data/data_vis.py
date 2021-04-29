@@ -82,13 +82,9 @@ def visbbox(image, bbox):
 
 	rect = patches.Rectangle((bbox[1],bbox[2]), (bbox[3] - bbox[2]), (bbox[1] - bbox[0]), linewidth=1, edgecolor='r', facecolor='none')
 
-	#print(bbox)
 	points = [[bbox[2],bbox[0]],[bbox[2],bbox[1]],[bbox[3],bbox[0]],[bbox[3],bbox[1]]]
-	print(points)
 	plt.plot(*zip(*points), marker='o', color='r', ls='')
 	ax.imshow(image, cmap="gray")
-	#ax.add_patch(rect)
-
 	plt.show()
 
 ### HELPER SECTION ###
