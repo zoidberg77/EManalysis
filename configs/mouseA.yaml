@@ -1,6 +1,6 @@
 SYSTEM:
   NUM_CPUS: 8
-  NUM_GPUS: 0
+  NUM_GPUS: 1
 AUTOENCODER:
   ARCHITECTURE: 'unet_3d'
   REGION_LIMIT: None
@@ -18,7 +18,7 @@ AUTOENCODER:
   MAX_GRADIENT: 1.0
   LOG_INTERVAL: 10
   PTC_NUM_POINTS: 10000
-  PTC_SAMPLE_MODE: None
+  PTC_SAMPLE_MODE: full
 DATASET:
   EM_PATH: 'datasets/mouseA/em_export/'
   LABEL_PATH: 'datasets/mouseA/mito_export_unique_id/'
