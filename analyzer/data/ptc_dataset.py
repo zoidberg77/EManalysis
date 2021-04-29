@@ -44,11 +44,11 @@ class PtcDataset():
         self.sample_mode = sample_mode
         self.dists = {}
         if sample_mode == 'full':
-            self.ptdistsfn = cfg.DATASET.ROOTD+ 'vae/pts_centroid_dists' + '.h5'
-            if not os.path.exists(self.ptdistsfn):
-                print("point to centroid distances not found. calculating distances")
+            self.rptcfn = cfg.DATASET.ROOTD+ 'vae/random_ptc' + '.h5'
+            if not os.path.exists(self.rptcfn):
+                print("calculating random points")
                 with h5py.File(self.ptfn, 'r') as h5f:
-                    with h5py.File(self.ptdistsfn, 'w') as dists_file:
+                    with h5py.File(self.rptcfn, 'w') as random_points_file:
                         group = h5f.get('ptcs')
                         for idx in tqdm(group.keys(), total=len(group.keys())):
                             cloud = np.array(group[idx])
@@ -57,15 +57,10 @@ class PtcDataset():
                             for point in cloud:
                                 dists.append(np.linalg.norm(point-centroid))
                             dists /= sum(dists)
-                            dists_file[str(idx)] = dists
-            print("generating distribution functions")
-            with h5py.File(self.ptdistsfn, 'r') as dists_file:
-                for idx in tqdm(dists_file.keys(), total=len(dists_file.keys())):
-                    dists = np.array(dists_file[str(idx)])
-                    xk = np.arange(len(dists))
-                    pk = dists
-                    custm = stats.rv_discrete(name='custm', values=(xk, pk))
-                    self.dists[str(idx)] = custm
+                            xk = np.arange(len(dists))
+                            custm = stats.rv_discrete(name='custm', values=(xk, dists))
+                            random_points = cloud[custm.rvs(size=self.sample_size), :]
+                            random_points_file[str(idx)] = random_points
 
     def __len__(self):
         '''
@@ -84,15 +79,15 @@ class PtcDataset():
         with h5py.File(self.ptfn, 'r') as h5f:
             group = h5f.get('ptcs')
             #ptc = np.array(group[str(idx)])
-            ptc, new_idx = self.recur(group, idx)
+            ptc, idx = self.recur(group, idx)
             if self.sample_mode == 'partial':
                 if ptc.shape[0] > self.sample_size:
                     randome_indices = np.random.random_integers(ptc.shape[0] - 1, size=(self.sample_size))
-                    return np.expand_dims(ptc[randome_indices, :], axis=0), new_idx
+                    return np.expand_dims(ptc[randome_indices, :], axis=0), idx
             elif self.sample_mode == 'full':
-                    custm = self.dists[str(new_idx)]
-                    return np.expand_dims(ptc[custm.rvs(size=self.sample_size), :], axis=0), new_idx
-            return np.expand_dims(ptc, axis=0), new_idx
+                with h5py.File(self.rptcfn, 'w') as random_points_file:
+                    return np.expand_dims(random_points_file[str(idx)], axis=0), idx
+            return np.expand_dims(ptc, axis=0), idx
 
     @property
     def keys(self):
