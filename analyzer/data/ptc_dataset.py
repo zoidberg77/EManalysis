@@ -49,7 +49,6 @@ class PtcDataset():
             if not os.path.exists(self.ptdistsfn):
                 print("point to centroid distances not found. have to create distribution function")
                 with h5py.File(self.ptfn, 'r') as h5f:
-                    with h5py.File(self.ptdistsfn, 'w') as dists_file:
                         group = h5f.get('ptcs')
                         for idx in tqdm(group.keys(), total=len(group.keys())):
                             cloud = np.array(group[idx])
@@ -58,13 +57,10 @@ class PtcDataset():
                             for point in cloud:
                                 dists.append(np.linalg.norm(point-centroid))
                             dists /= sum(dists)
-                            dists_file[str(idx)] = dists
-            with h5py.File(self.ptdistsfn, 'r') as dists_file:
-                dists = np.array(dists_file[str(idx)])
-                xk = np.arange(len(dists))
-                pk = dists
-                custm = stats.rv_discrete(name='custm', values=(xk, pk))
-                self.distributions.append(custm)
+                            xk = np.arange(len(dists))
+                            pk = dists
+                            custm = stats.rv_discrete(name='custm', values=(xk, pk))
+                            self.distributions.append(custm)
 
     def __len__(self):
         '''
