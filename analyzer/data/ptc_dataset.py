@@ -83,15 +83,14 @@ class PtcDataset():
         with h5py.File(self.ptfn, 'r') as h5f:
             group = h5f.get('ptcs')
             #ptc = np.array(group[str(idx)])
-            old_idx = deepcopy(idx)
-            ptc, idx = self.recur(group, idx)
+            ptc, new_idx = self.recur(group, idx)
             if self.sample_mode == 'partial':
                 if ptc.shape[0] > self.sample_size:
                     randome_indices = np.random.random_integers(ptc.shape[0] - 1, size=(self.sample_size))
-                    return np.expand_dims(ptc[randome_indices, :], axis=0), idx
+                    return np.expand_dims(ptc[randome_indices, :], axis=0), new_idx
             elif self.sample_mode == 'full':
-                    return np.expand_dims(ptc[self.distributions[old_idx].rvs(size=self.sample_size), :], axis=0), idx
-            return np.expand_dims(ptc, axis=0), idx
+                    return np.expand_dims(ptc[self.distributions[idx].rvs(size=self.sample_size), :], axis=0), new_idx
+            return np.expand_dims(ptc, axis=0), new_idx
 
     @property
     def keys(self):
