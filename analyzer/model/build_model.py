@@ -4,7 +4,7 @@ import h5py
 import imageio
 import hdbscan
 from scipy.spatial import distance
-from sklearn.cluster import KMeans, AffinityPropagation, SpectralClustering, DBSCAN
+from sklearn.cluster import KMeans, AffinityPropagation, SpectralClustering, DBSCAN, AgglomerativeClustering
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 
 from analyzer.model.utils.helper import *
@@ -59,10 +59,12 @@ class Clustermodel():
 			model = AffinityPropagation()
 		elif mn == 'specCl':
 			model = SpectralClustering(n_clusters=self.n_cluster)
+		elif mn == 'agglo':
+			model = AgglomerativeClustering(n_clusters=self.n_cluster, linkage='ward')
 		elif mn == 'dbscan':
-			model = DBSCAN(eps=0.5)
+			model = DBSCAN(eps=0.05, n_jobs=-1)
 		elif mn == 'hdbscan':
-			model = hdbscan.HDBSCAN(min_cluster_size=self.n_cluster, gen_min_span_tree=True)
+			model = hdbscan.HDBSCAN(min_cluster_size=self.n_cluster, min_samples=500, gen_min_span_tree=True)
 		else:
 			raise ValueError('Please enter a valid clustering algorithm. -- \'kmeans\', \'affprop\', \'specCl\', \'dbscan\', \'hdbscan\'')
 

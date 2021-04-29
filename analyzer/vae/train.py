@@ -348,6 +348,21 @@ class PtcTrainer():
 			grp.create_dataset(idx, data=ptc)
 			h5f.close()
 
+	def visualise_ptcs(self, model):
+		#self.model.load_state_dict(torch.load(self.cfg.DATASET.ROOTD + "vae/" + "vae_ptc_model.pt"))
+		model.eval()
+		model.to(self.device)
+
+		with torch.no_grad():
+			for c, idx in enumerate(self.dataset.keys):
+				data = torch.from_numpy(self.dataset[idx])
+				data = data.unsqueeze(0).float()
+				data.to(self.device)
+				x = model.latent_representation(data).cpu().numpy()
+				print(x.shape)
+				if idx == 1:
+					break
+
 
 def random_ptc_infer(model, dataset):
 	ptc_datamodule = RandomPtcDataModule(cfg=dataset.cfg, dataset=dataset)
