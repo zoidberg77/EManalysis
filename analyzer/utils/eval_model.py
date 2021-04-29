@@ -38,7 +38,7 @@ class Evaluationmodel():
 		print('ground truth distribution vector {}'.format(gt_counts))
 
 		# MUTUAL INFORMATION SCORE
-		score = normalized_mutual_info_score(self.get_gt_vector(), rsl_vector)
+		score = normalized_mutual_info_score(self.get_gt_vector(fast=True), rsl_vector)
 		print(score)
 
 	def get_gt_vector(self, fn='gt_vector.json', fast=False):
@@ -55,9 +55,10 @@ class Evaluationmodel():
 			with open(os.path.join(self.cfg.SYSTEM.ROOT_DIR, self.cfg.DATASET.ROOTF, 'eval_data_info.json'), 'r') as f:
 				data_info = json.loads(f.read())
 		else:
-			print('data info not found. Will be computed.')
+			print('data info not found. Will be computed. This takes a while. Be prepared.')
 			data_info = self.prep_data_info(save=True)
 
+		print('\nStarting to compute the accuracy of the clustering process.')
 		# Preparation section.
 		gt_fns = sorted(glob.glob(self.dl.gtpath + '*.' + self.cfg.DATASET.FILE_FORMAT))
 		rsl_fns = sorted(glob.glob(self.cfg.CLUSTER.OUTPUTPATH + '*.' + self.cfg.DATASET.FILE_FORMAT))
@@ -71,17 +72,29 @@ class Evaluationmodel():
 		s_rsl = np.array([rsl_values for _, rsl_values in sorted(zip(rsl_counts, rsl_values))])
 
 		correct = 0
-		for key, value in data_info.items():
-			slices = value[0]
-			randompts = value[2]
+		for idx in range(len(gt_fns)):
+			gt = imageio.imread(gt_fns[idx])
+			rsl = imageio.imread(rsl_fns[idx])
 
-			gt = imageio.imread(gt_fns[slices[0]])
-			rsl = imageio.imread(rsl_fns[slices[0]])
+			for key, value in data_info.items():
+				slices = value[0]
+				randompts = value[2]
 
-			gt_label_index = np.where(s_gt == gt[randompts[0][0], randompts[0][1]])[0].item()
-			rsl_label_index = np.where(s_rsl == rsl[randompts[0][0], randompts[0][1]])[0].item()
-			if gt_label_index == rsl_label_index:
-				correct = correct + 1
+				if slices[0] == idx:
+					gt_label_index = np.where(s_gt == gt[randompts[0][0], randompts[0][1]])[0].item()
+					rsl_label_index = 0
+					for k, coords in enumerate(randompts):
+						if np.where(s_rsl == rsl[randompts[k][0], randompts[k][1]])[0].size == 0:
+							continue
+						else:
+							rsl_label_index = np.where(s_rsl == rsl[randompts[k][0], randompts[k][1]])[0].item()
+							break
+					if gt_label_index == rsl_label_index:
+						correct = correct + 1
+				else:
+					continue
+			if idx % 50 == 0:
+				print('iteration through [{}/{}] done.'.format(idx, len(gt_fns)))
 
 		accuracy = correct / np.sum(gt_counts)
 		print('\nfound accuracy: ', accuracy)
