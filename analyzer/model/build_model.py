@@ -64,7 +64,7 @@ class Clustermodel():
 		elif mn == 'hdbscan':
 			model = hdbscan.HDBSCAN(min_cluster_size=self.n_cluster, gen_min_span_tree=True)
 		elif mn == 'aggloCl':
-			model = AgglomerativeClustering(n_clusters=self.n_cluster)
+			model = AgglomerativeClustering(n_clusters=self.n_cluster, affinity='precomputed', linkage='single')
 		else:
 			raise ValueError('Please enter a valid clustering algorithm. -- \'kmeans\', \'affprop\', \'specCl\', \'dbscan\', \'hdbscan\'')
 
