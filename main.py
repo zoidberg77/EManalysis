@@ -120,7 +120,7 @@ def main():
 	
 	dl = Dataloader(cfg)
 	model = Clustermodel(cfg, dl=dl)
-	model.run(generate_masks=cfg.CLUSTER.GENERATE_MASKS)
+	model.run(generate_masks=cfg.CLUSTER.GENERATE_MASKS, visualization=cfg.CLUSTER.VISUALIZATION)
 
 
 if __name__ == "__main__":

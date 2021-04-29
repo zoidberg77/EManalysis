@@ -71,6 +71,7 @@ _C.CLUSTER.N_CLUSTER = 6
 _C.CLUSTER.OUTPUTPATH = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'outputs/')
 _C.CLUSTER.NEUROGLANCER = False
 _C.CLUSTER.GENERATE_MASKS = False
+_C.CLUSTER.VISUALIZATION = False
 
 def get_cfg_defaults():
     '''
