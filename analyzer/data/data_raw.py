@@ -148,4 +148,4 @@ def save_m_to_image(img, filename, fp, idx=None, ff='png'):
 	else:
 		fn = filename + '.' + ff
 	imageio.imwrite(os.path.join(fp, fn), img.astype(np.uint8))
-	print('saving resulting image as {} to {}'.format(fn, fp))
+	#print('saving resulting image as {} to {}'.format(fn, fp))

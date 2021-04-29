@@ -18,10 +18,10 @@ def point_cloud(fns, cfg, save=True):
 	:param save: (Bool) Save it or not.
 	:returns result_array: An (np.array) full of (dict)s that contain id and pts.
 	'''
-	print('Starting to compute the point representation of every segments.')
+	print('Starting to compute the point representation of {} segments.'.format(len(fns)))
 	result_dict = {}
 
-	with multiprocessing.Pool(processes=multiprocessing.cpu_count()) as pool:
+	with multiprocessing.Pool(processes=cfg.SYSTEM.NUM_CPUS) as pool:
 		tmp = pool.starmap(calc_point_repr, enumerate(fns))
 
 	for dicts in tmp:

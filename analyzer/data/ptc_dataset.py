@@ -1,7 +1,10 @@
 import os, sys
 import numpy as np
 import h5py
+from scipy import stats
 from sklearn.preprocessing import normalize
+from tqdm import tqdm
+
 
 def normalize_ptc(ptc):
     '''
@@ -30,13 +33,30 @@ def rotate_point_cloud(batch_data):
     '''
     pass
 
-class PtcDataloader():
+class PtcDataset():
     '''
     This is the Data module for the pointcloud autoencoder.
     '''
-    def __init__(self, cfg):
+    def __init__(self, cfg, sample_size=2000, sample_mode=None):
         self.cfg = cfg
+        self.sample_size = sample_size
         self.ptfn = cfg.DATASET.ROOTD + 'vae/pts' + '.h5'
+        self.sample_mode = sample_mode
+        if sample_mode == 'full':
+            self.ptdistsfn = cfg.DATASET.ROOTD+ 'vae/pts_centroid_dists' + '.h5'
+            if not os.path.exists(self.ptdistsfn):
+                print("point to centroid distances not found. have to create distribution function")
+                with h5py.File(self.ptfn, 'r') as h5f:
+                    with h5py.File(self.ptdistsfn, 'w') as dists_file:
+                        group = h5f.get('ptcs')
+                        for idx in tqdm(group.keys(), total=len(group.keys())):
+                            cloud = np.array(group[idx])
+                            centroid = np.mean(cloud, axis=0)
+                            dists = []
+                            for point in cloud:
+                                dists.append(np.linalg.norm(point-centroid))
+                            dists /= sum(dists)
+                            dists_file[str(idx)] = dists
 
     def __len__(self):
         '''
@@ -56,7 +76,18 @@ class PtcDataloader():
             group = h5f.get('ptcs')
             #ptc = np.array(group[str(idx)])
             ptc, idx = self.recur(group, idx)
-            return ptc[None,:,:]
+            if self.sample_mode == 'partial':
+                if ptc.shape[0] > self.sample_size:
+                    randome_indices = np.random.random_integers(ptc.shape[0] - 1, size=(self.sample_size))
+                    return np.expand_dims(ptc[randome_indices, :], axis=0), idx
+            elif self.sample_mode == 'full':
+                with h5py.File(self.ptdistsfn, 'r') as dists_file:
+                    dists = np.array(dists_file[str(idx)])
+                    xk = np.arange(len(dists))
+                    pk = dists
+                    custm = stats.rv_discrete(name='custm', values=(xk, pk))
+                    return np.expand_dims(ptc[custm.rvs(size=self.sample_size), :], axis=0), idx
+            return np.expand_dims(ptc, axis=0), idx
 
     @property
     def keys(self):

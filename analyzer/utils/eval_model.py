@@ -8,6 +8,8 @@ from numpyencoder import NumpyEncoder
 import imageio
 
 from sklearn.metrics import normalized_mutual_info_score, pair_confusion_matrix
+from tqdm import tqdm
+
 from analyzer.model.utils.extracting import calc_props
 
 class Evaluationmodel():
@@ -39,7 +41,9 @@ class Evaluationmodel():
 		score = normalized_mutual_info_score(self.get_gt_vector(), rsl_vector)
 		print(score)
 
-	def get_gt_vector(self, fn='gt_vector.json'):
+	def get_gt_vector(self, fn='gt_vector.json', fast=False):
+		if fast:
+			return self.fast_create_gt_vector(fn)
 		return self.create_gt_vector()
 
 	def eval_volume(self, rsl_vector):
@@ -104,7 +108,6 @@ class Evaluationmodel():
 			fns = sorted(glob.glob(self.dl.gtpath + '*.' + self.cfg.DATASET.FILE_FORMAT))
 			gt_ids = list(map(int, data_info.keys()))
 			gt_vector = np.zeros(len(gt_ids), dtype=np.uint16)
-
 			for key, value in data_info.items():
 				slices = value[0]
 				centerpoints = value[1]
@@ -128,6 +131,7 @@ class Evaluationmodel():
 					f.close()
 
 		values, counts = np.unique(gt_vector, return_counts=True)
+
 		if (values == 0).any():
 			print('gt vector contains 0 as label.')
 			print('values: ', values)
@@ -161,4 +165,44 @@ class Evaluationmodel():
 			with open(os.path.join(self.cfg.SYSTEM.ROOT_DIR, self.cfg.DATASET.ROOTF, 'eval_data_info.json'), 'w') as f:
 				json.dump(result_dict, f, cls=NumpyEncoder)
 				f.close()
-		return result_array
+		return result_dict
+
+	def fast_create_gt_vector(self, fn='gt_vector.json', save=True):
+		if os.path.exists(os.path.join(self.cfg.DATASET.ROOTF, fn)) \
+				and os.stat(os.path.join(self.cfg.DATASET.ROOTF, fn)).st_size != 0:
+			with open(os.path.join(self.cfg.DATASET.ROOTF, fn), 'r') as f:
+				gt_vector = json.loads(f.read())
+		else:
+			print('gt vector not found. Will be computed.')
+			gt_images = glob.glob(self.dl.gtpath + '/*.png')
+			label_images = glob.glob(self.dl.labelpath + '/*.png')
+
+			if len(gt_images) != len(label_images):
+				print("gt images dont match label images")
+				exit()
+			gt_vector = {}
+
+			for i, label_image in tqdm(enumerate(label_images), total=len(label_images)):
+				label_image = imageio.imread(label_image)
+				gt_image = imageio.imread(gt_images[i])
+				labels = np.unique(label_image)
+
+				for label in labels:
+					if label == 0 or label in gt_vector.keys():
+						continue
+
+					coords = np.argwhere(label_image==label)[0]
+					gt_vector[label] = gt_image[coords[0], coords[1]]
+			gt_vector = [value for key, value in sorted(gt_vector.items())]
+			if save:
+				with open(os.path.join(self.cfg.DATASET.ROOTF, 'gt_vector.json'), 'w') as f:
+					json.dump(gt_vector, f, cls=NumpyEncoder)
+					f.close()
+
+		values, counts = np.unique(gt_vector, return_counts=True)
+		if (values == 0).any():
+			print('gt vector contains 0 as label.')
+			print('values: ', values)
+			print('counts: ', counts)
+
+		return gt_vector

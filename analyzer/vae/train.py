@@ -246,10 +246,7 @@ class PtcTrainer():
 		#self.model_type = cfg.AUTOENCODER.ARCHITECTURE
 		self.vae_ptc_feature = 'ptc'
 		self.epochs = cfg.AUTOENCODER.EPOCHS
-		if cfg.SYSTEM.NUM_GPUS > 0 and torch.cuda.is_available():
-			self.device = 'cuda'
-		else:
-			self.device = 'cpu'
+		self.device = 'cpu'
 
 		#self.keys = self.dataset.keys
 		train_length = int(train_percentage * len(self.dataset))
@@ -268,6 +265,7 @@ class PtcTrainer():
 		running_loss = list()
 		for epoch in range(1, self.epochs + 1):
 			for i, data in enumerate(self.train_dl):
+				data, y = data
 				data = data.to(self.device).float()
 				self.optimizer.zero_grad()
 				x = self.model(data)
@@ -299,6 +297,7 @@ class PtcTrainer():
 		running_loss = list()
 		with torch.no_grad():
 			for i, data in enumerate(self.test_dl):
+				data, y = data
 				data = data.to(self.device).float()
 				x = self.model(data)
 				loss = self.loss(x, data)

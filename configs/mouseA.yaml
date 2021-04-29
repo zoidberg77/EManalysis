@@ -18,6 +18,7 @@ AUTOENCODER:
   MAX_GRADIENT: 1.0
   LOG_INTERVAL: 10
   PTC_NUM_POINTS: 10000
+  PTC_SAMPLE_MODE: None
 DATASET:
   EM_PATH: 'datasets/mouseA/em_export/'
   LABEL_PATH: 'datasets/mouseA/mito_export_unique_id/'
@@ -33,6 +34,8 @@ CLUSTER:
   ALG: 'kmeans'
   FEAT_LIST: ['sizef', 'distf', 'circf']
   WEIGHTSF: [1, 1, 1]
-  N_CLUSTER: 4
+  N_CLUSTER: 5
   OUTPUTPATH: 'outputs/mouseA/'
   NEUROGLANCER: False
+  GENERATE_MASKS: True
+  VISUALIZATION: True

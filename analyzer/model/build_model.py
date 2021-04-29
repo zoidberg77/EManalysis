@@ -170,7 +170,7 @@ class Clustermodel():
 		if end:
 			return
 
-	def run(self):
+	def run(self, generate_masks=False, visualization=False):
 		'''
 		Running the main clustering algoritm on the features (feature list) extracted.
 		'''
@@ -178,12 +178,17 @@ class Clustermodel():
 		clst_m = self.prep_cluster_matrix(labels, feat)
 		res_labels = self.model.fit_predict(clst_m)
 		self.eval.eval(res_labels)
+		if generate_masks:
+			_, gtfns = self.fe.get_fns()
+			_ = recompute_from_res(labels, res_labels, volfns=gtfns, dprc=self.cfg.MODE.DPRC, fp=self.cfg.CLUSTER.OUTPUTPATH+"masks/", neuroglancer=self.cfg.CLUSTER.NEUROGLANCER, em_path=self.cfg.DATASET.EM_PATH)
+		if visualization:
+			# For visualization purposes.
+			em_files = glob.glob(self.cfg.DATASET.EM_PATH + '*.png')
+			labeled_files = glob.glob(self.cfg.CLUSTER.OUTPUTPATH + 'masks/*.png')
 
-		_, gtfns = self.fe.get_fns()
-		_ = recompute_from_res(labels, res_labels, volfns=gtfns, dprc=self.cfg.MODE.DPRC, fp=self.cfg.CLUSTER.OUTPUTPATH, neuroglancer=self.cfg.CLUSTER.NEUROGLANCER, em_path=self.cfg.DATASET.EM_PATH)
+			for idx, em_file in enumerate(em_files):
+				labeled = imageio.imread(labeled_files[idx])
+				em = imageio.imread(em_file)
+				visvol(em, labeled,filename=self.cfg.CLUSTER.OUTPUTPATH+"visualization/{}".format(idx), save=True)
 
 		print('\nfinished clustering.')
-
-		# For visualization purposes.
-		#labeled = imageio.imread(os.path.join(self.cfg.CLUSTER.OUTPUTPATH, 'cluster_mask_0.png'))
-		#visvol(self.emvol[0], labeled)

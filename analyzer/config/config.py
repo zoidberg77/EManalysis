@@ -33,6 +33,7 @@ _C.AUTOENCODER.MAX_VAR = 0.001
 _C.AUTOENCODER.MAX_GRADIENT = 1.0
 _C.AUTOENCODER.FEATURES = ['shape', 'texture']
 _C.AUTOENCODER.PTC_NUM_POINTS = 10000
+_C.AUTOENCODER.PTC_SAMPLE_MODE = None
 # -----------------------------------------------------------------------------
 # Dataset
 # -----------------------------------------------------------------------------
@@ -69,6 +70,8 @@ _C.CLUSTER.WEIGHTSF = [1, 1, 1 ,1, 1]
 _C.CLUSTER.N_CLUSTER = 6
 _C.CLUSTER.OUTPUTPATH = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'outputs/')
 _C.CLUSTER.NEUROGLANCER = False
+_C.CLUSTER.GENERATE_MASKS = False
+_C.CLUSTER.VISUALIZATION = False
 
 def get_cfg_defaults():
     '''
