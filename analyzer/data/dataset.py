@@ -97,10 +97,6 @@ class Dataloader():
         '''
         emfns = sorted(glob.glob(self.volpath + '*.' + self.ff))
         labelfns = sorted(glob.glob(self.labelpath + '*.' + self.ff))
-        #emdata = 0
-        #labels = 0
-        #gt = 0
-
         if mode == '2d':
             if (vol == 'em') or (vol == 'all'):
                 emdata = readvol(emfns[0])

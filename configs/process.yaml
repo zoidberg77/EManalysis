@@ -26,7 +26,7 @@ DATASET:
   DATAINFO: 'features/human/data_info.json'
   ROOTF: 'features/human/'
 MODE:
-  PROCESS: ''
+  PROCESS: 'test'
   DPRC: 'iter'
 CLUSTER:
   ALG: 'kmeans'

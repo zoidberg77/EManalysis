@@ -59,10 +59,12 @@ class Clustermodel():
 			model = AffinityPropagation()
 		elif mn == 'specCl':
 			model = SpectralClustering(n_clusters=self.n_cluster)
+		elif mn == 'agglo':
+			model = AgglomerativeClustering(n_clusters=self.n_cluster, linkage='ward')
 		elif mn == 'dbscan':
-			model = DBSCAN(eps=0.5)
+			model = DBSCAN(eps=0.05, n_jobs=-1)
 		elif mn == 'hdbscan':
-			model = hdbscan.HDBSCAN(min_cluster_size=self.n_cluster, gen_min_span_tree=True)
+			model = hdbscan.HDBSCAN(min_cluster_size=self.n_cluster, min_samples=500, gen_min_span_tree=True)
 		elif mn == 'aggloCl':
 			model = AgglomerativeClustering(n_clusters=self.n_cluster, affinity='precomputed', linkage='single')
 		else:
@@ -170,7 +172,7 @@ class Clustermodel():
 		if end:
 			return
 
-	def run(self, generate_masks=False, visualization=False):
+	def run(self):
 		'''
 		Running the main clustering algoritm on the features (feature list) extracted.
 		'''
@@ -178,19 +180,18 @@ class Clustermodel():
 		clst_m = self.prep_cluster_matrix(labels, feat)
 		res_labels = self.model.fit_predict(clst_m)
 		self.eval.eval(res_labels)
-		if generate_masks:
+
+		if self.cfg.CLUSTER.GENERATE_MASKS:
 			_, gtfns = self.fe.get_fns()
-			_ = recompute_from_res(labels, res_labels, volfns=gtfns, dprc=self.cfg.MODE.DPRC, fp=self.cfg.CLUSTER.OUTPUTPATH+"masks/", neuroglancer=self.cfg.CLUSTER.NEUROGLANCER, em_path=self.cfg.DATASET.EM_PATH)
-		if visualization:
+			_ = recompute_from_res(labels, res_labels, volfns=gtfns, dprc=self.cfg.MODE.DPRC, fp=self.cfg.CLUSTER.OUTPUTPATH + "masks/", neuroglancer=self.cfg.CLUSTER.NEUROGLANCER, em_path=self.cfg.DATASET.EM_PATH)
+		if self.cfg.CLUSTER.VISUALIZATION:
 			# For visualization purposes.
-			em_files = glob.glob(self.cfg.DATASET.EM_PATH + '*.png')
-			labeled_files = glob.glob(self.cfg.CLUSTER.OUTPUTPATH + 'masks/*.png')
+			em_files = glob.glob(self.cfg.DATASET.EM_PATH + '*.' + self.cfg.DATASET.FILE_FORMAT)
+			labeled_files = glob.glob(self.cfg.CLUSTER.OUTPUTPATH + 'masks/*.' + self.cfg.DATASET.FILE_FORMAT)
 
 			for idx, em_file in enumerate(em_files):
 				labeled = imageio.imread(labeled_files[idx])
 				em = imageio.imread(em_file)
-				visvol(em, labeled,filename=self.cfg.CLUSTER.OUTPUTPATH+"visualization/{}".format(idx), save=True)
+				visvol(em, labeled, filename=(self.cfg.CLUSTER.OUTPUTPATH + "overlay/{}".format(idx)), save=True)
 
 		print('\nfinished clustering.')
-
-

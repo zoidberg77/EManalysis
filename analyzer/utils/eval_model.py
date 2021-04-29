@@ -31,13 +31,73 @@ class Evaluationmodel():
 		'''
 		Evaluation of the clustering by comparing the gt to the results.
 		'''
-		score = normalized_mutual_info_score(self.get_gt_vector(fn='gt_vector.json', fast=False), rsl_vector)
+		rsl_values, rsl_counts = np.unique(rsl_vector, return_counts=True)
+		gt_values, gt_counts = np.unique(self.get_gt_vector(), return_counts=True)
+		print('\nThe following shows how many datapoints each cluster consists of.')
+		print('result distribution vector {}'.format(rsl_counts))
+		print('ground truth distribution vector {}'.format(gt_counts))
+
+		# MUTUAL INFORMATION SCORE
+		score = normalized_mutual_info_score(self.get_gt_vector(fast=True), rsl_vector)
 		print(score)
 
 	def get_gt_vector(self, fn='gt_vector.json', fast=False):
 		if fast:
 			return self.fast_create_gt_vector(fn)
 		return self.create_gt_vector()
+
+	def eval_volume(self, rsl_vector):
+		'''
+		Compute accuracy by comparing each segment from the result to the ground truth.
+		'''
+		if os.path.exists(os.path.join(self.cfg.SYSTEM.ROOT_DIR, self.cfg.DATASET.ROOTF, 'eval_data_info.json')) \
+				and os.stat(os.path.join(self.cfg.SYSTEM.ROOT_DIR, self.cfg.DATASET.ROOTF, 'eval_data_info.json')).st_size != 0:
+			with open(os.path.join(self.cfg.SYSTEM.ROOT_DIR, self.cfg.DATASET.ROOTF, 'eval_data_info.json'), 'r') as f:
+				data_info = json.loads(f.read())
+		else:
+			print('data info not found. Will be computed. This takes a while. Be prepared.')
+			data_info = self.prep_data_info(save=True)
+
+		print('\nStarting to compute the accuracy of the clustering process.')
+		# Preparation section.
+		gt_fns = sorted(glob.glob(self.dl.gtpath + '*.' + self.cfg.DATASET.FILE_FORMAT))
+		rsl_fns = sorted(glob.glob(self.cfg.CLUSTER.OUTPUTPATH + '*.' + self.cfg.DATASET.FILE_FORMAT))
+		if not rsl_fns or not gt_fns:
+			raise ValueError('Please make sure that ground truth and result images are there and the path is correct.')
+
+		rsl_values, rsl_counts = np.unique(rsl_vector, return_counts=True)
+		gt_values, gt_counts = np.unique(self.get_gt_vector(), return_counts=True)
+
+		s_gt = np.array([gt_values for _, gt_values in sorted(zip(gt_counts, gt_values))])
+		s_rsl = np.array([rsl_values for _, rsl_values in sorted(zip(rsl_counts, rsl_values))])
+
+		correct = 0
+		for idx in range(len(gt_fns)):
+			gt = imageio.imread(gt_fns[idx])
+			rsl = imageio.imread(rsl_fns[idx])
+
+			for key, value in data_info.items():
+				slices = value[0]
+				randompts = value[2]
+
+				if slices[0] == idx:
+					gt_label_index = np.where(s_gt == gt[randompts[0][0], randompts[0][1]])[0].item()
+					rsl_label_index = 0
+					for k, coords in enumerate(randompts):
+						if np.where(s_rsl == rsl[randompts[k][0], randompts[k][1]])[0].size == 0:
+							continue
+						else:
+							rsl_label_index = np.where(s_rsl == rsl[randompts[k][0], randompts[k][1]])[0].item()
+							break
+					if gt_label_index == rsl_label_index:
+						correct = correct + 1
+				else:
+					continue
+			if idx % 50 == 0:
+				print('iteration through [{}/{}] done.'.format(idx, len(gt_fns)))
+
+		accuracy = correct / np.sum(gt_counts)
+		print('\nfound accuracy: ', accuracy)
 
 	def create_gt_vector(self, fn='gt_vector.json', save=True):
 		'''
@@ -159,4 +219,3 @@ class Evaluationmodel():
 			print('counts: ', counts)
 
 		return gt_vector
-

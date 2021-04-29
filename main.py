@@ -117,11 +117,10 @@ def main():
 		trainer.test(model=rptc_model, test_dataloaders=ptc_datamodule.test_dataloader())
 		return
 
-	
+
 	dl = Dataloader(cfg)
 	model = Clustermodel(cfg, dl=dl)
-	model.run(generate_masks=cfg.CLUSTER.GENERATE_MASKS, visualization=cfg.CLUSTER.VISUALIZATION)
-
+	model.run()
 
 if __name__ == "__main__":
 	main()
