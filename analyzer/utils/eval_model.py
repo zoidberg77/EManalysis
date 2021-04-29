@@ -60,7 +60,7 @@ class Evaluationmodel():
 		print('\nStarting to compute the accuracy of the clustering process.')
 		# Preparation section.
 		gt_fns = sorted(glob.glob(self.dl.gtpath + '*.' + self.cfg.DATASET.FILE_FORMAT))
-		rsl_fns = sorted(glob.glob(self.cfg.CLUSTER.OUTPUTPATH + '*.' + self.cfg.DATASET.FILE_FORMAT))
+		rsl_fns = sorted(glob.glob(self.cfg.CLUSTER.OUTPUTPATH + 'masks/*.' + self.cfg.DATASET.FILE_FORMAT))
 		if not rsl_fns or not gt_fns:
 			raise ValueError('Please make sure that ground truth and result images are there and the path is correct.')
 

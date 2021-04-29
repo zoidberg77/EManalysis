@@ -174,6 +174,8 @@ class Clustermodel():
 		if self.cfg.CLUSTER.GENERATE_MASKS:
 			_, gtfns = self.fe.get_fns()
 			_ = recompute_from_res(labels, res_labels, volfns=gtfns, dprc=self.cfg.MODE.DPRC, fp=self.cfg.CLUSTER.OUTPUTPATH + "masks/", neuroglancer=self.cfg.CLUSTER.NEUROGLANCER, em_path=self.cfg.DATASET.EM_PATH)
+			self.eval.eval_volume(res_labels)
+			
 		if self.cfg.CLUSTER.VISUALIZATION:
 			# For visualization purposes.
 			em_files = glob.glob(self.cfg.DATASET.EM_PATH + '*.' + self.cfg.DATASET.FILE_FORMAT)
