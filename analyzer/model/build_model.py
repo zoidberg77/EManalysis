@@ -111,7 +111,7 @@ class Clustermodel():
 						labels = np.array(h5f['id'], dtype=np.uint16)
 
 					test = np.array(h5f[fns[:-1]])
-					print('Features {} have shape {}'.format(fn, test.shape))
+					print('\nfeature vector {} has shape {}'.format(fn, test.shape))
 					rs_feat_list.append(np.array(h5f[fns[:-1]]))
 					print('Loaded {} features to cache.'.format(fns[:-1]))
 
@@ -159,16 +159,6 @@ class Clustermodel():
 			if save == True:
 				self.fe.save_feats_h5(labels, clst_m, filen='clstm')
 		return clst_m
-
-	def visualize(self, end=True):
-		'''
-		Visualize some results.
-		'''
-		#TODO: write that function out properly.
-		visvol(imageio.imread('datasets/human/human_em_export_8nm/human_em_export_s0220.png'), \
-	    imageio.imread('outputs/cluster_mask_5_circf_220.png'), filename='circf_5_em_220', ff='png', save=True, dpi=1200)
-		if end:
-			return
 
 	def run(self):
 		'''

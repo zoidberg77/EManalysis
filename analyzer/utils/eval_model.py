@@ -25,7 +25,6 @@ class Evaluationmodel():
 	def __init__(self, cfg, dl):
 		self.cfg = cfg
 		self.dl = dl
-		#self.rsl_vector = rsl_vector
 
 	def eval(self, rsl_vector):
 		'''
@@ -39,7 +38,7 @@ class Evaluationmodel():
 
 		# MUTUAL INFORMATION SCORE
 		score = normalized_mutual_info_score(self.get_gt_vector(fast=True), rsl_vector)
-		print(score)
+		print('mutual information score: {}'.format(score))
 
 	def get_gt_vector(self, fn='gt_vector.json', fast=False):
 		if fast:
@@ -187,8 +186,8 @@ class Evaluationmodel():
 				gt_vector = json.loads(f.read())
 		else:
 			print('gt vector not found. Will be computed.')
-			gt_images = glob.glob(self.dl.gtpath + '/*.png')
-			label_images = glob.glob(self.dl.labelpath + '/*.png')
+			gt_images = glob.glob(self.dl.gtpath + '*.' + self.cfg.DATASET.FILE_FORMAT)
+			label_images = glob.glob(self.dl.labelpath + '*.' + self.cfg.DATASET.FILE_FORMAT)
 
 			if len(gt_images) != len(label_images):
 				print("gt images dont match label images")

@@ -51,7 +51,7 @@ def recompute_from_res(labels, result, vol= None, volfns=None, dprc='full', fp='
 	:param dprc: (string)
 	:returns cld_labels: (np.array) vol matrix that is the same shape as vol mask. But with adjusted labels.
 	'''
-	print('Starting to relabel the mask with the results from the clustering results.')
+	print('\nStarting to relabel the mask with the results from the clustering results.')
 	if dprc == 'full':
 		if mode == '2d':
 			cld_labels = np.zeros(shape=labels.shape)
