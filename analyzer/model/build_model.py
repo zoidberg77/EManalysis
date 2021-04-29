@@ -4,7 +4,7 @@ import h5py
 import imageio
 import hdbscan
 from scipy.spatial import distance
-from sklearn.cluster import KMeans, AffinityPropagation, SpectralClustering, DBSCAN
+from sklearn.cluster import KMeans, AffinityPropagation, SpectralClustering, DBSCAN, AgglomerativeClustering
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 
 from analyzer.model.utils.helper import *
@@ -63,6 +63,8 @@ class Clustermodel():
 			model = DBSCAN(eps=0.5)
 		elif mn == 'hdbscan':
 			model = hdbscan.HDBSCAN(min_cluster_size=self.n_cluster, gen_min_span_tree=True)
+		elif mn == 'aggloCl':
+			model = AgglomerativeClustering(n_clusters=self.n_cluster)
 		else:
 			raise ValueError('Please enter a valid clustering algorithm. -- \'kmeans\', \'affprop\', \'specCl\', \'dbscan\', \'hdbscan\'')
 
@@ -168,7 +170,7 @@ class Clustermodel():
 		if end:
 			return
 
-	def run(self):
+	def run(self, generate_masks=False):
 		'''
 		Running the main clustering algoritm on the features (feature list) extracted.
 		'''
@@ -176,9 +178,9 @@ class Clustermodel():
 		clst_m = self.prep_cluster_matrix(labels, feat)
 		res_labels = self.model.fit_predict(clst_m)
 		self.eval.eval(res_labels)
-
-		_, gtfns = self.fe.get_fns()
-		_ = recompute_from_res(labels, res_labels, volfns=gtfns, dprc=self.cfg.MODE.DPRC, fp=self.cfg.CLUSTER.OUTPUTPATH, neuroglancer=self.cfg.CLUSTER.NEUROGLANCER, em_path=self.cfg.DATASET.EM_PATH)
+		if generate_masks:
+			_, gtfns = self.fe.get_fns()
+			_ = recompute_from_res(labels, res_labels, volfns=gtfns, dprc=self.cfg.MODE.DPRC, fp=self.cfg.CLUSTER.OUTPUTPATH, neuroglancer=self.cfg.CLUSTER.NEUROGLANCER, em_path=self.cfg.DATASET.EM_PATH)
 
 		print('\nfinished clustering.')
 

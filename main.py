@@ -8,6 +8,7 @@ import torch
 from analyzer.config import get_cfg_defaults
 from analyzer.data import Dataloader, PtcDataset
 from analyzer.model import Clustermodel
+from analyzer.utils import Evaluationmodel
 from analyzer.vae import train
 from analyzer.vae.model.utils.pt import point_cloud
 from analyzer.vae.model.random_ptc_vae import RandomPtcAe, RandomPtcDataModule
@@ -96,7 +97,7 @@ def main():
 	elif cfg.MODE.PROCESS == "rptctrain":
 		print('--- Starting the training process for the vae based on point clouds(random). --- \n')
 		rptc_model = RandomPtcAe(cfg).double()
-		ptc_dataset = PtcDataset(cfg, sample_mode='partial')
+		ptc_dataset = PtcDataset(cfg, sample_mode=cfg.AUTOENCODER.PTC_SAMPLE_MODE, sample_size=cfg.AUTOENCODER.PTC_NUM_POINTS)
 		trainer = pl.Trainer(default_root_dir='datasets/vae/checkpoints', max_epochs=cfg.AUTOENCODER.EPOCHS, gpus=cfg.SYSTEM.NUM_GPUS)
 		ptc_datamodule = RandomPtcDataModule(cfg=cfg, dataset=ptc_dataset)
 		trainer.fit(rptc_model, ptc_datamodule)
@@ -106,7 +107,7 @@ def main():
 		last_checkpoint = glob('datasets/vae/checkpoints/lightning_logs/**/*.ckpt', recursive=True)[-1]
 		rptc_model = RandomPtcAe(cfg).load_from_checkpoint(last_checkpoint, cfg=cfg).double()
 		rptc_model.freeze()
-		ptc_dataset = PtcDataset(cfg, sample_mode='partial')
+		ptc_dataset = PtcDataset(cfg, sample_mode=cfg.AUTOENCODER.PTC_SAMPLE_MODE, sample_size=cfg.AUTOENCODER.PTC_NUM_POINTS)
 		trainer = pl.Trainer(default_root_dir='datasets/vae/checkpoints', max_epochs=cfg.AUTOENCODER.EPOCHS, checkpoint_callback=False, gpus=cfg.SYSTEM.NUM_GPUS)
 		ptc_datamodule = RandomPtcDataModule(cfg=cfg, dataset=ptc_dataset)
 
@@ -116,9 +117,10 @@ def main():
 		trainer.test(model=rptc_model, test_dataloaders=ptc_datamodule.test_dataloader())
 		return
 
+	
 	dl = Dataloader(cfg)
 	model = Clustermodel(cfg, dl=dl)
-	model.run()
+	model.run(generate_masks=cfg.CLUSTER.GENERATE_MASKS)
 
 
 if __name__ == "__main__":

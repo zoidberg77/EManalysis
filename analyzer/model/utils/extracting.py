@@ -238,7 +238,6 @@ def calc_props(idx, fns, prop_list=['size', 'slices', 'centroid', 'circ', 'surfa
 	:param prop_list: (list) of (strings) that contain the properties that should be stored in result.
 	:returns result: (dict) with each segment. key: idx of segment -- value: [number of pixels in segment, idx of slice].
 	'''
-	print(idx)
 	result = {}
 	if os.path.exists(fns):
 		tmp = imageio.imread(fns)
