@@ -60,7 +60,7 @@ class PtcDataset():
                             xk = np.arange(len(dists))
                             custm = stats.rv_discrete(name='custm', values=(xk, dists))
                             random_points = cloud[custm.rvs(size=self.sample_size), :]
-                            random_points_file[str(idx)] = random_points
+                            random_points_file[idx] = random_points
 
     def __len__(self):
         '''
@@ -85,7 +85,7 @@ class PtcDataset():
                     randome_indices = np.random.random_integers(ptc.shape[0] - 1, size=(self.sample_size))
                     return np.expand_dims(ptc[randome_indices, :], axis=0), idx
             elif self.sample_mode == 'full':
-                with h5py.File(self.rptcfn, 'w') as random_points_file:
+                with h5py.File(self.rptcfn, 'r') as random_points_file:
                     return np.expand_dims(random_points_file[str(idx)], axis=0), idx
             return np.expand_dims(ptc, axis=0), idx
 
