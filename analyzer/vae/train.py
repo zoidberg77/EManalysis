@@ -335,6 +335,7 @@ class PtcTrainer():
 
 					h5f['ptc_shape'][c] = x
 					h5f['id'][c] = idx
+			h5f.close()
 
 	def save_ptcs(self, reconstructions, idx, save=True):
 		'''
@@ -376,3 +377,4 @@ def random_ptc_infer(model, dataset):
 			if 'ptc_shape' not in f.keys():
 				f.create_dataset(name='ptc_shape', shape=(len(keys), latent_space.shape[-1]))
 			f['ptc_shape'][i] = latent_space
+		f.close()
