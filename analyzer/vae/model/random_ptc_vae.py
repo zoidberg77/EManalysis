@@ -114,7 +114,7 @@ class RandomPtcAe(pl.LightningModule):
         with h5py.File('features/ptc_shapef.h5', 'a') as f:
             f['id'][batch_idx] = y.cpu()
             latent_space = x[0]
-            f['ptcs'][batch_idx] = latent_space.cpu()
+            f['ptc_shape'][batch_idx] = latent_space.cpu()
         x = self.decoder(x)
         x = x.view(x.size(0), x.size(0), -1, 3)
         loss = self.loss(raw_x, x)
