@@ -323,7 +323,7 @@ class PtcTrainer():
 		self.model.to(self.device)
 		keys = self.dataset.keys
 		with h5py.File('features/{}f.h5'.format(self.vae_ptc_feature), 'w') as h5f:
-			h5f.create_dataset(name='ptcs', shape=(len(keys), self.cfg.AUTOENCODER.LATENT_SPACE_PTC))
+			h5f.create_dataset(name='ptc_shape', shape=(len(keys), self.cfg.AUTOENCODER.LATENT_SPACE_PTC))
 			h5f.create_dataset(name='id', shape=(len(keys),))
 
 			with torch.no_grad():
@@ -333,7 +333,7 @@ class PtcTrainer():
 					data.to(self.device)
 					x = self.model.latent_representation(data).cpu().numpy()
 
-					h5f['ptcs'][c] = x
+					h5f['ptc_shape'][c] = x
 					h5f['id'][c] = idx
 
 	def save_ptcs(self, reconstructions, idx, save=True):
@@ -373,6 +373,6 @@ def random_ptc_infer(model, dataset):
 		for i, x in tqdm(enumerate(ptc_dataloader), total=len(keys)):
 			f['id'][i] = i
 			latent_space = model.save_latent(x)
-			if 'ptcs' not in f.keys():
-				f.create_dataset(name='ptcs', shape=(len(keys), latent_space.shape[-1]))
-			f['ptcs'][i] = latent_space
+			if 'ptc_shape' not in f.keys():
+				f.create_dataset(name='ptc_shape', shape=(len(keys), latent_space.shape[-1]))
+			f['ptc_shape'][i] = latent_space
