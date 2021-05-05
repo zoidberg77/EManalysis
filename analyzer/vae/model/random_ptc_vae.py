@@ -139,10 +139,10 @@ class RandomPtcDataModule(pl.LightningDataModule):
         self.train_dataset, self.val_dataset = torch.utils.data.random_split(self.dataset, (train_length, test_length))
 
     def train_dataloader(self):
-        return DataLoader(self.train_dataset, batch_size=1, num_workers=self.cpus, shuffle=True)
+        return DataLoader(self.train_dataset, batch_size=self.batch_size, num_workers=self.cpus, shuffle=True)
 
     def val_dataloader(self):
-        return DataLoader(self.val_dataset, batch_size=1, num_workers=self.cpus, shuffle=False)
+        return DataLoader(self.val_dataset, batch_size=self.batch_size, num_workers=self.cpus, shuffle=False)
 
     def test_dataloader(self):
         return DataLoader(self.dataset, batch_size=1, num_workers=self.cpus, shuffle=False)
