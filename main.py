@@ -113,7 +113,7 @@ def main():
 
 		with h5py.File('features/ptc_shapef.h5', 'w') as f:
 			f.create_dataset(name='id', shape=(len(ptc_dataset),))
-			f.create_dataset(name='ptcs', shape=(len(ptc_dataset), 512))
+			f.create_dataset(name='ptc_shape', shape=(len(ptc_dataset), 512))
 		trainer.test(model=rptc_model, test_dataloaders=ptc_datamodule.test_dataloader())
 		return
 

@@ -64,9 +64,9 @@ _C.MODE.DPRC = 'iter'
 _C.CLUSTER = CN()
 _C.CLUSTER.ALG = 'kmeans'
 #Choose the features you want to cluster.
-_C.CLUSTER.FEAT_LIST = ['sizef', 'distf', 'shapef', 'textf', 'circf']
+_C.CLUSTER.FEAT_LIST = ['sizef', 'distf', 'shapef', 'texturef', 'circf', 'ptc_shapef']
 #Please make sure these weights make the dimension of the features. Means 4 features 4 weight factors.
-_C.CLUSTER.WEIGHTSF = [1, 1, 1 ,1, 1]
+_C.CLUSTER.WEIGHTSF = [1, 1, 1 ,1, 1, 1]
 _C.CLUSTER.N_CLUSTER = 5
 _C.CLUSTER.OUTPUTPATH = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'outputs/')
 _C.CLUSTER.NEUROGLANCER = False

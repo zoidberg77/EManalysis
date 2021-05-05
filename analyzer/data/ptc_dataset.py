@@ -78,8 +78,8 @@ class PtcDataset():
         '''
         with h5py.File(self.ptfn, 'r') as h5f:
             group = h5f.get('ptcs')
-            #ptc = np.array(group[str(idx)])
-            ptc, idx = self.recur(group, idx)
+            idx = sorted(list(group.keys()))[idx]
+            ptc = np.array(group[idx])
             if self.sample_mode == 'partial':
                 if ptc.shape[0] > self.sample_size:
                     randome_indices = np.random.random_integers(ptc.shape[0] - 1, size=(self.sample_size))

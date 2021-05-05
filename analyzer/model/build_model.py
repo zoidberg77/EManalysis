@@ -89,6 +89,8 @@ class Clustermodel():
 					feat = self.fe.compute_seg_dist()
 				elif fns == 'shapef':
 					feat = self.fe.compute_vae_shape()
+				elif fns == 'ptc_shapef':
+					feat = self.fe.compute_vae_ptc_shape()
 				elif fns == 'texturef':
 					feat = self.fe.compute_vae_texture()
 				elif fns == 'circf':
@@ -109,10 +111,10 @@ class Clustermodel():
 					if labels.size == 0:
 						labels = np.array(h5f['id'], dtype=np.uint16)
 
-					test = np.array(h5f[fns[:-1]])
-					print('\nfeature vector {} has shape {}'.format(fn, test.shape))
 					rs_feat_list.append(np.array(h5f[fns[:-1]]))
 					print('Loaded {} features to cache.'.format(fns[:-1]))
+					test = np.array(h5f[fns[:-1]])
+					print('\nfeature vector {} has shape {}'.format(fn, test.shape))
 
 			if idx == 0:
 				base_labels = labels
