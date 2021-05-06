@@ -98,6 +98,8 @@ def recompute_from_res_per_slice(idx, fns, k, v, fp):
 	Helper function to iterate over the whole dataset in order to replace the labels with its
 	clustering labels.
 	'''
+	if idx % 50 == 0:
+		print('relabeling of image {} done.'.format(idx))
 	if os.path.exists(fns):
 		vol = imageio.imread(fns)
 		mapv = np.zeros(k.max() + 1)
@@ -123,8 +125,9 @@ def correct_idx_feat(base_labels, labels, features):
 
 	return ordered_feat
 
-
 def check_feature_order(base_labels, labels):
+	'''checking the label order of the features, to secure that the order is correct
+	an the features are not mixed up for the clustering. Very important!'''
 	return (base_labels == labels).all()
 
 def convert_dict_mtx(inputs, valn):
