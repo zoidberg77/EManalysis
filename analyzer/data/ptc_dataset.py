@@ -119,3 +119,6 @@ class PtcDataset():
             idx = idx + 1
             tmp, idx = self.recur(group, idx)
             return tmp, idx
+
+    def save_cloud_vis(self, cloud, random_cloud):
+        pass
