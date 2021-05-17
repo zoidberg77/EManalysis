@@ -20,3 +20,6 @@ notebooks/analyzer
 configs/vae.yaml
 /lightning_logs/
 datasets/vae/checkpoints
+run.sh
+emanalysis.out
+configs/mouseA2.yaml
