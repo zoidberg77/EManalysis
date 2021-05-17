@@ -1,0 +1,54 @@
+Command line arguments:
+Namespace(cfg='configs/mouseA2.yaml', mode='ptcprep')
+Configuration details:
+AUTOENCODER:
+  ARCHITECTURE: unet_3d
+  BATCH_SIZE: 1
+  CHUNKS_CPU: 4
+  EPOCHS: 10
+  FEATURES: ['shape', 'texture']
+  LATENT_SPACE: 100
+  LATENT_SPACE_PTC: 512
+  LOG_INTERVAL: 10
+  LOWER_BOUND: 100
+  MAX_GRADIENT: 1.0
+  MAX_MEAN: 0.001
+  MAX_VAR: 0.001
+  OUTPUT_FOLDER: features/mouseA/
+  PTC_NUM_POINTS: 1000
+  PTC_SAMPLE_MODE: full
+  REGION_LIMIT: None
+  TARGET: [64, 64, 64]
+  UPPER_BOUND: 100000
+CLUSTER:
+  ALG: kmeans
+  FEAT_LIST: ['sizef', 'distf', 'circf']
+  GENERATE_MASKS: False
+  NEUROGLANCER: False
+  N_CLUSTER: 5
+  OUTPUTPATH: outputs/mouseA/
+  VISUALIZATION: False
+  WEIGHTSF: [1, 1, 1]
+DATASET:
+  CHUNK_SIZE: [2, 4096, 4096]
+  DATAINFO: features/mouseA/data_info.json
+  EM_PATH: datasets/mouseA/em_export/
+  FILE_FORMAT: png
+  GT_PATH: datasets/mouseA/mito_export_maingroups/
+  LABEL_PATH: datasets/mouseA/mito_export_unique_id/
+  ROOTD: /storage/sidakk95/EManalysis/datasets/
+  ROOTF: features/mouseA/
+MODE:
+  DPRC: iter
+  PROCESS: ptcprep
+SYSTEM:
+  NUM_CPUS: 16
+  NUM_GPUS: 1
+  ROOT_DIR: /storage/sidakk95/EManalysis 
+
+em data loaded:  (2, 4096, 4096)
+label data loaded:  (2, 4096, 4096)
+gt data loaded:  (2, 4096, 4096)
+Starting to compute the point representation of 750 segments.
+saved point representations to /storage/sidakk95/EManalysis/datasets/vae/pts.h5.
+point cloud generation finished.
