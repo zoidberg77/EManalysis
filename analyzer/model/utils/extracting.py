@@ -241,7 +241,6 @@ def calc_props(idx, fns, prop_list=['size', 'slices', 'centroid', 'circ', 'surfa
 	result = {}
 	if os.path.exists(fns):
 		tmp = imageio.imread(fns)
-		#labels, num_labels = np.unique(tmp, return_counts=True)
 		regions = regionprops(tmp, cache=False)
 
 		labels = []

@@ -34,10 +34,11 @@ def point_cloud(fns, cfg, save=True):
 
 	if save:
 		with h5py.File(cfg.DATASET.ROOTD + 'vae/pts' + '.h5', 'w') as h5f:
+			h5f.create_dataset('labels', data=list(result_dict.keys()))
 			grp = h5f.create_group('ptcs')
 			for result in result_dict.keys():
 				std_rs = normalize_ptc(result_dict[result][0])
-				grp.create_dataset(str(result), data=normalize_ptc(std_rs))
+				grp.create_dataset(str(result), data=std_rs)
 			h5f.close()
 		print('saved point representations to {}.'.format(cfg.DATASET.ROOTD + 'vae/pts' + '.h5'))
 	print('point cloud generation finished.')
@@ -49,6 +50,8 @@ def calc_point_repr(idx, fns):
 	:param fns: This is a concrete filename.
 	'''
 	result = {}
+	if idx >= 2:
+		return result
 	if os.path.exists(fns):
 		tmp = imageio.imread(fns)
 		regions = regionprops(tmp, cache=False)
@@ -57,6 +60,7 @@ def calc_point_repr(idx, fns):
 		cont_list = list()
 		for props in regions:
 			labels.append(props.label)
+			#print('label of ptc: ', props.label)
 			seg = tmp.copy().astype(int)
 			seg[tmp != props.label] = 0
 
