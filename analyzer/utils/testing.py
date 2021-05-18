@@ -14,8 +14,6 @@ with h5py.File(os.path.join('datasets/vae/mouseA/pts.h5'), 'r') as h5f:
     for idx in range(labels.shape[0]):
         elem = labels[idx]
         if elem in int_keys:
-            if idx % 100 == 0:
-                print('no errors yet.')
             continue
         else:
             raiseValueError('Error')
