@@ -111,9 +111,10 @@ def main():
 		trainer = pl.Trainer(default_root_dir='datasets/vae/checkpoints', max_epochs=cfg.AUTOENCODER.EPOCHS, checkpoint_callback=False, gpus=cfg.SYSTEM.NUM_GPUS)
 		ptc_datamodule = RandomPtcDataModule(cfg=cfg, dataset=ptc_dataset)
 
-		with h5py.File('features/ptc_shapef.h5', 'w') as f:
+		with h5py.File(cfg.DATASET.ROOTF + 'ptc_shapef.h5', 'w') as f:
 			f.create_dataset(name='id', shape=(len(ptc_dataset),))
 			f.create_dataset(name='ptc_shape', shape=(len(ptc_dataset), 512))
+			f.create_dataset(name='ptc_reconstruction', shape=(len(ptc_dataset), cfg.AUTOENCODER.PTC_NUM_POINTS, 3))
 		trainer.test(model=rptc_model, test_dataloaders=ptc_datamodule.test_dataloader())
 		return
 
