@@ -7,6 +7,17 @@ import numpy as np
 from numpyencoder import NumpyEncoder
 from analyzer.model.utils.extracting import calc_props
 
+### --- running example ---
+# import glob
+# from analyzer.utils.misc import find_cluster_center
+# from analyzer.utils.eval_model import Evaluationmodel
+#
+# gt_fns = sorted(glob.glob('datasets/mouseA/mito_export_maingroups/' + '*.' + 'png'))
+# unique_fns = sorted(glob.glob('datasets/mouseA/mito_export_unique_id/' + '*.' + 'png'))
+#
+# eval = Evaluationmodel(cfg, dl=dl)
+# find_cluster_center(eval, cfg, unique_fns, gt_fns, save=True)
+
 def find_cluster_center(eval_model, cfg, unique_fns, gt_fns, save=False):
 	'''
 	This function computes an average centerpoint of a cluster and returns it.
@@ -47,12 +58,12 @@ def find_cluster_center(eval_model, cfg, unique_fns, gt_fns, save=False):
 
 		result_dict[gt] = tmp_dict[gt]
 
-    if save:
-        with open(os.path.join('central_mitochondria.json'), 'w') as f:
+	if save:
+		with open(os.path.join('central_mitochondria.json'), 'w') as f:
 			json.dump(result_dict, f, cls=NumpyEncoder)
 			f.close()
 	print('resulting central mitochondrias: ', result_dict)
-    return result_dict
+	return result_dict
 
 def compute_centerpoints(cfg, fns, save=True):
 	'''Compute centroids of every segment.'''
