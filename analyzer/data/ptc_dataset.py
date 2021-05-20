@@ -87,11 +87,10 @@ class PtcDataset():
                             if len(possible_idx) < self.blue_noise_sample_points:
                                 possible_idx = list(np.arange(0, len(points)))
                             candidates = random.sample(possible_idx, self.blue_noise_sample_points)
-                            start = idxs[-1]
                             best_candidate = -1
                             best_dist = 0
                             for c in candidates:
-                                new_dist = dists[start, c]
+                                new_dist = sum([dists[point, c] for point in idxs])
                                 if best_dist < new_dist:
                                     best_dist = new_dist
                                     best_candidate = c
@@ -101,9 +100,6 @@ class PtcDataset():
                         idxs = sorted(idxs)
                         random_points = cloud[idxs, :]
                         random_points_file[key] = random_points
-
-
-
 
     def __len__(self):
         '''
