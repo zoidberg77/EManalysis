@@ -17,6 +17,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pytorch_lightning as pl
 
+import h5py
+from analyzer.data import data_vis
+
 # RUN THE SCRIPT LIKE: $ python main.py --cfg configs/process.yaml
 # Apply your specification within the .yaml file.
 
