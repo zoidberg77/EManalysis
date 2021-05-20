@@ -7,6 +7,7 @@ from scipy import stats
 from sklearn.preprocessing import normalize
 from tqdm import tqdm
 from sklearn.metrics import pairwise_distances
+import multiprocessing as mp
 
 
 def normalize_ptc(ptc):
@@ -72,34 +73,43 @@ class PtcDataset():
             if os.path.exists(self.rptcfn):
                 return
             print("calculating random points via bluenoise sampling")
-            with h5py.File(self.ptfn, 'r') as h5f:
-                with h5py.File(self.rptcfn, 'w') as random_points_file:
-                    group = h5f.get('ptcs')
-                    for key, points in tqdm(group.items(), total=len(group.keys())):
-                        idxs = []
-                        cloud = np.array(points)
-                        dists = pairwise_distances(points)
-                        possible_idx = list(np.arange(0, len(points)))
-                        start = random.sample(possible_idx, 1)[0]
-                        possible_idx.pop(start)
-                        idxs.append(start)
-                        for i in range(1, self.sample_size):
-                            if len(possible_idx) < self.blue_noise_sample_points:
-                                possible_idx = list(np.arange(0, len(points)))
-                            candidates = random.sample(possible_idx, self.blue_noise_sample_points)
-                            best_candidate = -1
-                            best_dist = 0
-                            for c in candidates:
-                                new_dist = sum([dists[point, c] for point in idxs])
-                                if best_dist < new_dist:
-                                    best_dist = new_dist
-                                    best_candidate = c
 
-                            possible_idx.remove(best_candidate)
-                            idxs.append(best_candidate)
-                        idxs = sorted(idxs)
-                        random_points = cloud[idxs, :]
-                        random_points_file[key] = random_points
+            with h5py.File(self.rptcfn, 'w') as random_points_file:
+                with h5py.File(self.ptfn, 'r') as h5f:
+                    group = h5f.get('ptcs')
+                    pool = mp.Pool(processes=cfg.SYSTEM.NUM_CPUS)
+                    results = [pool.apply(self.calculate_blue_noise_samples, args=(key,)) for key in tqdm(group.keys(), total=len(group.keys()))]
+                    for result in results:
+                        random_points[result[0]] = result[1]
+
+    def calculate_blue_noise_samples(self, key):
+        with h5py.File(self.ptfn, 'r') as h5f:
+            group = h5f.get('ptcs')
+            cloud = np.array(group[key])
+        idxs = []
+        # dists = pairwise_distances(points)
+        possible_idx = list(np.arange(0, len(cloud)))
+        start = random.sample(possible_idx, 1)[0]
+        possible_idx.pop(start)
+        idxs.append(start)
+        for i in range(1, self.sample_size):
+            if len(possible_idx) < self.blue_noise_sample_points:
+                possible_idx = list(np.arange(0, len(cloud)))
+            candidates = random.sample(possible_idx, self.blue_noise_sample_points)
+            best_candidate = -1
+            best_dist = 0
+            for c in candidates:
+                for point in idxs:
+                    new_dist = np.linalg.norm(cloud[c] - cloud[point])
+                    if best_dist < new_dist:
+                        best_dist = new_dist
+                        best_candidate = c
+
+            possible_idx.remove(best_candidate)
+            idxs.append(best_candidate)
+        idxs = sorted(idxs)
+        random_points = cloud[idxs, :]
+        return key, random_points
 
     def __len__(self):
         '''
