@@ -65,6 +65,7 @@ def main():
 		em, labels, gt = dl.load_chunk()
 		emfns, labelfns, gtfns = dl.get_fns()
 		point_cloud(labelfns, cfg)
+		ptcdl = PtcDataset(cfg)
 		return
 	elif cfg.MODE.PROCESS == "ptctrain":
 		print('--- Starting the training process for the vae based on point clouds. --- \n')

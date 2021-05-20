@@ -51,8 +51,17 @@ class PtcDataset():
         self.sample_mode = sample_mode
         self.dists = {}
         self.blue_noise_sample_points = cfg.AUTOENCODER.BLUE_NOISE_SAMPLE_POINTS
+        self.rptcfn = cfg.DATASET.ROOTD + 'vae/random_ptc' + '.h5'
+
+        if sample_mode == 'whitenoise':
+            print("calculating random points via white noise sampling")
+            with h5py.File(self.ptfn, 'r') as h5f:
+                with h5py.File(self.rptcfn, 'w') as random_points_file:
+                    for key, cloud in tqdm(h5f['ptcs'].items(), total=len(h5f['ptcs'].keys())):
+                        idxs = np.random.randint(0, len(cloud), sample_size)
+                        random_points_file[key] = np.array(cloud)[idxs, :]
+
         if sample_mode == 'montecarlo':
-            self.rptcfn = cfg.DATASET.ROOTD + 'vae/random_ptc' + '.h5'
             if os.path.exists(self.rptcfn):
                 return
             print("calculating random points via monte carlo sampling")
@@ -72,7 +81,6 @@ class PtcDataset():
                         random_points_file[idx] = random_points
 
         if sample_mode == "bluenoise":
-            self.rptcfn = cfg.DATASET.ROOTD + 'vae/random_ptc' + '.h5'
             if os.path.exists(self.rptcfn):
                 return
             print("calculating random points via bluenoise sampling")
@@ -89,35 +97,25 @@ class PtcDataset():
     def calculate_blue_noise_samples(self, key, cloud):
         idxs = []
         dists = pairwise_distances(cloud)
-        #dists = np.ones((len(cloud), len(cloud)))*-1
         possible_idx = list(np.arange(0, len(cloud)))
         start = random.sample(possible_idx, 1)[0]
-        possible_idx.pop(start)
         idxs.append(start)
         for i in range(1, self.sample_size):
-            if len(possible_idx) < self.blue_noise_sample_points:
-                possible_idx = list(np.arange(0, len(cloud)))
-            candidates = random.sample(possible_idx, self.blue_noise_sample_points)
+            bnsp = self.blue_noise_sample_points
+            if bnsp > len(possible_idx):
+                bnsp = len(possible_idx)
+            candidates = random.sample(possible_idx, bnsp)
             best_candidate = -1
             best_dist = 0
             for c in candidates:
                 for point in idxs:
                     if c == point:
                         continue
-                    '''
-                    if dists[c, point] < 0:
-                        dists[c, point] = np.linalg.norm(cloud[c] - cloud[point])
-                        dists[point, c] = dists[c, point]
-                    '''
-                    #new_dist = np.linalg.norm(cloud[c] - cloud[point])
                     new_dist = dists[c, point]
-                    if best_dist < new_dist:
+                    if best_dist <= new_dist:
                         best_dist = new_dist
                         best_candidate = c
-
-            possible_idx.remove(best_candidate)
             idxs.append(best_candidate)
-        #idxs = sorted(idxs)
         random_points = cloud[idxs, :]
         return key, random_points
 
