@@ -78,7 +78,7 @@ class PtcDataset():
                     for key, points in tqdm(group.items(), total=len(group.keys())):
                         idxs = []
                         cloud = np.array(points)
-                        dists = pairwise_distances(points, n_jobs=cfg.SYSTEM.NUM_CPUS)
+                        dists = pairwise_distances(points)
                         possible_idx = list(np.arange(0, len(points)))
                         start = random.sample(possible_idx, 1)[0]
                         possible_idx.pop(start)
