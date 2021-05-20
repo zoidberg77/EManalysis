@@ -104,17 +104,10 @@ class PtcDataset():
             bnsp = self.blue_noise_sample_points
             if bnsp > len(possible_idx):
                 bnsp = len(possible_idx)
-            candidates = random.sample(possible_idx, bnsp)
-            best_candidate = -1
-            best_dist = 0
-            for c in candidates:
-                for point in idxs:
-                    if c == point:
-                        continue
-                    new_dist = dists[c, point]
-                    if best_dist <= new_dist:
-                        best_dist = new_dist
-                        best_candidate = c
+            candidates = np.random.randint(0, len(cloud), bnsp)
+            reduced_dists = dists[candidates, :][:, idxs]
+            sums = np.sum(reduced_dists, axis=1)
+            best_candidate = candidates[np.argmax(sums)]
             idxs.append(best_candidate)
         random_points = cloud[idxs, :]
         return key, random_points
@@ -141,7 +134,7 @@ class PtcDataset():
                 if ptc.shape[0] > self.sample_size:
                     randome_indices = np.random.random_integers(ptc.shape[0] - 1, size=(self.sample_size))
                     return np.expand_dims(ptc[randome_indices, :], axis=0), idx
-            elif self.sample_mode == 'full':
+            elif self.sample_mode is not None:
                 with h5py.File(self.rptcfn, 'r') as random_points_file:
                     return np.expand_dims(random_points_file[str(idx)], axis=0), idx
             return np.expand_dims(ptc, axis=0), idx
