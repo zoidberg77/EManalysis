@@ -17,11 +17,12 @@ def normalize_ptc(ptc):
     '''
     return normalize(ptc, axis=0, norm='max')
 
+
 def rotate_point_cloud(batch_data):
     '''
     Randomly rotate the point clouds to augument the dataset rotation is per shape based along up direction
     '''
-    #TODO
+    # TODO
     '''
     rotated_data = np.zeros(batch_data.shape, dtype=np.float32)
     for k in xrange(batch_data.shape[0]):
@@ -37,10 +38,12 @@ def rotate_point_cloud(batch_data):
     '''
     pass
 
+
 class PtcDataset():
     '''
     This is the Data module for the pointcloud autoencoder.
     '''
+
     def __init__(self, cfg, sample_size=2000, sample_mode=None):
         self.cfg = cfg
         self.sample_size = sample_size
@@ -49,7 +52,7 @@ class PtcDataset():
         self.dists = {}
         self.blue_noise_sample_points = cfg.AUTOENCODER.BLUE_NOISE_SAMPLE_POINTS
         if sample_mode == 'montecarlo':
-            self.rptcfn = cfg.DATASET.ROOTD+ 'vae/random_ptc' + '.h5'
+            self.rptcfn = cfg.DATASET.ROOTD + 'vae/random_ptc' + '.h5'
             if os.path.exists(self.rptcfn):
                 return
             print("calculating random points via monte carlo sampling")
@@ -61,7 +64,7 @@ class PtcDataset():
                         centroid = np.mean(cloud, axis=0)
                         dists = []
                         for point in cloud:
-                            dists.append(np.linalg.norm(point-centroid))
+                            dists.append(np.linalg.norm(point - centroid))
                         dists /= sum(dists)
                         xk = np.arange(len(dists))
                         custm = stats.rv_discrete(name='custm', values=(xk, dists))
@@ -74,20 +77,18 @@ class PtcDataset():
                 return
             print("calculating random points via bluenoise sampling")
 
-            with h5py.File(self.rptcfn, 'w') as random_points_file:
-                with h5py.File(self.ptfn, 'r') as h5f:
-                    group = h5f.get('ptcs')
-                    pool = mp.Pool(processes=cfg.SYSTEM.NUM_CPUS)
-                    results = [pool.apply(self.calculate_blue_noise_samples, args=(key,)) for key in tqdm(group.keys(), total=len(group.keys()))]
+            with h5py.File(self.ptfn, 'r') as h5f:
+                clouds = [(str(key), np.array(cloud)) for key, cloud in h5f['ptcs'].items()]
+                pool = mp.Pool(processes=cfg.SYSTEM.NUM_CPUS)
+                results = [pool.apply(self.calculate_blue_noise_samples, args=(key, cloud,)) for key, cloud in
+                           tqdm(clouds, total=len(clouds))]
+                with h5py.File(self.rptcfn, 'w') as random_points_file:
                     for result in results:
-                        random_points[result[0]] = result[1]
+                        random_points_file[result[0]] = result[1]
 
-    def calculate_blue_noise_samples(self, key):
-        with h5py.File(self.ptfn, 'r') as h5f:
-            group = h5f.get('ptcs')
-            cloud = np.array(group[key])
+    def calculate_blue_noise_samples(self, key, cloud):
         idxs = []
-        # dists = pairwise_distances(points)
+        dists = pairwise_distances(cloud)
         possible_idx = list(np.arange(0, len(cloud)))
         start = random.sample(possible_idx, 1)[0]
         possible_idx.pop(start)
@@ -100,7 +101,8 @@ class PtcDataset():
             best_dist = 0
             for c in candidates:
                 for point in idxs:
-                    new_dist = np.linalg.norm(cloud[c] - cloud[point])
+                    # new_dist = np.linalg.norm(cloud[c] - cloud[point])
+                    new_dist = dists[c, point]
                     if best_dist < new_dist:
                         best_dist = new_dist
                         best_candidate = c
