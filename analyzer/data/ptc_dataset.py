@@ -89,6 +89,7 @@ class PtcDataset():
     def calculate_blue_noise_samples(self, key, cloud):
         idxs = []
         dists = pairwise_distances(cloud)
+        #dists = np.ones((len(cloud), len(cloud)))*-1
         possible_idx = list(np.arange(0, len(cloud)))
         start = random.sample(possible_idx, 1)[0]
         possible_idx.pop(start)
@@ -101,7 +102,14 @@ class PtcDataset():
             best_dist = 0
             for c in candidates:
                 for point in idxs:
-                    # new_dist = np.linalg.norm(cloud[c] - cloud[point])
+                    if c == point:
+                        continue
+                    '''
+                    if dists[c, point] < 0:
+                        dists[c, point] = np.linalg.norm(cloud[c] - cloud[point])
+                        dists[point, c] = dists[c, point]
+                    '''
+                    #new_dist = np.linalg.norm(cloud[c] - cloud[point])
                     new_dist = dists[c, point]
                     if best_dist < new_dist:
                         best_dist = new_dist
@@ -109,7 +117,7 @@ class PtcDataset():
 
             possible_idx.remove(best_candidate)
             idxs.append(best_candidate)
-        idxs = sorted(idxs)
+        #idxs = sorted(idxs)
         random_points = cloud[idxs, :]
         return key, random_points
 
