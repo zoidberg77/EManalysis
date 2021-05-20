@@ -73,7 +73,7 @@ class PtcDataset():
                     for key, points in tqdm(group.items(), total=len(group.keys())):
                         idxs = []
                         cloud = np.array(points)
-                        dists = pairwise_distances(points, n_jobs=cfg.SYSTEM.NUM_CPUS)
+
                         possible_idx = list(np.arange(0, len(points)))
                         start = random.sample(possible_idx, 1)[0]
                         possible_idx.pop(start)
@@ -83,10 +83,13 @@ class PtcDataset():
                                 possible_idx = list(np.arange(0, len(points)))
                             candidates = random.sample(possible_idx, self.blue_noise_sample_points)
                             start = idxs[-1]
+                            candidates.append(start)
+                            candidates_and_start = cloud[candidates, :]
+                            dists = pairwise_distances(candidates_and_start, n_jobs=cfg.SYSTEM.NUM_CPUS)
                             best_candidate = -1
                             best_dist = 0
-                            for c in candidates:
-                                new_dist = dists[start, c]
+                            for j, c in enumerate(candidates):
+                                new_dist = dists[len(candidates)-1, j]
                                 if best_dist < new_dist:
                                     best_dist = new_dist
                                     best_candidate = c
