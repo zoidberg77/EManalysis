@@ -49,7 +49,9 @@ class PtcDataset():
         self.blue_noise_sample_points = cfg.AUTOENCODER.BLUE_NOISE_SAMPLE_POINTS
         if sample_mode == 'montecarlo':
             self.rptcfn = cfg.DATASET.ROOTD+ 'vae/random_ptc' + '.h5'
-            print("calculating random points")
+            if os.path.exists(self.rptcfn):
+                return
+            print("calculating random points via monte carlo sampling")
             with h5py.File(self.ptfn, 'r') as h5f:
                 with h5py.File(self.rptcfn, 'w') as random_points_file:
                     group = h5f.get('ptcs')
@@ -67,6 +69,9 @@ class PtcDataset():
 
         if sample_mode == "bluenoise":
             self.rptcfn = cfg.DATASET.ROOTD + 'vae/random_ptc' + '.h5'
+            if os.path.exists(self.rptcfn):
+                return
+            print("calculating random points via bluenoise sampling")
             with h5py.File(self.ptfn, 'r') as h5f:
                 with h5py.File(self.rptcfn, 'w') as random_points_file:
                     group = h5f.get('ptcs')
