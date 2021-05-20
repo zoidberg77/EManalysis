@@ -34,6 +34,8 @@ _C.AUTOENCODER.MAX_GRADIENT = 1.0
 _C.AUTOENCODER.FEATURES = ['shape', 'texture']
 _C.AUTOENCODER.PTC_NUM_POINTS = 10000
 _C.AUTOENCODER.PTC_SAMPLE_MODE = None
+_C.AUTOENCODER.BLUE_NOISE_SAMPLE_POINTS = 100
+
 # -----------------------------------------------------------------------------
 # Dataset
 # -----------------------------------------------------------------------------

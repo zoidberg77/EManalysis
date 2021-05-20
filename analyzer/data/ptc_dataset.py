@@ -1,9 +1,12 @@
 import os, sys
+import random
+
 import numpy as np
 import h5py
 from scipy import stats
 from sklearn.preprocessing import normalize
 from tqdm import tqdm
+from sklearn.metrics import pairwise_distances
 
 
 def normalize_ptc(ptc):
@@ -43,24 +46,59 @@ class PtcDataset():
         self.ptfn = cfg.DATASET.ROOTD + 'vae/pts' + '.h5'
         self.sample_mode = sample_mode
         self.dists = {}
-        if sample_mode == 'full':
+        self.blue_noise_sample_points = cfg.AUTOENCODER.BLUE_NOISE_SAMPLE_POINTS
+        if sample_mode == 'montecarlo':
             self.rptcfn = cfg.DATASET.ROOTD+ 'vae/random_ptc' + '.h5'
-            if not os.path.exists(self.rptcfn):
-                print("calculating random points")
-                with h5py.File(self.ptfn, 'r') as h5f:
-                    with h5py.File(self.rptcfn, 'w') as random_points_file:
-                        group = h5f.get('ptcs')
-                        for idx in tqdm(group.keys(), total=len(group.keys())):
-                            cloud = np.array(group[idx])
-                            centroid = np.mean(cloud, axis=0)
-                            dists = []
-                            for point in cloud:
-                                dists.append(np.linalg.norm(point-centroid))
-                            dists /= sum(dists)
-                            xk = np.arange(len(dists))
-                            custm = stats.rv_discrete(name='custm', values=(xk, dists))
-                            random_points = cloud[custm.rvs(size=self.sample_size), :]
-                            random_points_file[idx] = random_points
+            print("calculating random points")
+            with h5py.File(self.ptfn, 'r') as h5f:
+                with h5py.File(self.rptcfn, 'w') as random_points_file:
+                    group = h5f.get('ptcs')
+                    for idx in tqdm(group.keys(), total=len(group.keys())):
+                        cloud = np.array(group[idx])
+                        centroid = np.mean(cloud, axis=0)
+                        dists = []
+                        for point in cloud:
+                            dists.append(np.linalg.norm(point-centroid))
+                        dists /= sum(dists)
+                        xk = np.arange(len(dists))
+                        custm = stats.rv_discrete(name='custm', values=(xk, dists))
+                        random_points = cloud[custm.rvs(size=self.sample_size), :]
+                        random_points_file[idx] = random_points
+
+        if sample_mode == "bluenoise":
+            self.rptcfn = cfg.DATASET.ROOTD + 'vae/random_ptc' + '.h5'
+            with h5py.File(self.ptfn, 'r') as h5f:
+                with h5py.File(self.rptcfn, 'w') as random_points_file:
+                    group = h5f.get('ptcs')
+                    for key, points in tqdm(group.items(), total=len(group.keys())):
+                        idxs = []
+                        cloud = np.array(points)
+                        dists = pairwise_distances(points)
+                        possible_idx = list(np.arange(0, len(points)))
+                        start = random.sample(possible_idx, 1)[0]
+                        possible_idx.pop(start)
+                        idxs.append(start)
+                        for i in range(1, self.sample_size):
+                            if len(possible_idx) < self.blue_noise_sample_points:
+                                possible_idx = list(np.arange(0, len(points)))
+                            candidates = random.sample(possible_idx, self.blue_noise_sample_points)
+                            start = idxs[-1]
+                            best_candidate = -1
+                            best_dist = 0
+                            for c in candidates:
+                                new_dist = dists[start, c]
+                                if best_dist < new_dist:
+                                    best_dist = new_dist
+                                    best_candidate = c
+
+                            possible_idx.remove(best_candidate)
+                            idxs.append(best_candidate)
+                        idxs = sorted(idxs)
+                        random_points = cloud[idxs, :]
+                        random_points_file[key] = random_points
+
+
+
 
     def __len__(self):
         '''
