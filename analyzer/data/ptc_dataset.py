@@ -54,6 +54,8 @@ class PtcDataset():
         self.rptcfn = cfg.DATASET.ROOTD + 'vae/random_ptc' + '.h5'
 
         if sample_mode == 'whitenoise':
+            if os.path.exists(self.rptcfn):
+                return
             print("calculating random points via white noise sampling")
             with h5py.File(self.ptfn, 'r') as h5f:
                 with h5py.File(self.rptcfn, 'w') as random_points_file:
