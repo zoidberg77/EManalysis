@@ -54,6 +54,8 @@ class PtcDataset():
         self.rptcfn = cfg.DATASET.ROOTD + 'vae/random_ptc' + '.h5'
 
         if sample_mode == 'whitenoise':
+            if os.path.exists(self.rptcfn):
+                return
             print("calculating random points via white noise sampling")
             with h5py.File(self.ptfn, 'r') as h5f:
                 with h5py.File(self.rptcfn, 'w') as random_points_file:
@@ -118,8 +120,15 @@ class PtcDataset():
         Required by torch to return the length of the dataset.
         :returns: integer
         '''
-        with h5py.File(self.ptfn, 'r') as h5f:
-            return len(list(h5f.get('ptcs').keys()))
+        if self.sample_mode == 'partial':
+            with h5py.File(self.ptfn, 'r') as h5f:
+                return len(list(h5f.get('ptcs').keys()))
+        elif self.sample_mode is not None:
+            with h5py.File(self.rptcfn, 'r') as random_points_file:
+                return len(random_points_file.keys())
+        else:
+            with h5py.File(self.ptfn, 'r') as h5f:
+                return len(list(h5f.get('ptcs').keys()))
 
     def __getitem__(self, idx):
         '''
@@ -131,13 +140,15 @@ class PtcDataset():
             group = h5f.get('ptcs')
             idx = sorted(list(group.keys()))[idx]
             ptc = np.array(group[idx])
-            if self.sample_mode == 'partial':
+        if self.sample_mode == 'partial':
                 if ptc.shape[0] > self.sample_size:
                     randome_indices = np.random.random_integers(ptc.shape[0] - 1, size=(self.sample_size))
                     return np.expand_dims(ptc[randome_indices, :], axis=0), idx
-            elif self.sample_mode is not None:
-                with h5py.File(self.rptcfn, 'r') as random_points_file:
-                    return np.expand_dims(random_points_file[str(idx)], axis=0), idx
+                return np.expand_dims(ptc, axis=0), idx
+        elif self.sample_mode is not None:
+            with h5py.File(self.rptcfn, 'r') as random_points_file:
+                return np.expand_dims(random_points_file[str(idx)], axis=0), idx
+        else:
             return np.expand_dims(ptc, axis=0), idx
 
     @property
