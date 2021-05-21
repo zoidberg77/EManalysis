@@ -87,6 +87,7 @@ class PtcDataset():
 
             with h5py.File(self.ptfn, 'r') as h5f:
                 clouds = [(str(key), np.array(cloud)) for key, cloud in h5f['ptcs'].items()]
+                clouds = clouds[:10]
                 pool = mp.Pool(processes=cfg.SYSTEM.NUM_CPUS)
                 results = [pool.apply(self.calculate_blue_noise_samples, args=(key, cloud,)) for key, cloud in
                            tqdm(clouds, total=len(clouds))]

@@ -118,7 +118,7 @@ class RandomPtcAe(pl.LightningModule):
             x = self.decoder(x)
             x = x.view(x.size(0), x.size(0), -1, 3)
             loss = self.loss(raw_x, x)
-            f['ptc_reconstruction'][batch_idx] = x[0, 0, :, :].cpu()
+            f['ptc_reconstruction'][str(y)] = x[0, 0, :, :].cpu()
         return loss
 
 
