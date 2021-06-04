@@ -105,7 +105,6 @@ def generate_volume_ptc(cfg, dl):
 	_, fns, _ = dl.get_fns()
 	print("generating point clouds from {} slices".format(len(fns)))
 	ptcs = {}
-	fns = fns[:10]
 	for z, fn in tqdm(enumerate(fns), total=len(fns)):
 		slice = imageio.imread(fn)
 		objs = np.unique(slice)
