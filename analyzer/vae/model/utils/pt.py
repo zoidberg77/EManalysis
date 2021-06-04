@@ -1,3 +1,4 @@
+import glob
 import os, sys
 import numpy as np
 import multiprocessing
@@ -8,6 +9,7 @@ from skimage import measure
 from skimage.measure import label, regionprops
 import matplotlib.pyplot as plt
 import h5py
+from tqdm import tqdm
 
 from analyzer.data.ptc_dataset import normalize_ptc
 
@@ -77,7 +79,7 @@ def calc_point_repr(idx, fns):
 	return result
 
 
-### Additional stuff here.
+# Additional stuff here.
 def get_surface_voxel(seg):
 	assert seg.ndim == 3
 	kernel = np.array([-1, 1])
@@ -98,3 +100,32 @@ def get_surface_voxel(seg):
 	surface[seg == 0] = 0
 	surface = (surface!=0).astype(int)
 	return surface
+
+
+class PtcGenerator:
+	def __init__(self, cfg, dl):
+		self.cfg = cfg
+		_, fns, _ = dl.get_fns()
+		self.fns = fns
+		self.dl = dl
+
+	def generate_volume_ptc(self):
+		print("loading object information")
+		objs = self.dl.prep_data_info()
+		print("generating {} point clouds".format(len(objs)))
+		with h5py.File(self.cfg.DATASET.ROOTD + 'vae/pts' + '.h5', 'w') as h5f:
+			h5f.create_dataset('labels', data=[obj['id'] for obj in objs])
+			grp = h5f.create_group('ptcs')
+			with multiprocessing.Pool(processes=self.cfg.SYSTEM.NUM_CPUS) as pool:
+				results = list(tqdm(pool.imap(self.get_norm_coords, objs), total=len(objs)))
+				print(len(results))
+
+	def get_norm_coords(self, obj):
+		id = obj['id']
+		slices = obj['slices']
+		volume = imageio.imread(self.fns[slices[0]])
+		for slice in slices[1:]:
+			volume = np.dstack((volume, imageio.imread(self.fns[slice])))
+		coords = np.array([list(coord) for coord in zip(*np.where(volume == id))])
+		norm_coords = normalize_ptc(coords)
+		return [id, norm_coords]

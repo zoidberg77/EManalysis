@@ -61,15 +61,27 @@ class RandomPtcAe(pl.LightningModule):
             conv2d_norm_act(self.filters[2], self.filters[3], self.kernel_size, self.padding, **shared_kwargs),
             conv2d_norm_act(self.filters[3], self.filters[4], self.kernel_size, self.padding, **shared_kwargs)
         )
-        self.pool = nn.AdaptiveMaxPool2d(output_size=(1, 1))
+        #self.pool = nn.AdaptiveMaxPoo
+        # l2d(output_size=(1, 1))
+        self.pool = nn.MaxPool2d((self.num_points, 1))
 
         # --- decoding ---
+
         self.decoder = nn.Sequential(
-            nn.Linear(self.filters[4], self.linear), nn.ReLU(),
+            nn.Linear(self.filters[4]*13, self.linear), nn.ReLU(),
+            nn.Linear(self.linear, self.linear), nn.ReLU(),
             nn.Linear(self.linear, self.linear), nn.ReLU(),
             nn.Linear(self.linear, (self.num_points * 3)),
         )
-
+        '''
+        self.decoder = nn.Sequential(
+            conv2d_norm_act(self.filters[4], self.filters[3], self.kernel_size, self.padding, **shared_kwargs),
+            conv2d_norm_act(self.filters[3], self.filters[2], self.kernel_size, self.padding, **shared_kwargs),
+            conv2d_norm_act(self.filters[2], self.filters[1], self.kernel_size, self.padding, **shared_kwargs),
+            conv2d_norm_act(self.filters[1], self.filters[0], self.kernel_size, self.padding, **shared_kwargs),
+            conv2d_norm_act(self.filters[0], self.in_channel, self.kernel_size, self.padding, **shared_kwargs)
+        )
+        '''
     def forward(self, x):
         x = self.encoder(x)
         x = self.pool(x)
