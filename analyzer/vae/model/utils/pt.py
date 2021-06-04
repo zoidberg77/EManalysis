@@ -101,7 +101,34 @@ def get_surface_voxel(seg):
 	surface = (surface!=0).astype(int)
 	return surface
 
+def generate_volume_ptc(cfg, dl):
+	_, fns, _ = dl.get_fns()
+	print("generating point clouds from {} slices".format(len(fns)))
+	ptcs = {}
+	fns = fns[:10]
+	for z, fn in tqdm(enumerate(fns), total=len(fns)):
+		slice = imageio.imread(fn)
+		objs = np.unique(slice)
+		for obj in objs:
+			if obj == 0:
+				continue
+			if str(obj) not in ptcs.keys():
+				ptcs[str(obj)] = []
+			ptcs[str(obj)] += [[coords[0], coords[1], z] for coords in zip(*np.where(slice == obj))]
+	print("finished calculating point clouds")
+	print("writing point clouds {} to h5".format(len(ptcs.keys())))
+	with h5py.File(cfg.DATASET.ROOTD + 'vae/pts' + '.h5', 'w') as h5f:
+		h5f.create_dataset('labels', data=[key for key in ptcs.keys()])
+		grp = h5f.create_group('ptcs')
+		for key in ptcs.keys():
+			coords = ptcs[key]
+			std_rs = normalize_ptc(coords)
+			grp.create_dataset(str(key), data=std_rs)
+	print("finished writing point clouds to h5")
 
+
+'''
+	
 class PtcGenerator:
 	def __init__(self, cfg, dl):
 		self.cfg = cfg
@@ -129,3 +156,4 @@ class PtcGenerator:
 		coords = np.array([list(coord) for coord in zip(*np.where(volume == id))])
 		norm_coords = normalize_ptc(coords)
 		return [id, norm_coords]
+'''

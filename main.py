@@ -10,7 +10,7 @@ from analyzer.data import Dataloader, PtcDataset
 from analyzer.model import Clustermodel
 from analyzer.utils import Evaluationmodel
 from analyzer.vae import train
-from analyzer.vae.model.utils.pt import point_cloud, PtcGenerator
+from analyzer.vae.model.utils.pt import generate_volume_ptc
 from analyzer.vae.model.random_ptc_vae import RandomPtcAe, RandomPtcDataModule
 from analyzer.utils.vis.ptc import vis_reconstructed_ptc
 
@@ -68,7 +68,7 @@ def main():
         return
     elif cfg.MODE.PROCESS == "ptcprep":
         dl = Dataloader(cfg)
-        PtcGenerator(cfg, dl).generate_volume_ptc()
+        generate_volume_ptc(cfg, dl)
         return
     elif cfg.MODE.PROCESS == "ptctrain":
         print('--- Starting the training process for the vae based on point clouds. --- \n')
