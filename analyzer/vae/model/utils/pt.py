@@ -9,6 +9,7 @@ from skimage import measure
 from skimage.measure import label, regionprops
 import matplotlib.pyplot as plt
 import h5py
+from sklearn.preprocessing import normalize
 from tqdm import tqdm
 
 from analyzer.data.ptc_dataset import normalize_ptc
@@ -101,6 +102,46 @@ def get_surface_voxel(seg):
 	surface = (surface!=0).astype(int)
 	return surface
 
+'''
+def generate_volume_ptc(cfg, dl):
+	_, fns, _ = dl.get_fns()
+	fns = fns[:50]
+	ptcs = {}
+	print("generating pointclouds for all {} slices".format(len(fns)))
+	with multiprocessing.Pool(processes=cfg.SYSTEM.NUM_CPUS) as pool:
+		ptcs_list = list(tqdm(pool.imap(get_coords_from_slice, enumerate(fns)), total=len(fns)))
+
+	for ptc_item in ptcs_list:
+		for key in ptc_item.keys():
+			if key not in ptcs.keys():
+				ptcs[key] = ptc_item[key]
+			else:
+				np.concatenate((ptcs[key], ptc_item[key]), axis=0)
+
+	print("finished calculating point clouds")
+	print("writing point clouds {} to h5".format(len(ptcs.keys())))
+	with h5py.File(cfg.DATASET.ROOTD + 'vae/pts' + '.h5', 'w') as h5f:
+		h5f.create_dataset('labels', data=[key for key in ptcs.keys()])
+		grp = h5f.create_group('ptcs')
+		for key in ptcs.keys():
+			coords = normalize_ptc(ptcs[key])
+			grp.create_dataset(str(key), data=coords)
+	print("finished writing point clouds to h5")
+	return
+
+
+
+def get_coords_from_slice(fn):
+	z, fn = fn
+	slice = imageio.imread(fn)
+	ptcs = {}
+	for id in np.unique(slice):
+		if id == 0:
+			continue
+		coords = [[coord[0], coord[1], z] for coord in zip(*np.where(slice == id))]
+		ptcs[str(id)] = coords
+	return ptcs
+'''
 def generate_volume_ptc(cfg, dl):
 	_, fns, _ = dl.get_fns()
 	print("generating point clouds from {} slices".format(len(fns)))
@@ -121,8 +162,8 @@ def generate_volume_ptc(cfg, dl):
 		grp = h5f.create_group('ptcs')
 		for key in ptcs.keys():
 			coords = ptcs[key]
-			std_rs = normalize_ptc(coords)
-			grp.create_dataset(str(key), data=std_rs)
+			#coords = normalize_ptc(coords)
+			grp.create_dataset(str(key), data=coords)
 	print("finished writing point clouds to h5")
 
 
