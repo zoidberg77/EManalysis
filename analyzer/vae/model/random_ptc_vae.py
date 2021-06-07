@@ -63,12 +63,12 @@ class RandomPtcAe(pl.LightningModule):
         )
         #self.pool = nn.AdaptiveMaxPoo
         # l2d(output_size=(1, 1))
-        self.pool = nn.MaxPool2d((self.num_points, 1))
+        self.pool = nn.MaxPool2d((510, 8))
 
         # --- decoding ---
 
         self.decoder = nn.Sequential(
-            nn.Linear(self.filters[4]*13, self.linear), nn.ReLU(),
+            nn.Linear(self.filters[4], self.linear), nn.ReLU(),
             nn.Linear(self.linear, self.linear), nn.ReLU(),
             nn.Linear(self.linear, self.linear), nn.ReLU(),
             nn.Linear(self.linear, (self.num_points * 3)),
