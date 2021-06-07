@@ -135,6 +135,5 @@ def main():
     model = Clustermodel(cfg, dl=dl)
     model.run()
 
-
 if __name__ == "__main__":
     main()

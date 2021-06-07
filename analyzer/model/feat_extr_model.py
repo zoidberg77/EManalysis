@@ -5,7 +5,7 @@ import glob
 import h5py
 from numpyencoder import NumpyEncoder
 
-from analyzer.model.utils.extracting import compute_region_size, compute_dist_graph, compute_circularity, compute_intentsity, compute_surface_to_volume
+from analyzer.model.utils.extracting import compute_region_size, compute_dist_graph, compute_circularity, compute_intentsity, compute_surface_to_volume, compute_skeleton
 from analyzer.model.utils.helper import convert_dict_mtx
 
 class FeatureExtractor():
@@ -43,6 +43,12 @@ class FeatureExtractor():
 		:returns result_dict: (dict) where the label is the key and the size of the segment is the corresponding value.
 		'''
 		return compute_region_size(self.gtvol, fns=self.gtfns, dprc=self.dprc)
+
+	def compute_seg_slength(self):
+		'''Extract the skeleton length of each mitochondria segment.
+		:returns result_dict: (dict) where the label is the key and the size of the segment is the corresponding value.
+		'''
+		return compute_skeleton(fns=self.gtfns)
 
 	def compute_seg_dist(self):
 		'''Compute the distances of mitochondria to each other and extract it as a graph matrix.'''

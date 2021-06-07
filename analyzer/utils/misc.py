@@ -122,3 +122,8 @@ def update_nested(in_dict, key, value):
 		   for o in v:
 			   if isinstance(o, dict):
 				   update_nested(o, key, value)
+
+
+def avg_feat_cluster(feat, labels, gt_labels):
+	'''function computes the average feature values for a all specific gt clusters.'''
+	pass
