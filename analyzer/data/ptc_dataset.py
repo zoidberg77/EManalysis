@@ -61,7 +61,7 @@ class PtcDataset():
                 with h5py.File(self.rptcfn, 'w') as random_points_file:
                     for key, cloud in tqdm(h5f['ptcs'].items(), total=len(h5f['ptcs'].keys())):
                         idxs = np.random.randint(0, len(cloud), sample_size)
-                        random_points_file[key] = np.array(cloud)[idxs, :]
+                        random_points_file[key] = np.array(cloud)[idxs, :].astype(np.double)
 
         if sample_mode == 'montecarlo':
             if os.path.exists(self.rptcfn):

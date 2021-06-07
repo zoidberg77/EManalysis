@@ -29,7 +29,7 @@ class RandomPtcAe(pl.LightningModule):
                  cfg,
                  in_channel: int = 1,
                  out_channel: int = 1,
-                 filters: List[int] = [64, 64, 64, 128, 512],
+                 filters: List[int] = [64, 64, 64, 128, 1024],
                  pad_mode: str = 'replicate',
                  act_mode: str = 'elu',
                  norm_mode: str = 'bn',
@@ -53,7 +53,7 @@ class RandomPtcAe(pl.LightningModule):
         self.linear = 1024
         # self.latent_space = latent_space
         self.num_points = cfg.AUTOENCODER.PTC_NUM_POINTS
-
+        '''
         self.encoder = nn.Sequential(
             conv2d_norm_act(self.in_channel, self.filters[0], self.kernel_size, self.padding, **shared_kwargs),
             conv2d_norm_act(self.filters[0], self.filters[1], self.kernel_size, self.padding, **shared_kwargs),
@@ -64,14 +64,25 @@ class RandomPtcAe(pl.LightningModule):
         #self.pool = nn.AdaptiveMaxPoo
         # l2d(output_size=(1, 1))
         self.pool = nn.MaxPool2d((510, 8))
-
+        '''
+        self.encoder = nn.Sequential(nn.Conv2d(1, 64, kernel_size=(1, 3)),
+                                     nn.BatchNorm2d(64),
+                                     nn.Conv2d(64, 64, kernel_size=(1, 1)),
+                                     nn.BatchNorm2d(64),
+                                     nn.Conv2d(64, 64, kernel_size=(1, 1)),
+                                     nn.BatchNorm2d(64),
+                                     nn.Conv2d(64, 128, kernel_size=(1, 1)),
+                                     nn.BatchNorm2d(128),
+                                     nn.Conv2d(128, 1024, kernel_size=(1, 1)),
+                                     nn.BatchNorm2d(1024))
         # --- decoding ---
-
+        self.pool = nn.MaxPool2d((self.num_points, 1))
         self.decoder = nn.Sequential(
-            nn.Linear(self.filters[4], self.linear), nn.ReLU(),
-            nn.Linear(self.linear, self.linear), nn.ReLU(),
-            nn.Linear(self.linear, self.linear), nn.ReLU(),
-            nn.Linear(self.linear, (self.num_points * 3)),
+            nn.Linear(1024, 1024), nn.ReLU(),
+            nn.BatchNorm1d(1024),
+            nn.Linear(1024, 1024), nn.ReLU(),
+            nn.BatchNorm1d(1024),
+            nn.Linear(1024, (self.num_points * 3)),
         )
         '''
         self.decoder = nn.Sequential(
@@ -82,12 +93,15 @@ class RandomPtcAe(pl.LightningModule):
             conv2d_norm_act(self.filters[0], self.in_channel, self.kernel_size, self.padding, **shared_kwargs)
         )
         '''
+
     def forward(self, x):
         x = self.encoder(x)
         x = self.pool(x)
         x = torch.flatten(x, start_dim=1)
         x = self.decoder(x)
         x = x.view(x.size(0), x.size(0), -1, 3)
+        print(x.shape)
+        exit()
         return x
 
     def step(self, batch, batch_idx):
@@ -135,31 +149,31 @@ class RandomPtcAe(pl.LightningModule):
 
 
 class RandomPtcDataModule(pl.LightningDataModule):
-	def __init__(self, cfg, dataset):
-		super().__init__()
-		self.cfg = cfg
-		self.cpus = cfg.SYSTEM.NUM_CPUS
-		self.batch_size = cfg.AUTOENCODER.BATCH_SIZE
-		self.transform = transforms.Compose([
-			transforms.ToTensor(),
-			transforms.Lambda(lambda x: x.double())
-			#transforms.Lambda(self.helper_pickle)
-		])
-		self.dataset = dataset
+    def __init__(self, cfg, dataset):
+        super().__init__()
+        self.cfg = cfg
+        self.cpus = cfg.SYSTEM.NUM_CPUS
+        self.batch_size = cfg.AUTOENCODER.BATCH_SIZE
+        self.transform = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Lambda(lambda x: x.double())
+            # transforms.Lambda(self.helper_pickle)
+        ])
+        self.dataset = dataset
 
-	def setup(self, stage=None):
-		train_length = int(0.7 * len(self.dataset))
-		test_length = len(self.dataset) - train_length
-		self.train_dataset, self.val_dataset = torch.utils.data.random_split(self.dataset, (train_length, test_length))
+    def setup(self, stage=None):
+        train_length = int(0.7 * len(self.dataset))
+        test_length = len(self.dataset) - train_length
+        self.train_dataset, self.val_dataset = torch.utils.data.random_split(self.dataset, (train_length, test_length))
 
-	def train_dataloader(self):
-		return DataLoader(self.train_dataset, batch_size=self.batch_size, num_workers=self.cpus, shuffle=True)
+    def train_dataloader(self):
+        return DataLoader(self.train_dataset, batch_size=self.batch_size, num_workers=self.cpus, shuffle=True)
 
-	def val_dataloader(self):
-		return DataLoader(self.val_dataset, batch_size=self.batch_size, num_workers=self.cpus, shuffle=False)
+    def val_dataloader(self):
+        return DataLoader(self.val_dataset, batch_size=self.batch_size, num_workers=self.cpus, shuffle=False)
 
-	def test_dataloader(self):
-		return DataLoader(self.dataset, batch_size=1, num_workers=self.cpus, shuffle=False)
+    def test_dataloader(self):
+        return DataLoader(self.dataset, batch_size=1, num_workers=self.cpus, shuffle=False)
 
-	# def helper_pickle(self, x):
-	# 	return x.double()
+# def helper_pickle(self, x):
+# 	return x.double()
