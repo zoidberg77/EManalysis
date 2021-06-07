@@ -10,9 +10,9 @@ from analyzer.data import Dataloader, PtcDataset
 from analyzer.model import Clustermodel
 from analyzer.utils import Evaluationmodel
 from analyzer.vae import train
-from analyzer.vae.model.utils.pt import point_cloud
+from analyzer.vae.model.utils.pt import generate_volume_ptc
 from analyzer.vae.model.random_ptc_vae import RandomPtcAe, RandomPtcDataModule
-from analyzer.utils.vis.ptc import vis_reconstructed_ptc
+from analyzer.utils.vis.ptc import vis_reconstructed_ptc, vis_original_ptc
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -68,10 +68,7 @@ def main():
         return
     elif cfg.MODE.PROCESS == "ptcprep":
         dl = Dataloader(cfg)
-        em, labels, gt = dl.load_chunk()
-        emfns, labelfns, gtfns = dl.get_fns()
-        point_cloud(labelfns, cfg)
-        ptcdl = PtcDataset(cfg)
+        generate_volume_ptc(cfg, dl)
         return
     elif cfg.MODE.PROCESS == "ptctrain":
         print('--- Starting the training process for the vae based on point clouds. --- \n')
@@ -132,7 +129,7 @@ def main():
         trainer.test(model=rptc_model, test_dataloaders=ptc_datamodule.test_dataloader())
         return
     elif cfg.MODE.PROCESS == "visptc":
-        vis_reconstructed_ptc(cfg)
+        vis_original_ptc(cfg)
 
     dl = Dataloader(cfg)
     model = Clustermodel(cfg, dl=dl)
