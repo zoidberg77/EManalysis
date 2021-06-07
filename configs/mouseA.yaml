@@ -23,7 +23,7 @@ AUTOENCODER:
 DATASET:
   EM_PATH: 'datasets/mouseA/em_export/'
   LABEL_PATH: 'datasets/mouseA/mito_export_unique_id/'
-  GT_PATH: 'datasets/mouseA/mito_export_maingroups/'
+  GT_PATH: 'datasets/mouseA/mito_export_allgroups/'
   FILE_FORMAT: 'png'
   CHUNK_SIZE: [2, 4096, 4096]
   DATAINFO: 'features/mouseA/data_info.json'
