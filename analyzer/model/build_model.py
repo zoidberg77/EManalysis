@@ -97,6 +97,8 @@ class Clustermodel():
 					feat = self.fe.compute_seg_circ()
 				elif fns == 'surface_to_volumef':
 					feat = self.fe.compute_seg_surface_to_volume()
+				elif fns == 'slenf':
+					feat = self.fe.compute_seg_slength()
 				else:
 					print('No function for computing {} features.'.format(fns))
 					raise ValueError('Please check {} if it is correct.'.format(fns))

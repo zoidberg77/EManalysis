@@ -135,27 +135,31 @@ class RandomPtcAe(pl.LightningModule):
 
 
 class RandomPtcDataModule(pl.LightningDataModule):
-    def __init__(self, cfg, dataset):
-        super().__init__()
-        self.cfg = cfg
-        self.cpus = cfg.SYSTEM.NUM_CPUS
-        self.batch_size = cfg.AUTOENCODER.BATCH_SIZE
-        self.transform = transforms.Compose([
-            transforms.ToTensor(),
-            transforms.Lambda(lambda x: x.double())
-        ])
-        self.dataset = dataset
+	def __init__(self, cfg, dataset):
+		super().__init__()
+		self.cfg = cfg
+		self.cpus = cfg.SYSTEM.NUM_CPUS
+		self.batch_size = cfg.AUTOENCODER.BATCH_SIZE
+		self.transform = transforms.Compose([
+			transforms.ToTensor(),
+			transforms.Lambda(lambda x: x.double())
+			#transforms.Lambda(self.helper_pickle)
+		])
+		self.dataset = dataset
 
-    def setup(self, stage=None):
-        train_length = int(0.7 * len(self.dataset))
-        test_length = len(self.dataset) - train_length
-        self.train_dataset, self.val_dataset = torch.utils.data.random_split(self.dataset, (train_length, test_length))
+	def setup(self, stage=None):
+		train_length = int(0.7 * len(self.dataset))
+		test_length = len(self.dataset) - train_length
+		self.train_dataset, self.val_dataset = torch.utils.data.random_split(self.dataset, (train_length, test_length))
 
-    def train_dataloader(self):
-        return DataLoader(self.train_dataset, batch_size=self.batch_size, num_workers=self.cpus, shuffle=True)
+	def train_dataloader(self):
+		return DataLoader(self.train_dataset, batch_size=self.batch_size, num_workers=self.cpus, shuffle=True)
 
-    def val_dataloader(self):
-        return DataLoader(self.val_dataset, batch_size=self.batch_size, num_workers=self.cpus, shuffle=False)
+	def val_dataloader(self):
+		return DataLoader(self.val_dataset, batch_size=self.batch_size, num_workers=self.cpus, shuffle=False)
 
-    def test_dataloader(self):
-        return DataLoader(self.dataset, batch_size=1, num_workers=self.cpus, shuffle=False)
+	def test_dataloader(self):
+		return DataLoader(self.dataset, batch_size=1, num_workers=self.cpus, shuffle=False)
+
+	# def helper_pickle(self, x):
+	# 	return x.double()

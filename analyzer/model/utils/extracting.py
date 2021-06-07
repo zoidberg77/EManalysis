@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from skimage.measure import label, regionprops
 from scipy.spatial import distance
 
-def compute_region_size(vol, dprc='full', fns=None, mode='3d'):
+def compute_region_size(vol=None, dprc='full', fns=None, mode='3d'):
 	'''
 	Compute the region properties of the groundtruth labels.
 
@@ -227,7 +227,55 @@ def compute_surface_to_volume(vol, dprc='full', fns=None):
 			'surface_to_volume': (result_dict[result][2][0]/result_dict[result][1][0]),
 		})
 
-	print('Circularity feature extraction finished. {} features extracted.'.format(len(result_array)))
+	print('Surface to volume feature extraction finished. {} features extracted.'.format(len(result_array)))
+	return (result_array)
+
+def compute_skeleton(fns=None):
+	'''
+	This function aims to calculate the circularity of an object.
+	:params fns: (list) of filenames
+	'''
+	print('Starting to compute a skeleton length estimation of mitochondria.')
+	result_dict = {}
+
+	with multiprocessing.Pool(processes=multiprocessing.cpu_count()) as pool:
+		tmp = pool.starmap(functools.partial(calc_props, prop_list=['slices', 'centroid']), enumerate(fns))
+
+	for dicts in tmp:
+		for key, value in dicts.items():
+			if key in result_dict:
+				result_dict[key][0].append(value[0])
+				result_dict[key][1].append(value[1])
+			else:
+				result_dict.setdefault(key, [])
+				result_dict[key].append([value[0]])
+				result_dict[key].append([value[1]])
+
+	labels = list(result_dict.keys())
+	ext_cpt = list()
+	for key, value in result_dict.items():
+		tmp_list = list()
+		for i in range(len(value[0])):
+			cpt = list(value[1][i])
+			cpt.append(value[0][i])
+			tmp_list.append(cpt)
+
+		dist = 0.0
+		for k in range(len(tmp_list)):
+			if k == 0:
+				continue
+			else:
+				dist += np.linalg.norm(np.array(tmp_list[k])-np.array(tmp_list[k-1]))
+		result_dict[key].append(dist)
+
+	result_array = []
+	for result in result_dict.keys():
+		result_array.append({
+			'id': result,
+			'slen': (result_dict[result][2]),
+		})
+
+	print('Skeleton length extraction finished. {} features extracted.'.format(len(result_array)))
 	return (result_array)
 
 ### HELPER SECTION ###
