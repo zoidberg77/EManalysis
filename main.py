@@ -1,9 +1,9 @@
 import argparse
 import sys
 from glob import glob
-
 import h5py
 import torch
+import pytorch_lightning as pl
 
 from analyzer.config import get_cfg_defaults
 from analyzer.data import Dataloader, PtcDataset
@@ -13,14 +13,6 @@ from analyzer.vae import train
 from analyzer.vae.model.utils.pt import generate_volume_ptc
 from analyzer.vae.model.random_ptc_vae import RandomPtcAe, RandomPtcDataModule
 from analyzer.utils.vis.ptc import vis_reconstructed_ptc, vis_original_ptc
-
-import matplotlib.pyplot as plt
-import numpy as np
-import pytorch_lightning as pl
-
-import h5py
-from analyzer.data import data_vis
-
 
 # RUN THE SCRIPT LIKE: $ python main.py --cfg configs/process.yaml
 # Apply your specification within the .yaml file.
