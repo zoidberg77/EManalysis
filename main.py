@@ -118,6 +118,7 @@ def main():
         with h5py.File(cfg.DATASET.ROOTF + 'ptc_shapef.h5', 'w') as f:
             f.create_dataset(name='id', shape=(len(ptc_dataset),))
             f.create_dataset(name='ptc_shape', shape=(len(ptc_dataset), 1024))
+            f.create_group('ptc_reconstruction')
         trainer.test(model=rptc_model, test_dataloaders=ptc_datamodule.test_dataloader())
         return
     elif cfg.MODE.PROCESS == "visptc":
