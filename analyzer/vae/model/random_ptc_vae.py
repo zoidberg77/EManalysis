@@ -67,22 +67,27 @@ class RandomPtcAe(pl.LightningModule):
         '''
         self.encoder = nn.Sequential(nn.Conv2d(1, 64, kernel_size=(1, 3)),
                                      nn.BatchNorm2d(64),
+                                     nn.ReLU(),
                                      nn.Conv2d(64, 64, kernel_size=(1, 1)),
                                      nn.BatchNorm2d(64),
+                                     nn.ReLU(),
                                      nn.Conv2d(64, 64, kernel_size=(1, 1)),
                                      nn.BatchNorm2d(64),
+                                     nn.ReLU(),
                                      nn.Conv2d(64, 128, kernel_size=(1, 1)),
                                      nn.BatchNorm2d(128),
+                                     nn.ReLU(),
                                      nn.Conv2d(128, 1024, kernel_size=(1, 1)),
-                                     nn.BatchNorm2d(1024))
+                                     nn.BatchNorm2d(1024),
+                                     nn.ReLU())
         # --- decoding ---
         self.pool = nn.MaxPool2d((self.num_points, 1))
         self.decoder = nn.Sequential(
-            nn.Linear(1024, 1024), nn.ReLU(),
-            nn.BatchNorm1d(1024),
-            nn.Linear(1024, 1024), nn.ReLU(),
-            nn.BatchNorm1d(1024),
-            nn.Linear(1024, (self.num_points * 3)),
+            nn.Linear(1024, 1024),
+            nn.ReLU(),
+            nn.Linear(1024, 1024),
+            nn.ReLU(),
+            nn.Linear(1024, 3*self.num_points)
         )
         '''
         self.decoder = nn.Sequential(
