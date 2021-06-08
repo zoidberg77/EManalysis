@@ -40,10 +40,11 @@ class RandomPtcAe(pl.LightningModule):
         self.filters = filters
         self.depth = len(self.filters)
         self.kernel_size = (1, 1)
-        self.padding = (1, 1)
+        self.padding = 0
         self.dist = ChamferDistance()
         self.lr = lr
         self.cfg = cfg
+        self.stride = 1
 
         shared_kwargs = {
             'pad_mode': pad_mode,
@@ -65,29 +66,19 @@ class RandomPtcAe(pl.LightningModule):
         # l2d(output_size=(1, 1))
         self.pool = nn.MaxPool2d((510, 8))
         '''
-        self.encoder = nn.Sequential(nn.Conv2d(1, 64, kernel_size=(1, 3)),
-                                     nn.BatchNorm2d(64),
-                                     nn.ReLU(),
-                                     nn.Conv2d(64, 64, kernel_size=(1, 1)),
-                                     nn.BatchNorm2d(64),
-                                     nn.ReLU(),
-                                     nn.Conv2d(64, 64, kernel_size=(1, 1)),
-                                     nn.BatchNorm2d(64),
-                                     nn.ReLU(),
-                                     nn.Conv2d(64, 128, kernel_size=(1, 1)),
-                                     nn.BatchNorm2d(128),
-                                     nn.ReLU(),
-                                     nn.Conv2d(128, 1024, kernel_size=(1, 1)),
-                                     nn.BatchNorm2d(1024),
-                                     nn.ReLU())
+        self.encoder = nn.Sequential(
+            conv2d_norm_act(self.in_channel, self.filters[0], (1, 3), padding=self.padding, stride=self.stride, **shared_kwargs),
+            conv2d_norm_act(self.filters[0], self.filters[1], self.kernel_size, padding=self.padding, stride=self.stride, **shared_kwargs),
+            conv2d_norm_act(self.filters[1], self.filters[2], self.kernel_size, padding=self.padding, stride=self.stride, **shared_kwargs),
+            conv2d_norm_act(self.filters[2], self.filters[3], self.kernel_size, padding=self.padding, stride=self.stride, **shared_kwargs),
+            conv2d_norm_act(self.filters[3], self.filters[4], self.kernel_size, padding=self.padding, stride=self.stride, **shared_kwargs)
+        )
         # --- decoding ---
         self.pool = nn.MaxPool2d((self.num_points, 1))
         self.decoder = nn.Sequential(
-            nn.Linear(1024, 1024),
-            nn.ReLU(),
-            nn.Linear(1024, 1024),
-            nn.ReLU(),
-            nn.Linear(1024, 3*self.num_points)
+            nn.Linear(self.linear, self.linear), nn.ReLU(),
+            nn.Linear(self.linear, self.linear), nn.ReLU(),
+            nn.Linear(self.linear, (self.num_points * 3)),
         )
         '''
         self.decoder = nn.Sequential(

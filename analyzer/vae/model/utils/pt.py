@@ -14,7 +14,7 @@ from tqdm import tqdm
 
 from analyzer.data.ptc_dataset import normalize_ptc
 
-def point_cloud(fns, cfg, save=True):
+def point_cloud(cfg, dl, save=True):
 	'''
 	Calculating a point cloud representation for every segment in the Dataset.
 	:param fns: (list) of images within the dataset.
@@ -22,6 +22,7 @@ def point_cloud(fns, cfg, save=True):
 	:returns result_array: An (np.array) full of (dict)s that contain id and pts.
 	'''
 	print('Starting to compute the point representation of {} segments.'.format(len(fns)))
+	_, fns, _ = dl.get_fns()
 	result_dict = {}
 
 	with multiprocessing.Pool(processes=cfg.SYSTEM.NUM_CPUS) as pool:
