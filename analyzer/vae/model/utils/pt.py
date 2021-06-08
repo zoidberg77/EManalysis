@@ -162,11 +162,11 @@ def generate_volume_ptc(cfg, dl):
 		grp = h5f.create_group('ptcs')
 		for key in ptcs.keys():
 			coords = ptcs[key]
-			#coords = normalize_ptc(coords)
-			x_min = np.min([c[0] for c in coords])
-			y_min = np.min([c[1] for c in coords])
-			z_min = np.min([c[2] for c in coords])
-			coords = [[c[0]-x_min, c[1]-y_min, c[2]-z_min] for c in coords]
+			coords = normalize_ptc(coords)
+			#x_min = np.min([c[0] for c in coords])
+			#y_min = np.min([c[1] for c in coords])
+			#z_min = np.min([c[2] for c in coords])
+			#coords = [[c[0]-x_min, c[1]-y_min, c[2]-z_min] for c in coords]
 			grp.create_dataset(str(key), data=coords)
 	print("finished writing point clouds to h5")
 
