@@ -26,7 +26,7 @@ def point_cloud(cfg, dl, save=True):
 	result_dict = {}
 
 	with multiprocessing.Pool(processes=cfg.SYSTEM.NUM_CPUS) as pool:
-		tmp = pool.starmap(calc_point_repr, enumerate(fns))
+		tmp = list(tqdm(pool.imap(calc_point_repr, enumerate(fns)), total=len(fns)))
 
 	for dicts in tmp:
 		for key, value in dicts.items():
