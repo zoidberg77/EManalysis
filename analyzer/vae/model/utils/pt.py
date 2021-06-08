@@ -47,12 +47,13 @@ def point_cloud(cfg, dl, save=True):
 		print('saved point representations to {}.'.format(cfg.DATASET.ROOTD + 'vae/pts' + '.h5'))
 	print('point cloud generation finished.')
 
-def calc_point_repr(idx, fns):
+def calc_point_repr(fns):
 	'''
 	Helper for calculating the point representation.
 	:param idx: This indicates the index of the image --> iterates therefor over the whole dataset.
 	:param fns: This is a concrete filename.
 	'''
+	idx, fns = fns
 	result = {}
 	if idx >= 2:
 		return result
