@@ -11,7 +11,7 @@ from analyzer.model import Clustermodel
 from analyzer.utils import Evaluationmodel
 from analyzer.vae import train
 from analyzer.vae.model.utils.pt import generate_volume_ptc, point_cloud
-from analyzer.vae.model.random_ptc_vae import RandomPtcAe, RandomPtcDataModule
+from analyzer.vae.model.random_ptc_ae import RandomPtcAe, RandomPtcDataModule
 from analyzer.utils.vis.ptc import vis_reconstructed_ptc, vis_original_ptc
 
 # RUN THE SCRIPT LIKE: $ python main.py --cfg configs/process.yaml
@@ -122,7 +122,7 @@ def main():
         trainer.test(model=rptc_model, test_dataloaders=ptc_datamodule.test_dataloader())
         return
     elif cfg.MODE.PROCESS == "visptc":
-        vis_original_ptc(cfg)
+        vis_reconstructed_ptc(cfg)
 
     dl = Dataloader(cfg)
     model = Clustermodel(cfg, dl=dl)
