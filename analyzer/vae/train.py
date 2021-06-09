@@ -11,7 +11,7 @@ from analyzer.vae.model import unet
 from analyzer.vae.model.ptc_vae import PTCvae
 from chamferdist import ChamferDistance
 
-from analyzer.vae.model.random_ptc_vae import RandomPtcDataModule
+from analyzer.vae.model.random_ptc_ae import RandomPtcDataModule
 
 
 class Trainer:

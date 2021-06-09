@@ -33,7 +33,7 @@ MODE:
   DPRC: 'iter'
 CLUSTER:
   ALG: 'kmeans'
-  FEAT_LIST: ['sizef', 'distf', 'circf']
+  FEAT_LIST: ['sizef', 'distf', 'circf', 'slenf']
   WEIGHTSF: [1, 1, 1]
   N_CLUSTER: 5
   OUTPUTPATH: 'outputs/mouseA/'
