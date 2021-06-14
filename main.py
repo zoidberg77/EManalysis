@@ -13,6 +13,7 @@ from analyzer.vae import train
 from analyzer.vae.model.utils.pt import generate_volume_ptc, point_cloud
 from analyzer.vae.model.random_ptc_ae import RandomPtcAe, RandomPtcDataModule
 from analyzer.utils.vis.ptc import vis_reconstructed_ptc, vis_original_ptc
+from analyzer.cl.trainer import CLTrainer
 
 # RUN THE SCRIPT LIKE: $ python main.py --cfg configs/process.yaml
 # Apply your specification within the .yaml file.
@@ -123,6 +124,9 @@ def main():
         return
     elif cfg.MODE.PROCESS == "visptc":
         vis_reconstructed_ptc(cfg)
+    elif cfg.MODE.PROCESS == "cl":
+        trainer = CLTrainer(cfg)
+        return
 
     dl = Dataloader(cfg)
     model = Clustermodel(cfg, dl=dl)
