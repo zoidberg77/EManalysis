@@ -1,5 +1,6 @@
 import numpy as np
 from analyzer.data import PtcDataset
+from analyzer.data.data_vis import visptc
 
 class Augmentor():
     '''
@@ -27,17 +28,8 @@ class Augmentor():
                                     [-sinval, 0, cosval]])
 
         rotated_data = np.dot(single_ptc.reshape((-1, 3)), rotation_matrix)
+        visptc(rotated_data)
+        visptc(single_ptc.reshape((-1, 3)))
         rotated_data = rotated_data[None, :, :]
         print(rotated_data)
         print(rotated_data.shape)
-
-        # for k in xrange(batch_data.shape[0]):
-        #     rotation_angle = np.random.uniform() * 2 * np.pi
-        #     cosval = np.cos(rotation_angle)
-        #     sinval = np.sin(rotation_angle)
-        #     rotation_matrix = np.array([[cosval, 0, sinval],
-        #                                 [0, 1, 0],
-        #                                 [-sinval, 0, cosval]])
-        #     shape_pc = batch_data[k, ...]
-        #     rotated_data[k, ...] = np.dot(shape_pc.reshape((-1, 3)), rotation_matrix)
-        # return rotated_data

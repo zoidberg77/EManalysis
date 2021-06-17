@@ -29,12 +29,12 @@ DATASET:
   DATAINFO: 'features/mouseA/data_info.json'
   ROOTF: 'features/mouseA/'
 MODE:
-  PROCESS: 'cl'
+  PROCESS: ''
   DPRC: 'iter'
 CLUSTER:
   ALG: 'kmeans'
-  FEAT_LIST: ['sizef', 'distf', 'circf', 'slenf']
-  WEIGHTSF: [1, 1, 1]
+  FEAT_LIST: ['surface_to_volumef']
+  WEIGHTSF: [1]
   N_CLUSTER: 5
   OUTPUTPATH: 'outputs/mouseA/'
   NEUROGLANCER: False

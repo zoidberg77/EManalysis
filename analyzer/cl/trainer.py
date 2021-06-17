@@ -7,4 +7,9 @@ class CLTrainer():
     '''
     def __init__(self, cfg):
         self.cfg = cfg
-        self.augmentor = Augmentor(cfg)
+
+    def train(self):
+        pass
+
+    def save_checkpoint():
+        pass
