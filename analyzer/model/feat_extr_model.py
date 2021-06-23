@@ -5,7 +5,8 @@ import glob
 import h5py
 from numpyencoder import NumpyEncoder
 
-from analyzer.model.utils.extracting import compute_region_size, compute_dist_graph, compute_circularity, compute_intentsity, compute_surface_to_volume, compute_skeleton
+from analyzer.model.utils.extracting import compute_region_size, compute_dist_graph, compute_circularity, \
+	compute_intentsity, compute_surface_to_volume, compute_skeleton, compute_spatial_density
 from analyzer.model.utils.helper import convert_dict_mtx
 
 class FeatureExtractor():
@@ -123,3 +124,6 @@ class FeatureExtractor():
 			json.dump(rsl_dict, f, cls=NumpyEncoder)
 			f.close()
 		print('stored infos in {}.'.format(os.path.join(self.cfg.DATASET.ROOTF + filen)))
+
+	def compute_seg_spatial_density(self, n_block=10):
+		return compute_spatial_density(fns=self.gtfns, n_block=n_block)

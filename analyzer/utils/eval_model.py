@@ -4,6 +4,8 @@ import json
 import glob
 import multiprocessing
 import functools
+
+from matplotlib import pyplot as plt
 from numpyencoder import NumpyEncoder
 import imageio
 
@@ -37,7 +39,8 @@ class Evaluationmodel():
 		print('ground truth distribution vector {}'.format(gt_counts))
 
 		# MUTUAL INFORMATION SCORE
-		score = normalized_mutual_info_score(self.get_gt_vector(fast=True), rsl_vector)
+		gt_vector = self.get_gt_vector(fast=True)
+		score = normalized_mutual_info_score(gt_vector, rsl_vector)
 		print('mutual information score: {}'.format(score))
 
 	def get_gt_vector(self, fn='gt_vector.json', fast=True):
@@ -182,11 +185,11 @@ class Evaluationmodel():
 		if os.path.exists(os.path.join(self.cfg.DATASET.ROOTF, fn)) \
 				and os.stat(os.path.join(self.cfg.DATASET.ROOTF, fn)).st_size != 0:
 			with open(os.path.join(self.cfg.DATASET.ROOTF, fn), 'r') as f:
-				gt_vector = json.loads(f.read())
+				gt_vector = np.array(json.loads(f.read()))
 		else:
 			print('gt vector not found. Will be computed.')
-			gt_images = glob.glob(self.dl.gtpath + '*.' + self.cfg.DATASET.FILE_FORMAT)
-			label_images = glob.glob(self.dl.labelpath + '*.' + self.cfg.DATASET.FILE_FORMAT)
+			gt_images = sorted(glob.glob(self.dl.gtpath + '*.' + self.cfg.DATASET.FILE_FORMAT))
+			label_images = sorted(glob.glob(self.dl.labelpath + '*.' + self.cfg.DATASET.FILE_FORMAT))
 
 			if len(gt_images) != len(label_images):
 				print("gt images dont match label images")
@@ -204,6 +207,7 @@ class Evaluationmodel():
 
 					coords = np.argwhere(label_image==label)[0]
 					gt_vector[label] = gt_image[coords[0], coords[1]]
+
 			gt_vector = [value for key, value in sorted(gt_vector.items())]
 			if save:
 				with open(os.path.join(self.cfg.DATASET.ROOTF, 'gt_vector.json'), 'w') as f:
@@ -212,8 +216,9 @@ class Evaluationmodel():
 
 		values, counts = np.unique(gt_vector, return_counts=True)
 		if (values == 0).any():
-			print('gt vector contains 0 as label.')
+			print('Error: gt vector contains 0 as label.')
+		else:
 			print('values: ', values)
 			print('counts: ', counts)
 
-		return gt_vector
+		return np.array(gt_vector)
