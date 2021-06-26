@@ -7,10 +7,18 @@ class Augmentor():
         Augmentor object handles the augmentation of various input.
         :params cfg: (yacs.config.CfgNode): YACS configuration options.
     '''
+    def __init__(self):
+        pass
+
+class PTCAugmentor():
+    '''
+        Augmentor object handles the augmentation of various input.
+        Designed for point clouds.
+        :params cfg: (yacs.config.CfgNode): YACS configuration options.
+    '''
     def __init__(self, cfg):
         self.cfg = cfg
         ptcdl = PtcDataset(cfg)
-        print(ptcdl[0][0].shape)
         self.rotate_point_cloud(ptcdl[0][0])
 
     def rotate_point_cloud(self, single_ptc):
@@ -28,8 +36,10 @@ class Augmentor():
                                     [-sinval, 0, cosval]])
 
         rotated_data = np.dot(single_ptc.reshape((-1, 3)), rotation_matrix)
-        visptc(rotated_data)
-        visptc(single_ptc.reshape((-1, 3)))
-        rotated_data = rotated_data[None, :, :]
-        print(rotated_data)
-        print(rotated_data.shape)
+        # visptc(rotated_data)
+        # visptc(single_ptc.reshape((-1, 3)))
+        # rotated_data = rotated_data[None, :, :]
+        # print(rotated_data)
+        # print(rotated_data.shape)
+
+        return rotated_data
