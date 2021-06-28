@@ -1,5 +1,7 @@
 import numpy as np
 from matplotlib import pyplot as plt
+from matplotlib import cm
+from mpl_toolkits.mplot3d import Axes3D
 from skimage.segmentation import mark_boundaries
 import matplotlib.patches as patches
 import open3d as o3d
@@ -12,7 +14,7 @@ def visvol(vol, gt=None, add=None, filename='test', ff='png', save=False, dpi=50
 	:param vol: (np.array) em data volume.
 	:param gt: (np.array) groundtruth data volume.
 	:param add: (np.array) additional volume that can be shown.
- 	'''
+	 '''
 	if vol.ndim >= 3:
 		raise ValueError('The input volume is higher than 2 dimensions.')
 	else:
@@ -85,6 +87,61 @@ def visbbox(image, bbox):
 	points = [[bbox[2],bbox[0]],[bbox[2],bbox[1]],[bbox[3],bbox[0]],[bbox[3],bbox[1]]]
 	plt.plot(*zip(*points), marker='o', color='r', ls='')
 	ax.imshow(image, cmap="gray")
+	plt.show()
+
+### 3d visualization ###
+def normalize(arr):
+	'''normalize numpy array'''
+	arr_min = np.min(arr)
+	return (arr - arr_min) / (np.max(arr) - arr_min)
+
+def make_ax(grid=False):
+	'''create 3d figure'''
+	fig = plt.figure()
+	ax = fig.gca(projection='3d')
+	ax.set_xlabel("x")
+	ax.set_ylabel("y")
+	ax.set_zlabel("z")
+	ax.grid(grid)
+	return ax
+
+def plot3dvol(vol):
+	ax = make_ax(True)
+	ax.voxels(vol, edgecolors='gray', shade=False)
+	plt.show()
+
+def explode(data):
+	shape_arr = np.array(data.shape)
+	size = shape_arr[:3]*2 - 1
+	exploded = np.zeros(np.concatenate([size, shape_arr[3:]]), dtype=data.dtype)
+	exploded[::2, ::2, ::2] = data
+	return exploded
+
+def expand_coordinates(indices):
+	x, y, z = indices
+	x[1::2, :, :] += 1
+	y[:, 1::2, :] += 1
+	z[:, :, 1::2] += 1
+	return x, y, z
+
+def plot_cube(cube, img_dim=129, angle=320):
+	cube = normalize(cube)
+
+	facecolors = cm.viridis(cube)
+	facecolors[:,:,:,-1] = cube
+	facecolors = explode(facecolors)
+
+	filled = facecolors[:,:,:,-1] != 0
+	x, y, z = expand_coordinates(np.indices(np.array(filled.shape) + 1))
+
+	fig = plt.figure(figsize=(30/2.54, 30/2.54))
+	ax = fig.gca(projection='3d')
+	ax.view_init(30, angle)
+	ax.set_xlim(right=img_dim * 2)
+	ax.set_ylim(top=img_dim * 2)
+	ax.set_zlim(top=img_dim * 2)
+
+	ax.voxels(x, y, z, filled, facecolors=facecolors, shade=False)
 	plt.show()
 
 ### HELPER SECTION ###

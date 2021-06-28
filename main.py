@@ -6,7 +6,7 @@ import torch
 import pytorch_lightning as pl
 
 from analyzer.config import get_cfg_defaults
-from analyzer.data import Dataloader, PtcDataset
+from analyzer.data import Dataloader, PtcDataset, PairDataset
 from analyzer.model import Clustermodel
 from analyzer.utils import Evaluationmodel
 from analyzer.vae import train
@@ -125,6 +125,7 @@ def main():
     elif cfg.MODE.PROCESS == "visptc":
         vis_reconstructed_ptc(cfg)
     elif cfg.MODE.PROCESS == "cl":
+        data = PairDataset(cfg)
         trainer = CLTrainer(cfg)
         return
 

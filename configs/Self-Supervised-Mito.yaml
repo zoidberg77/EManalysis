@@ -1,0 +1,9 @@
+SYSTEM:
+  NUM_CPUS: 8
+  NUM_GPUS: 0
+DATASET:
+  EM_PATH: 'datasets/Lucchi/img/train_im'
+  LABEL_PATH: 'datasets/Lucchi/label/train_label'
+  FILE_FORMAT: 'tif'
+MODE:
+  PROCESS: 'cl'
