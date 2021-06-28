@@ -1,7 +1,8 @@
 import numpy as np
 import torchvision.transforms as T
+from analyzer.data.augmentation.composition import Compose
+from analyzer.data.augmentation.rotation import Rotate
 from analyzer.data import PtcDataset
-from analyzer.data.data_vis import visptc
 
 class Augmentor():
     '''
@@ -11,20 +12,20 @@ class Augmentor():
     def __init__(self, volume_size, mean_std=0.5):
         self.volume_size = volume_size
         self.mean_std = mean_std
-        self.transform = T.Compose([
-            T.RandomResizedCrop(self.volume_size, scale=(0.2, 1.0)),
-            T.RandomHorizontalFlip(),
-            T.RandomApply([T.ColorJitter(0.4,0.4,0.4,0.1)], p=0.8),
-            T.RandomGrayscale(p=0.2),
-            #T.RandomApply([T.GaussianBlur(kernel_size=image_size//20*2+1, sigma=(0.1, 2.0))], p=p_blur),
-            T.ToTensor(),
-            T.Normalize(*mean_std)
-        ])
+        self.aug_list = self.define_augmentation_op()
+        self.transform = Compose(transforms=self.aug_list,
+                                 input_size=cfg.MODEL.INPUT_SIZE,
+                                 smooth=cfg.AUGMENTOR.SMOOTH,
+                                 additional_targets=None)
 
     def __call__(self, volume):
         x1 = self.transform(volume)
         x2 = self.transform(volume)
         return x1, x2
+
+    def define_augmentation_op(self):
+        aug_list = list()
+        aug_list.append(Rotate(rot90=True, p=1.0))
 
 class PTCAugmentor():
     '''
