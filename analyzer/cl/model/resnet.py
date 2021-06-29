@@ -28,6 +28,7 @@ class ResNet3D(nn.Module):
 
     def __init__(self,
                  block_type: str = 'residual',
+                 num_classes: int = 10,
                  in_channel: int = 1,
                  filters: List[int] = [28, 36, 48, 64, 80],
                  blocks: List[int] = [2, 2, 2, 2],
@@ -63,6 +64,9 @@ class ResNet3D(nn.Module):
         self.layer4 = self._make_layer(
             filters[3], filters[4], blocks[3], 2, isotropy[4])
 
+        self.avgpool = nn.AdaptiveAvgPool3d((1, 1, 1))
+        #self.fc = nn.Linear(512 * block.expansion, num_classes)
+
     def _make_layer(self, in_planes: int, planes: int, blocks: int,
                     stride: int = 1, isotropic: bool = False):
         if stride == 2 and not isotropic:
@@ -90,7 +94,6 @@ class ResNet3D(nn.Module):
 
 class ResNet2D(nn.Module):
     '''ResNet backbone for 2D semantic/instance segmentation.
-       The global average pooling and fully-connected layer are removed.
     '''
     def __init__(self, block, layers, num_classes=10, zero_init_residual=False,
                  groups=1, width_per_group=64, replace_stride_with_dilation=None,

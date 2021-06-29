@@ -15,7 +15,6 @@ class PairDataset():
     '''
     def __init__(self, cfg):
         self.cfg = cfg
-        #self.volume = self.cfg
         self.volume, self.label = self.get_input()
         self.sample_volume_size = (129, 129, 129)
         self.sample_stride = (1, 1, 1)
@@ -31,14 +30,14 @@ class PairDataset():
         self.sample_num_a = np.sum(self.sample_num)
         self.sample_num_c = np.cumsum([0] + list(self.sample_num))
 
-        self.num_augmented_images = 2
+        #self.num_augmented_images = 2
         #pos, vol = self.create_chunk_volume()
         #print(vol.shape)
         #print(vol)
         #self.create_sample_pair()
 
     def __len__(self):
-        pass
+        return self.iter_num
 
     def __getitem__(self, idx):
         return self.create_sample_pair()
