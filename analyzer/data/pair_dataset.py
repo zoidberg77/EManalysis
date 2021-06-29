@@ -32,34 +32,23 @@ class PairDataset():
         self.sample_num_c = np.cumsum([0] + list(self.sample_num))
 
         self.num_augmented_images = 2
-        pos, vol = self.create_chunk_volume()
-        print(vol.shape)
-        print(vol)
+        #pos, vol = self.create_chunk_volume()
+        #print(vol.shape)
+        #print(vol)
+        #self.create_sample_pair()
 
     def __len__(self):
         pass
 
     def __getitem__(self, idx):
-        sample_pair = self._create_sample_pair()
-        return sample_pair
+        return self.create_sample_pair()
 
     def create_sample_pair(self):
         '''Create a sample pair that will be used for contrastive learning.
         '''
         sample_pair = list()
         _, sample = self.create_chunk_volume()
-
-        # sample = self._random_sampling(self.sample_volume_size)
-        # pos, out_volume, out_label, out_valid = sample
-        # out_volume = self._create_masked_input(out_volume, out_label)
-
-        # data = {'image': out_volume}
-        # for i in range(self.num_augmented_images):
-        #     augmented = self.augmentor(sample)
-        #     sample_pair.append(augmented['image'])
-
-        x1, x2 = self.augmentor(sample)
-
+        sample_pair = self.augmentor(sample)
         return sample_pair
 
     def create_chunk_volume(self):

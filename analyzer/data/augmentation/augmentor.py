@@ -13,10 +13,7 @@ class Augmentor():
         self.volume_size = volume_size
         self.mean_std = mean_std
         self.aug_list = self.define_augmentation_op()
-        self.transform = Compose(transforms=self.aug_list,
-                                 input_size=cfg.MODEL.INPUT_SIZE,
-                                 smooth=cfg.AUGMENTOR.SMOOTH,
-                                 additional_targets=None)
+        self.transform = Compose(transforms=self.aug_list)
 
     def __call__(self, volume):
         x1 = self.transform(volume)
@@ -26,6 +23,7 @@ class Augmentor():
     def define_augmentation_op(self):
         aug_list = list()
         aug_list.append(Rotate(rot90=True, p=1.0))
+        return aug_list
 
 class PTCAugmentor():
     '''
