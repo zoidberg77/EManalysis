@@ -5,6 +5,7 @@ from analyzer.data.augmentation.augmentor import Augmentor
 from analyzer.cl.model import get_model
 from analyzer.data import PairDataset
 from analyzer.cl.engine.loss import similarity_func
+from analyzer.cl.engine.optimizer import build_optimizer, build_lr_scheduler
 
 class CLTrainer():
 	'''
@@ -22,6 +23,8 @@ class CLTrainer():
 		self.dataset = PairDataset(self.cfg)
 		self.dataloader = torch.utils.data.DataLoader(self.dataset, batch_size=cfg.SSL.BATCH_SIZE,
 		shuffle=False, pin_memory=True)
+		self.optimizer = build_optimizer(self.cfg, self.model)
+		self.lr_scheduler = build_lr_scheduler(self.cfg, self.optimizer)
 
 	def train(self):
 		for epoch in tqdm(range(self.num_epochs)):
@@ -29,17 +32,13 @@ class CLTrainer():
 
 			for idx, (x1, x2) in enumerate(self.dataloader):
 
-				print(x1.shape)
-
 				self.model.zero_grad()
 				z1, p1, z2, p2 = self.model.forward(x1.to(self.device, non_blocking=True), x2.to(self.device, non_blocking=True))
 				loss = similarity_func(p1, z2) / 2 + similarity_func(p2, z1) / 2
-				print(loss)
-				loss = data_dict['loss'].mean()
-				# loss.backward()
-				# optimizer.step()
-				# lr_scheduler.step()
-				# data_dict.update({'lr':lr_scheduler.get_lr()})
+				loss = loss.mean()
+				loss.backward()
+				optimizer.step()
+				lr_scheduler.step()
 				return
 
 	def save_checkpoint():

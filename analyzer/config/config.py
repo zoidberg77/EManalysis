@@ -43,6 +43,11 @@ _C.SSL = CN()
 _C.SSL.MODEL = 'siamnet'
 _C.SSL.ENCODER = 'resnet3d'
 _C.SSL.BATCH_SIZE = 256
+_C.SSL.EPOCHS = 25
+_C.SSL.OPTIMIZER = 'sgd'
+_C.SSL.OPTIMIZER_LR = 0.03
+_C.SSL.OPTIMIZER_WEIGHT_DECAY = 0.0005
+_C.SSL.OPTIMIZER_MOMENTUM = 0.9
 # -----------------------------------------------------------------------------
 # Dataset
 # -----------------------------------------------------------------------------
