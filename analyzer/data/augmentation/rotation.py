@@ -56,7 +56,6 @@ class Rotate():
         if self.rot90:
             k = random_state.randint(0, 4)
             sample = np.rot90(images, k, axes=(1, 2))
-            print('here sample: ', sample)
 
         else: # rotate the array by arbitrary degree
             height, width = images.shape[-2:]

@@ -2,7 +2,7 @@ import os, sys
 import numpy as np
 import h5py
 import imageio
-import hdbscan
+#import hdbscan
 from scipy.spatial import distance
 from sklearn.cluster import KMeans, AffinityPropagation, SpectralClustering, DBSCAN, AgglomerativeClustering
 from sklearn.preprocessing import StandardScaler, MinMaxScaler

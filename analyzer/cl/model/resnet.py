@@ -44,6 +44,7 @@ class ResNet3D(nn.Module):
             'pad_mode': pad_mode,
             'act_mode': act_mode,
             'norm_mode': norm_mode}
+        self.filters = filters
 
         if isotropy[0]:
             kernel_size, padding = 5, 2
@@ -65,7 +66,8 @@ class ResNet3D(nn.Module):
             filters[3], filters[4], blocks[3], 2, isotropy[4])
 
         self.avgpool = nn.AdaptiveAvgPool3d((1, 1, 1))
-        #self.fc = nn.Linear(512 * block.expansion, num_classes)
+        #print(self.avgpool.size[0])
+        #self.fc = nn.Linear(filters[4], num_classes)
 
     def _make_layer(self, in_planes: int, planes: int, blocks: int,
                     stride: int = 1, isotropic: bool = False):
@@ -86,6 +88,7 @@ class ResNet3D(nn.Module):
         x = self.layer2(x)
         x = self.layer3(x)
         x = self.layer4(x)
+        x = self.avgpool(x)
 
         return x
 

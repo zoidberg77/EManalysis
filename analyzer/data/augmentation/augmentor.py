@@ -16,8 +16,8 @@ class Augmentor():
         self.transform = Compose(transforms=self.aug_list)
 
     def __call__(self, volume):
-        x1 = self.transform(volume)
-        x2 = self.transform(volume)
+        x1 = np.expand_dims(self.transform(volume), axis=0).copy()
+        x2 = np.expand_dims(self.transform(volume), axis=0).copy()
         return x1, x2
 
     def define_augmentation_op(self):

@@ -13,10 +13,10 @@ class PairDataset():
     This Dataloader will prepare sample that are pairs for feeding the contrastive
     learning algorithm.
     '''
-    def __init__(self, cfg):
+    def __init__(self, cfg, iter_num: int = -1):
         self.cfg = cfg
         self.volume, self.label = self.get_input()
-        self.sample_volume_size = (129, 129, 129)
+        self.sample_volume_size = (17, 129, 129)
         self.sample_stride = (1, 1, 1)
         self.augmentor = Augmentor(self.sample_volume_size)
 
@@ -30,11 +30,13 @@ class PairDataset():
         self.sample_num_a = np.sum(self.sample_num)
         self.sample_num_c = np.cumsum([0] + list(self.sample_num))
 
+        self.iter_num = max(iter_num, self.sample_num_a)
+
         #self.num_augmented_images = 2
         #pos, vol = self.create_chunk_volume()
         #print(vol.shape)
         #print(vol)
-        #self.create_sample_pair()
+        self.create_sample_pair()
 
     def __len__(self):
         return self.iter_num
@@ -67,7 +69,7 @@ class PairDataset():
         :params label (numpy.ndarray): associated label volume.
         '''
         vol[np.where(label == 0)] = 0
-        return vol
+        return np.array(vol)
 
     def get_input(self):
         '''Get input volume and labels.'''

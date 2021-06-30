@@ -14,7 +14,7 @@ class SiameseNet(nn.Module):
 		super(SiameseNet, self).__init__()
 
 		self.encoder = encoder
-		self.projector = ProjectionHead(2048)
+		self.projector = ProjectionHead(self.encoder.d_output)
 		self.predictor = PredictionModel()
 
 	def forward(self, x1, x2):

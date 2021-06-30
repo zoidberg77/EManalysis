@@ -127,6 +127,7 @@ def main():
     elif cfg.MODE.PROCESS == "cl":
         data = PairDataset(cfg)
         trainer = CLTrainer(cfg)
+        trainer.train()
         return
 
     dl = Dataloader(cfg)
