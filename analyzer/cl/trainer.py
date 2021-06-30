@@ -37,8 +37,8 @@ class CLTrainer():
 				loss = similarity_func(p1, z2) / 2 + similarity_func(p2, z1) / 2
 				loss = loss.mean()
 				loss.backward()
-				optimizer.step()
-				lr_scheduler.step()
+				self.optimizer.step()
+				self.lr_scheduler.step()
 				return
 
 	def save_checkpoint():
