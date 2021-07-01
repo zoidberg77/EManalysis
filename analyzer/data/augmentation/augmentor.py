@@ -2,6 +2,9 @@ import numpy as np
 import torchvision.transforms as T
 from analyzer.data.augmentation.composition import Compose
 from analyzer.data.augmentation.rotation import Rotate
+from analyzer.data.augmentation.color_jitter import ColorJitter
+from analyzer.data.augmentation.flip import Flip
+from analyzer.data.augmentation.cutblur import CutBlur
 from analyzer.data import PtcDataset
 
 class Augmentor():
@@ -23,6 +26,12 @@ class Augmentor():
     def define_augmentation_op(self):
         aug_list = list()
         aug_list.append(Rotate(rot90=True, p=1.0))
+        aug_list.append(ColorJitter((0, 0.4), (0, 0.4), (0, 0.4), (0, 0.1)))
+        aug_list.append(Flip(do_ztrans=0))
+        aug_list.append(CutBlur(length_ratio=0.4,
+                                down_ratio_min=2.0,
+                                down_ratio_max=8.0,
+                                downsample_z=False))
         return aug_list
 
 class PTCAugmentor():

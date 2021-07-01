@@ -5,5 +5,7 @@ DATASET:
   EM_PATH: 'datasets/Lucchi/img/train_im'
   LABEL_PATH: 'datasets/Lucchi/label/train_label'
   FILE_FORMAT: 'tif'
+SSL:
+  BATCH_SIZE: 256
 MODE:
   PROCESS: 'cl'

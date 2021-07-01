@@ -3,8 +3,8 @@ import glob
 import random
 import torch
 import torch.utils.data
-from analyzer.data.data_raw import *
-from analyzer.data.data_misc import *
+from analyzer.data.utils.data_raw import *
+from analyzer.data.utils.data_misc import *
 from analyzer.data.data_vis import *
 from analyzer.data.augmentation import Augmentor
 
@@ -36,7 +36,7 @@ class PairDataset():
         #pos, vol = self.create_chunk_volume()
         #print(vol.shape)
         #print(vol)
-        self.create_sample_pair()
+        #self.create_sample_pair()
 
     def __len__(self):
         return self.iter_num

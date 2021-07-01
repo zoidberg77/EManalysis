@@ -14,7 +14,7 @@ from skimage.transform import resize
 from sklearn.cluster import KMeans
 from tqdm import tqdm
 
-from analyzer.data.data_raw import readvol, folder2Vol
+from analyzer.data.utils.data_raw import readvol, folder2Vol
 
 
 class Dataloader():

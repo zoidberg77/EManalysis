@@ -9,7 +9,7 @@ from scipy.sparse import bsr_matrix, coo_matrix, csr_matrix
 from skimage.color import label2rgb
 from tqdm import tqdm
 
-from analyzer.data.data_raw import save_m_to_image
+from analyzer.data.utils.data_raw import save_m_to_image
 
 def convert_to_sparse(inputs):
 	'''

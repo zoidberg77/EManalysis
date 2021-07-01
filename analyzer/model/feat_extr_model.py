@@ -5,8 +5,7 @@ import glob
 import h5py
 from numpyencoder import NumpyEncoder
 
-from analyzer.model.utils.extracting import compute_region_size, compute_dist_graph, compute_circularity, \
-	compute_intentsity, compute_surface_to_volume, compute_skeleton, compute_spatial_density
+from analyzer.model.utils.extracting import *
 from analyzer.model.utils.helper import convert_dict_mtx
 
 class FeatureExtractor():
