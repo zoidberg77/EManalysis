@@ -31,6 +31,7 @@ class PairDataset():
         self.sample_num_c = np.cumsum([0] + list(self.sample_num))
 
         self.iter_num = max(iter_num, self.sample_num_a)
+        print('Dataset chunks that will be iterated over: {}'.format(self.iter_num))
 
     def __len__(self):
         return self.iter_num
