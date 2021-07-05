@@ -32,12 +32,6 @@ class PairDataset():
 
         self.iter_num = max(iter_num, self.sample_num_a)
 
-        #self.num_augmented_images = 2
-        #pos, vol = self.create_chunk_volume()
-        #print(vol.shape)
-        #print(vol)
-        #self.create_sample_pair()
-
     def __len__(self):
         return self.iter_num
 
@@ -47,8 +41,7 @@ class PairDataset():
     def create_sample_pair(self):
         '''Create a sample pair that will be used for contrastive learning.
         '''
-        sample_pair = list()
-        _, sample = self.create_chunk_volume()
+        sample = self.reject_sample()
         sample_pair = self.augmentor(sample)
         return sample_pair
 
@@ -105,3 +98,11 @@ class PairDataset():
 
     def index_to_dataset(self, index):
         return np.argmax(index < self.sample_num_c) - 1
+
+    def reject_sample(self):
+        '''function makes sure that sample contains actual objects that are
+        sufficiently large enough.'''
+        while True:
+            _, sample = self.create_chunk_volume()
+            if np.count_nonzero(sample) > 0:
+                return sample

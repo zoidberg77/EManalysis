@@ -28,10 +28,6 @@ class Augmentor():
         aug_list.append(Rotate(rot90=True, p=1.0))
         aug_list.append(ColorJitter((0, 0.4), (0, 0.4), (0, 0.4), (0, 0.1)))
         aug_list.append(Flip(do_ztrans=0))
-        aug_list.append(CutBlur(length_ratio=0.4,
-                                down_ratio_min=2.0,
-                                down_ratio_max=8.0,
-                                downsample_z=False))
         return aug_list
 
 class PTCAugmentor():

@@ -59,14 +59,22 @@ class ColorJitter(torch.nn.Module):
 
         return fn_idx, b, c, s, h
 
+    def blend(self, vol: np.ndarray, helper: np.ndarray, ratio: float) -> np.ndarray:
+        '''applying the specfic blending function to sample vol.'''
+        ratio = float(ratio)
+        bound = 1.0 if isinstance(vol, np.floating) else 255.0
+        return np.clip((ratio * vol + (1.0 - ratio) * helper), 0, bound).astype(vol.dtype)
+
     def adjust_brightness(self, sample, brightness):
-        return sample
+        return self.blend(sample, np.zeros_like(sample), brightness)
 
     def adjust_contrast(self, sample, contrast):
-        return sample
+        dtype = sample.dtype if isinstance(sample, np.floating) else np.float32
+        mean = np.mean(sample, keepdims=True)
+        return self.blend(sample, mean, contrast)
 
     def adjust_saturation(self, sample, saturation):
-        return sample
+        return self.blend(sample, sample, saturation)
 
     def adjust_hue(self, sample, hue):
         return sample
