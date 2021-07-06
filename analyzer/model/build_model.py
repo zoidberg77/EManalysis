@@ -100,9 +100,10 @@ class Clustermodel():
 				elif fns == 'slenf':
 					feat = self.fe.compute_seg_slength()
 				elif fns == 'spatial_densityf':
-					feat = self.fe.compute_seg_spatial_density()
+					volume, count = self.fe.compute_seg_spatial_density(n_block=20)
 					with h5py.File(self.cfg.DATASET.ROOTF + "spatial_densityf" + '.h5', 'w') as h5f:
-						h5f.create_dataset('spatial_densityf', data=feat)
+						h5f.create_dataset('volume', data=volume)
+						h5f.create_dataset('count', data=count)
 					exit()
 				else:
 					print('No function for computing {} features.'.format(fns))
