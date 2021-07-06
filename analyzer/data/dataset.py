@@ -291,7 +291,8 @@ class Dataloader():
         print("{} objects found in the ground truth".format(len(regions)))
 
         regions = pd.DataFrame(regions)
-        regions = regions[(self.upper_limit > regions['size']) & (self.lower_limit < regions['size']) & (len(regions['slices']) > 1)].values.tolist()
+        regions = regions[(self.upper_limit > regions['size']) & (self.lower_limit < regions['size']) & (
+                len(regions['slices']) > 1)].values.tolist()
         filtered_length = len(regions)
         print("{} within limits {} and {}".format(filtered_length, self.lower_limit, self.upper_limit))
         if self.region_limit is not None:
@@ -344,7 +345,6 @@ class Dataloader():
         if len(mito_region.bbox) < 6:
             return [-1, np.zeros(shape=(1, *self.target_size)), np.zeros(shape=(1, *self.target_size))]
 
-
         shape = gt_volume[mito_region.bbox[0]:mito_region.bbox[3] + 1,
                 mito_region.bbox[1]:mito_region.bbox[4] + 1,
                 mito_region.bbox[2]:mito_region.bbox[5] + 1].astype(np.float32)
@@ -360,7 +360,7 @@ class Dataloader():
         scaled_texture = resize(texture, self.target_size, order=1, anti_aliasing=True)
         scaled_texture = scaled_texture / scaled_texture.max()
         scaled_texture = np.expand_dims(scaled_texture, 0)
-        if scaled_shape.sum() < self.lower_limit*0.1:
+        if scaled_shape.sum() < self.lower_limit * 0.1:
             print("region {} was too small".format(region[0]))
             return [-1, np.zeros(shape=(1, *self.target_size)), np.zeros(shape=(1, *self.target_size))]
 
@@ -398,3 +398,76 @@ class Dataloader():
         em_volume = np.moveaxis(em_volume, -1, 0)
 
         return gt_volume, em_volume
+
+    def extract_scale_mitos_samples(self):
+        '''
+        Function to extract the objects as volumes and scale them. Then its saves the scaled volumes to an h5 file.
+        '''
+        if os.path.exists(os.path.join(self.cfg.SYSTEM.ROOT_DIR, self.cfg.DATASET.DATAINFO)) \
+                and os.stat(os.path.join(self.cfg.SYSTEM.ROOT_DIR, self.cfg.DATASET.DATAINFO)).st_size != 0:
+            with open(os.path.join(self.cfg.SYSTEM.ROOT_DIR, self.cfg.DATASET.DATAINFO), 'r') as f:
+                regions = json.loads(f.read())
+        else:
+            regions = self.prep_data_info(save=False)
+
+        print("{} objects found in the ground truth".format(len(regions)))
+
+        regions = pd.DataFrame(regions)
+        regions = regions[(self.upper_limit > regions['size']) & (self.lower_limit < regions['size']) & (
+                len(regions['slices']) > 1)].values.tolist()
+        filtered_length = len(regions)
+        print("{} within limits {} and {}".format(filtered_length, self.lower_limit, self.upper_limit))
+        if self.region_limit is not None:
+            regions = regions[:self.region_limit]
+            print("{} will be extracted due to set region_limit".format(self.region_limit))
+        with h5py.File(self.mito_volume_file_name, "w") as f:
+            f.create_dataset("chunk", (len(regions), 1, *self.target_size))
+            chunk_ds = f.create_dataset("unlimited", (1, *self.target_size), maxshape=(None, *self.target_size))
+            id_ds = f.create_dataset("id", (1,), maxshape=(None,))
+            for region in tqdm(regions, total=len(regions)):
+                gt_volume, em_volume = self.get_volumes_from_slices(region)
+
+                mito_regions = regionprops(gt_volume, cache=False)
+                if len(mito_regions) != 1:
+                    print("something went wrong during volume building. region count: {}".format(len(mito_regions)))
+
+                mito_region = mito_regions[0]
+                texture = None
+
+                if len(mito_region.bbox) < 6:
+                    continue
+                else:
+                    texture = em_volume[mito_region.bbox[0]:mito_region.bbox[3] + 1,
+                              mito_region.bbox[1]:mito_region.bbox[4] + 1,
+                              mito_region.bbox[2]:mito_region.bbox[5] + 1].astype(np.float32)
+
+                large = any([d > self.target_size[i] for i, d in enumerate(texture.shape)])
+
+                samples = []
+
+                if large:
+                    for i in range(4):
+
+                        x, y, z = 0, 0, 0
+
+                        if texture.shape[0] > self.target_size[0]:
+                            x = np.random.random_integers(0, texture.shape[0] - self.target_size[0])
+                        if texture.shape[1] > self.target_size[1]:
+                            y = np.random.random_integers(0, texture.shape[1] - self.target_size[1])
+                        if texture.shape[2] > self.target_size[2]:
+                            z = np.random.random_integers(0, texture.shape[2] - self.target_size[2])
+                        sample = np.zeros(self.target_size)
+
+                        sample[0:texture.shape[0], 0:texture.shape[1], 0:texture.shape[2]] = texture[x:x+self.target_size[0], y:y+self.target_size[1], z:z+self.target_size[2]]
+                        samples.append(sample)
+
+                else:
+                    sample = np.zeros(self.target_size)
+                    sample[0:texture.shape[0], 0:texture.shape[1], 0:texture.shape[2]] = texture
+                    samples.append(sample)
+
+                for sample in samples:
+                    id_ds.resize(id_ds.shape[0] + 1, axis=0)
+                    chunk_ds.resize(chunk_ds.shape[0] + 1, axis=0)
+                    id_ds[id_ds.shape[0] - 1] = region[0]
+                    chunk_ds[chunk_ds.shape[0] - 1] = sample
