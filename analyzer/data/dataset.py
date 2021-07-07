@@ -420,8 +420,8 @@ class Dataloader():
             regions = regions[:self.region_limit]
             print("{} will be extracted due to set region_limit".format(self.region_limit))
         with h5py.File(self.mito_volume_file_name, "w") as f:
-            chunk_ds = f.create_dataset("chunk", (1, *self.target_size), maxsize=(None, *self.target_size))
-            id_ds = f.create_dataset("id", (1,), maxsize=(None,))
+            chunk_ds = f.create_dataset("chunk", (1, *self.target_size), maxshape=(None, *self.target_size))
+            id_ds = f.create_dataset("id", (1,), maxshape=(None,))
         for i in range(0, len(regions), self.chunks_per_cpu*self.cpus):
             regions_part = regions[i:i+self.chunks_per_cpu*self.cpus]
             with multiprocessing.Pool(processes=self.cpus) as pool:
