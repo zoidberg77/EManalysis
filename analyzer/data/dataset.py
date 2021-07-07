@@ -419,23 +419,23 @@ class Dataloader():
         if self.region_limit is not None:
             regions = regions[:self.region_limit]
             print("{} will be extracted due to set region_limit".format(self.region_limit))
-
-        with multiprocessing.Pool(processes=self.cpus) as pool:
-            results = list(tqdm(pool.imap(self.get_mito_chunk, regions), total=len(regions)))
-            #results = list(filter(None.__ne__, results))
-            #results_len = np.sum([len(r[1]) for r in results])
-            #id_ds.resize(id_ds.shape[0] + results_len, axis=0)
-            #chunk_ds.resize(chunk_ds.shape[0] + results_len, axis=0)
         with h5py.File(self.mito_volume_file_name, "w") as f:
-            chunk_ds = f.create_dataset("chunk", (len(regions) * self.large_samples, *self.target_size))
-            id_ds = f.create_dataset("id", (len(regions) * self.large_samples,))
-            for result in results:
-                if result is None:
-                    continue
-                for sample in result[1]:
-                    print("writing sample from {}".format(result[0]))
-                    id_ds[id_ds.shape[0] - 1] = result[0]
-                    chunk_ds[chunk_ds.shape[0] - 1] = sample
+            chunk_ds = f.create_dataset("chunk", (1, *self.target_size), maxsize=(None, *self.target_size))
+            id_ds = f.create_dataset("id", (1,), maxsize=(None,))
+        for i in range(0, len(regions), self.chunks_per_cpu*self.cpus):
+            regions_part = regions[i:i+self.chunks_per_cpu*self.cpus]
+            with multiprocessing.Pool(processes=self.cpus) as pool:
+                results = list(tqdm(pool.imap(self.get_mito_chunk, regions_part), total=len(regions_part)))
+                results_len = np.sum([len(r[1]) for r in results])
+                id_ds.resize(id_ds.shape[0] + results_len, axis=0)
+                chunk_ds.resize(chunk_ds.shape[0] + results_len, axis=0)
+                for result in results:
+                    if result is None:
+                        continue
+                    for sample in result[1]:
+                        print("writing sample from {}".format(result[0]))
+                        id_ds[id_ds.shape[0] - 1] = result[0]
+                        chunk_ds[chunk_ds.shape[0] - 1] = sample
         return
 
     def get_mito_chunk(self, region):
