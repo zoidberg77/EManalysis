@@ -40,15 +40,15 @@ class CLTrainer():
 			self.lr_scheduler.step()
 
 			if (idx % self.cfg.SSL.ITERATION_SAVE) == 0 and idx != 0:
-				self.save_checkpoint(epoch)
+				self.save_checkpoint(idx)
 
-	def save_checkpoint(self, epoch: int):
+	def save_checkpoint(self, idx: int):
 		'''Save the model at certain checkpoints.'''
-		state = {'iteration': iteration + 1,
+		state = {'iteration': idx + 1,
 				 'state_dict': self.model.module.state_dict(),
 				 'optimizer': self.optimizer.state_dict(),
 				 'lr_scheduler': self.lr_scheduler.state_dict()}
 
-		filename = 'checkpoint_%05d.pth.tar' % (epoch + 1)
+		filename = 'checkpoint_%05d.pth.tar' % (idx + 1)
 		filename = os.path.join(self.output_dir, filename)
 		torch.save(state, filename)
