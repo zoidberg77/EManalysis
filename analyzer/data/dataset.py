@@ -3,6 +3,7 @@ import json
 import math
 import multiprocessing
 import os
+import time
 
 import h5py
 import imageio
@@ -420,65 +421,95 @@ class Dataloader():
             regions = regions[:self.region_limit]
             print("{} will be extracted due to set region_limit".format(self.region_limit))
         with h5py.File(self.mito_volume_file_name, "w") as f:
-            chunk_ds = f.create_dataset("chunk", (1, *self.target_size), maxshape=(None, *self.target_size))
-            id_ds = f.create_dataset("id", (1,), maxshape=(None,))
-        for i in range(0, len(regions), self.chunks_per_cpu*self.cpus):
-            regions_part = regions[i:i+self.chunks_per_cpu*self.cpus]
-            with multiprocessing.Pool(processes=self.cpus) as pool:
-                results = list(tqdm(pool.imap(self.get_mito_chunk, regions_part), total=len(regions_part)))
-                results_len = np.sum([len(r[1]) for r in results])
-                id_ds.resize(id_ds.shape[0] + results_len, axis=0)
-                chunk_ds.resize(chunk_ds.shape[0] + results_len, axis=0)
-                for result in results:
-                    if result is None:
-                        continue
-                    for sample in result[1]:
-                        print("writing sample from {}".format(result[0]))
-                        id_ds[id_ds.shape[0] - 1] = result[0]
-                        chunk_ds[chunk_ds.shape[0] - 1] = sample
+            chunk_ds = f.create_dataset("chunk", (len(regions)*self.large_samples, *self.target_size))
+            id_ds = f.create_dataset("id", (len(regions)*self.large_samples,))
+
+        in_q = multiprocessing.Queue()
+        out_q = multiprocessing.Queue(4)
+        processes = []
+        for region in regions:
+            in_q.put(region)
+
+        p = multiprocessing.Process(target=self.save_mito_chunks, args=(in_q, out_q))
+        p.start()
+        processes.append(p)
+        for cpu in range(self.cpus - 1):
+            p = multiprocessing.Process(target=self.get_mito_chunk, args=(in_q, out_q))
+            p.start()
+            processes.append(p)
+        for p in processes:
+            p.join()
+        in_q.close()
+        out_q.close()
+
         return
 
-    def get_mito_chunk(self, region):
-        gt_volume, em_volume = self.get_volumes_from_slices(region)
+    def get_mito_chunk(self, in_q, out_q):
+        while True:
+            if in_q.empty():
+                break
+            region = in_q.get(timeout=10)
+            gt_volume, em_volume = self.get_volumes_from_slices(region)
 
-        mito_regions = regionprops(gt_volume, cache=False)
-        if len(mito_regions) != 1:
-            print("something went wrong during volume building. region count: {}".format(len(mito_regions)))
+            mito_regions = regionprops(gt_volume, cache=False)
+            if len(mito_regions) != 1:
+                print("something went wrong during volume building. region count: {}".format(len(mito_regions)))
 
-        mito_region = mito_regions[0]
-        texture = None
+            mito_region = mito_regions[0]
+            texture = None
 
-        if len(mito_region.bbox) < 6:
-            return None
-        else:
-            texture = em_volume[mito_region.bbox[0]:mito_region.bbox[3] + 1,
-                      mito_region.bbox[1]:mito_region.bbox[4] + 1,
-                      mito_region.bbox[2]:mito_region.bbox[5] + 1].astype(np.float32)
+            if len(mito_region.bbox) < 6:
+                continue
+            else:
+                texture = em_volume[mito_region.bbox[0]:mito_region.bbox[3] + 1,
+                          mito_region.bbox[1]:mito_region.bbox[4] + 1,
+                          mito_region.bbox[2]:mito_region.bbox[5] + 1].astype(np.float32)
 
-        large = any([d > self.target_size[i] for i, d in enumerate(texture.shape)])
+            large = any([d > self.target_size[i] for i, d in enumerate(texture.shape)])
 
-        samples = []
+            if large:
+                for i in range(self.large_samples):
 
-        if large:
-            for i in range(self.large_samples):
+                    x, y, z = 0, 0, 0
 
-                x, y, z = 0, 0, 0
+                    if texture.shape[0] > self.target_size[0]:
+                        x = np.random.random_integers(0, texture.shape[0] - self.target_size[0])
+                    if texture.shape[1] > self.target_size[1]:
+                        y = np.random.random_integers(0, texture.shape[1] - self.target_size[1])
+                    if texture.shape[2] > self.target_size[2]:
+                        z = np.random.random_integers(0, texture.shape[2] - self.target_size[2])
+                    sample = np.zeros(self.target_size)
 
-                if texture.shape[0] > self.target_size[0]:
-                    x = np.random.random_integers(0, texture.shape[0] - self.target_size[0])
-                if texture.shape[1] > self.target_size[1]:
-                    y = np.random.random_integers(0, texture.shape[1] - self.target_size[1])
-                if texture.shape[2] > self.target_size[2]:
-                    z = np.random.random_integers(0, texture.shape[2] - self.target_size[2])
+                    sample[0:texture.shape[0], 0:texture.shape[1], 0:texture.shape[2]] = texture[
+                                                                                         x:x + self.target_size[0],
+                                                                                         y:y + self.target_size[1],
+                                                                                         z:z + self.target_size[2]]
+                    out_q.put([region[0], sample])
+
+            else:
                 sample = np.zeros(self.target_size)
+                sample[0:texture.shape[0], 0:texture.shape[1], 0:texture.shape[2]] = texture
+                out_q.put([region[0], sample])
+        return
 
-                sample[0:texture.shape[0], 0:texture.shape[1], 0:texture.shape[2]] = texture[x:x + self.target_size[0],
-                                                                                     y:y + self.target_size[1],
-                                                                                     z:z + self.target_size[2]]
-                samples.append(sample)
+    def save_mito_chunks(self, in_q, out_q):
+        begin = in_q.qsize()
+        pbar = tqdm(total=begin)
+        counter = 0
 
-        else:
-            sample = np.zeros(self.target_size)
-            sample[0:texture.shape[0], 0:texture.shape[1], 0:texture.shape[2]] = texture
-            samples.append(sample)
-        return [region[0], samples]
+        while True:
+            if out_q.empty() and in_q.empty():
+                print("save process finished")
+                break
+
+            region_id, sample = out_q.get()
+            with h5py.File(self.mito_volume_file_name, "a") as f:
+                chunk_ds = f["chunk"]
+                id_ds = f["id"]
+                id_ds[counter] = region_id
+                chunk_ds[counter] = sample
+                counter += 1
+                for i in range(begin-in_q.qsize()):
+                    begin -= 1
+                    pbar.update()
+        return
