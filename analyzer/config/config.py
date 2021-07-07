@@ -35,6 +35,7 @@ _C.AUTOENCODER.FEATURES = ['shape', 'texture']
 _C.AUTOENCODER.PTC_NUM_POINTS = 1000
 _C.AUTOENCODER.PTC_SAMPLE_MODE = None
 _C.AUTOENCODER.BLUE_NOISE_SAMPLE_POINTS = 10
+_C.AUTOENCODER.LARGE_OBJECT_SAMPLES = 4
 
 # -----------------------------------------------------------------------------
 # Self-Supervised Learning
