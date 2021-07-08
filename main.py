@@ -58,7 +58,8 @@ def main():
         dl = Dataloader(cfg)
         em, labels, gt = dl.load_chunk()
         #dl.extract_scale_mitos()
-        dl.extract_scale_mitos_samples()
+        #dl.extract_scale_mitos_samples()
+        dl.cleanup_h5()
 
         return
     elif cfg.MODE.PROCESS == "ptcprep":

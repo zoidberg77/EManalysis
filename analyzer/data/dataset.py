@@ -513,3 +513,10 @@ class Dataloader():
                     begin -= 1
                     pbar.update()
         return
+
+    def cleanup_h5(self):
+        with h5py.File(self.mito_volume_file_name, "a") as f:
+            id_ds = f["id"]
+            for i, id in id_ds:
+                if id is None:
+                    print(id)
