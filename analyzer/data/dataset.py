@@ -521,3 +521,4 @@ class Dataloader():
                 if id_ds[i] != 0.0:
                     print(id_ds[i])
                     print(id_ds[i-1])
+                    break
