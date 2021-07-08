@@ -421,8 +421,9 @@ class Dataloader():
             regions = regions[:self.region_limit]
             print("{} will be extracted due to set region_limit".format(self.region_limit))
         with h5py.File(self.mito_volume_file_name, "w") as f:
-            f.create_dataset("chunk", (len(regions)*self.large_samples, *self.target_size), maxshape=(len(regions)*self.large_samples, *self.target_size))
-            f.create_dataset("id", (len(regions)*self.large_samples,), maxshape=(len(regions)*self.large_samples,))
+            f.create_dataset("chunk", (len(regions) * self.large_samples, *self.target_size),
+                             maxshape=(len(regions) * self.large_samples, *self.target_size))
+            f.create_dataset("id", (len(regions) * self.large_samples,), maxshape=(len(regions) * self.large_samples,))
 
         in_q = multiprocessing.Queue()
         out_q = multiprocessing.Queue(self.cpus)
@@ -478,12 +479,16 @@ class Dataloader():
                         y = np.random.random_integers(0, texture.shape[1] - self.target_size[1])
                     if texture.shape[2] > self.target_size[2]:
                         z = np.random.random_integers(0, texture.shape[2] - self.target_size[2])
-                    sample = np.zeros(self.target_size)
 
-                    sample[0:texture.shape[0], 0:texture.shape[1], 0:texture.shape[2]] = texture[
-                                                                                         x:x + self.target_size[0],
-                                                                                         y:y + self.target_size[1],
-                                                                                         z:z + self.target_size[2]]
+                    sample = texture[
+                             x:x + self.target_size[0],
+                             y:y + self.target_size[1],
+                             z:z + self.target_size[2]]
+                    if np.count_nonzero(sample)/sample.size < 0.33:
+                        continue
+                    sample_padding = np.zeros(self.target_size)
+
+                    sample_padding[0:texture.shape[0], 0:texture.shape[1], 0:texture.shape[2]] = sample
                     out_q.put([region[0], sample])
 
             else:
@@ -509,7 +514,7 @@ class Dataloader():
                 id_ds[counter] = region_id
                 chunk_ds[counter] = sample
                 counter += 1
-                for i in range(begin-in_q.qsize()):
+                for i in range(begin - in_q.qsize()):
                     begin -= 1
                     pbar.update()
         return
@@ -519,10 +524,10 @@ class Dataloader():
             id_ds = f["id"]
             size_needed = len(id_ds)
             print("dataset length before resize: {}".format(size_needed))
-            for i in range(len(id_ds)-1, -1, -1):
+            for i in range(len(id_ds) - 1, -1, -1):
                 if id_ds[i] != 0.0:
-                    size_needed = i+1
+                    size_needed = i + 1
                     break
-            id_ds.resize((size_needed, ))
+            id_ds.resize((size_needed,))
             f["chunk"].resize((size_needed, *f["chunk"].shape[1]))
             print("new length: {}".format(len(id_ds)))

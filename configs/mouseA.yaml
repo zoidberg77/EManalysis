@@ -20,7 +20,7 @@ AUTOENCODER:
   PTC_NUM_POINTS: 500
   PTC_SAMPLE_MODE: 'bluenoise'
   BLUE_NOISE_SAMPLE_POINTS: 1000
-  LARGE_OBJECT_SAMPLES: 4
+  LARGE_OBJECT_SAMPLES: 10
 DATASET:
   EM_PATH: 'datasets/mouseA/em_export/'
   LABEL_PATH: 'datasets/mouseA/mito_export_unique_id/'
