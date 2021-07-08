@@ -518,6 +518,6 @@ class Dataloader():
         with h5py.File(self.mito_volume_file_name, "a") as f:
             id_ds = f["id"]
             for i in range(len(id_ds)-1, -1, -1):
-                if id_ds[i] != 0:
+                if id_ds[i] != 0.0:
                     print(id_ds[i])
                     print(id_ds[i-1])
