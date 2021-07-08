@@ -520,5 +520,5 @@ class Dataloader():
             for i in range(len(id_ds)-1, -1, -1):
                 if id_ds[i] != 0.0:
                     print(id_ds[i])
-                    print(id_ds[i-1])
+                    print(id_ds[i+1])
                     break
