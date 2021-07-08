@@ -517,8 +517,12 @@ class Dataloader():
     def cleanup_h5(self):
         with h5py.File(self.mito_volume_file_name, "a") as f:
             id_ds = f["id"]
+            size_needed = len(id_ds)
+            print("size before: {}".format(size_needed))
             for i in range(len(id_ds)-1, -1, -1):
                 if id_ds[i] != 0.0:
-                    print(id_ds[i])
-                    print(id_ds[i+1])
+                    size_needed = i+1
                     break
+            id_ds.resize((size_needed, ))
+            f["chunk"].resize((size_needed, *f["chunk"].shape[1]))
+            print("new size: {}".format(len(id_ds)))
