@@ -421,11 +421,11 @@ class Dataloader():
             regions = regions[:self.region_limit]
             print("{} will be extracted due to set region_limit".format(self.region_limit))
         with h5py.File(self.mito_volume_file_name, "w") as f:
-            chunk_ds = f.create_dataset("chunk", (len(regions)*self.large_samples, *self.target_size))
-            id_ds = f.create_dataset("id", (len(regions)*self.large_samples,))
+            f.create_dataset("chunk", (len(regions)*self.large_samples, *self.target_size), maxshape=(len(regions)*self.large_samples, *self.target_size))
+            f.create_dataset("id", (len(regions)*self.large_samples,), maxshape=(len(regions)*self.large_samples,))
 
         in_q = multiprocessing.Queue()
-        out_q = multiprocessing.Queue(4)
+        out_q = multiprocessing.Queue(self.cpus)
         processes = []
         for region in regions:
             in_q.put(region)
@@ -439,10 +439,9 @@ class Dataloader():
             processes.append(p)
         for p in processes:
             p.join()
-        in_q.close()
-        out_q.close()
+        self.cleanup_h5()
 
-        return
+        exit()
 
     def get_mito_chunk(self, in_q, out_q):
         while True:
@@ -459,6 +458,7 @@ class Dataloader():
             texture = None
 
             if len(mito_region.bbox) < 6:
+                print(mito_region.bbox)
                 continue
             else:
                 texture = em_volume[mito_region.bbox[0]:mito_region.bbox[3] + 1,
@@ -518,11 +518,11 @@ class Dataloader():
         with h5py.File(self.mito_volume_file_name, "a") as f:
             id_ds = f["id"]
             size_needed = len(id_ds)
-            print("size before: {}".format(size_needed))
+            print("dataset length before resize: {}".format(size_needed))
             for i in range(len(id_ds)-1, -1, -1):
                 if id_ds[i] != 0.0:
                     size_needed = i+1
                     break
             id_ds.resize((size_needed, ))
             f["chunk"].resize((size_needed, *f["chunk"].shape[1]))
-            print("new size: {}".format(len(id_ds)))
+            print("new length: {}".format(len(id_ds)))
