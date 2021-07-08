@@ -489,12 +489,12 @@ class Dataloader():
                     sample_padding = np.zeros(self.target_size)
 
                     sample_padding[0:texture.shape[0], 0:texture.shape[1], 0:texture.shape[2]] = sample
-                    out_q.put([region[0], sample])
+                    out_q.put([region[0], sample_padding])
 
             else:
-                sample = np.zeros(self.target_size)
-                sample[0:texture.shape[0], 0:texture.shape[1], 0:texture.shape[2]] = texture
-                out_q.put([region[0], sample])
+                sample_padding = np.zeros(self.target_size)
+                sample_padding[0:texture.shape[0], 0:texture.shape[1], 0:texture.shape[2]] = texture
+                out_q.put([region[0], sample_padding])
         return
 
     def save_mito_chunks(self, in_q, out_q):
