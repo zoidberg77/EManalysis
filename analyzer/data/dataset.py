@@ -466,8 +466,8 @@ class Dataloader():
             if len(mito_region.bbox) < 6:
                 texture = np.zeros((*em_volume.shape, 2))
                 texture[mito_region.bbox[0]:mito_region.bbox[2] + 1,
-                mito_region.bbox[1]:mito_region.bbox[3] + 1, 0] = em_volume[mito_region.bbox[0]:mito_region.bbox[2] + 1,
-                                                                  mito_region.bbox[1]:mito_region.bbox[3] + 1]
+                          mito_region.bbox[1]:mito_region.bbox[3] + 1, 0] = em_volume[mito_region.bbox[0]:mito_region.bbox[2] + 1,
+                          mito_region.bbox[1]:mito_region.bbox[3] + 1]
             else:
                 texture = em_volume[mito_region.bbox[0]:mito_region.bbox[3] + 1,
                           mito_region.bbox[1]:mito_region.bbox[4] + 1,
@@ -491,7 +491,7 @@ class Dataloader():
                              x:x + self.target_size[0],
                              y:y + self.target_size[1],
                              z:z + self.target_size[2]]
-                    if np.count_nonzero(sample) / sample.size < 0.33:
+                    if np.count_nonzero(sample)/sample.size < 0.33:
                         continue
                     sample_padding = np.zeros(self.target_size)
 
@@ -536,5 +536,5 @@ class Dataloader():
                     size_needed = i + 1
                     break
             id_ds.resize((size_needed,))
-            f["chunk"].resize((size_needed, *f["chunk"].shape[1]))
+            f["chunk"].resize((size_needed, *f["chunk"].shape[1:]))
             print("new length: {}".format(len(id_ds)))
