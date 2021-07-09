@@ -435,18 +435,23 @@ class Dataloader():
         p.start()
         processes.append(p)
         for cpu in range(self.cpus - 1):
-            p = multiprocessing.Process(target=self.get_mito_chunk, args=(in_q, out_q))
+            p = multiprocessing.Process(target=self.get_mito_chunk, args=(in_q, out_q, cpu))
             p.start()
             processes.append(p)
         for p in processes:
             p.join()
+
+        p = multiprocessing.Process(target=self.save_mito_chunks, args=(in_q, out_q))
+        p.start()
+        p.join()
         self.cleanup_h5()
 
-        exit()
+        return
 
-    def get_mito_chunk(self, in_q, out_q):
+    def get_mito_chunk(self, in_q, out_q, id):
         while True:
             if in_q.empty():
+                print("Worker {} done".format(id))
                 break
             region = in_q.get(timeout=10)
             gt_volume, em_volume = self.get_volumes_from_slices(region)
@@ -459,8 +464,10 @@ class Dataloader():
             texture = None
 
             if len(mito_region.bbox) < 6:
-                print(mito_region.bbox)
-                continue
+                texture = np.zeros((*em_volume.shape, 2))
+                texture[mito_region.bbox[0]:mito_region.bbox[2] + 1,
+                mito_region.bbox[1]:mito_region.bbox[3] + 1, 0] = em_volume[mito_region.bbox[0]:mito_region.bbox[2] + 1,
+                                                                  mito_region.bbox[1]:mito_region.bbox[3] + 1]
             else:
                 texture = em_volume[mito_region.bbox[0]:mito_region.bbox[3] + 1,
                           mito_region.bbox[1]:mito_region.bbox[4] + 1,
@@ -490,10 +497,6 @@ class Dataloader():
 
                     sample_padding[0:texture.shape[0], 0:texture.shape[1], 0:texture.shape[2]] = sample
                     out_q.put([region[0], sample_padding])
-                    texture[
-                    x:x + self.target_size[0],
-                    y:y + self.target_size[1],
-                    z:z + self.target_size[2]] = 0
 
             else:
                 sample_padding = np.zeros(self.target_size)
@@ -515,7 +518,7 @@ class Dataloader():
             with h5py.File(self.mito_volume_file_name, "a") as f:
                 chunk_ds = f["chunk"]
                 id_ds = f["id"]
-                id_ds[counter] = int(region_id)
+                id_ds[counter] = region_id
                 chunk_ds[counter] = sample
                 counter += 1
                 for i in range(begin - in_q.qsize()):
