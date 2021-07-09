@@ -73,7 +73,7 @@ class Dataloader():
         :returns: integer
         '''
         with h5py.File(self.mito_volume_file_name, 'r') as f:
-            return len(f[self.vae_feature + "_volume"])
+            return len(f["id"])
 
     def __getitem__(self, idx):
         '''
@@ -82,7 +82,7 @@ class Dataloader():
         :returns: object from the volume
         '''
         with h5py.File(self.mito_volume_file_name, 'r') as f:
-            return f[self.vae_feature + "_volume"][idx]
+            return f["chunk"][idx]
 
     def get_fns(self):
         '''returns the em, label and gt filenames of every image.'''
@@ -366,7 +366,7 @@ class Dataloader():
 
         return [region[0], scaled_shape, scaled_texture]
 
-    def get_volumes_from_slices(self, region):
+    def get_volumes_from_slices(self, region, pbar=None):
         '''
         #TODO
         :param region:
@@ -384,6 +384,9 @@ class Dataloader():
         gt_volume[gt_volume != region[0]] = 0
         em_volume[gt_volume != region[0]] = 0
 
+        if pbar is not None:
+            pbar.reset(total=len(gt_fns) - 1)
+
         for i in range(len(gt_fns) - 1):
             gt_slice = imageio.imread(gt_fns[i])
             em_slice = imageio.imread(em_fns[i])
@@ -393,6 +396,9 @@ class Dataloader():
 
             gt_volume = np.dstack((gt_volume, gt_slice))
             em_volume = np.dstack((em_volume, em_slice))
+
+            if pbar is not None:
+                pbar.update()
 
         gt_volume = np.moveaxis(gt_volume, -1, 0)
         em_volume = np.moveaxis(em_volume, -1, 0)
@@ -428,6 +434,8 @@ class Dataloader():
         in_q = multiprocessing.Queue()
         out_q = multiprocessing.Queue(self.cpus)
         processes = []
+        pbars = []
+
         for region in regions:
             in_q.put(region)
 
@@ -435,11 +443,16 @@ class Dataloader():
         p.start()
         processes.append(p)
         for cpu in range(self.cpus - 1):
-            p = multiprocessing.Process(target=self.get_mito_chunk, args=(in_q, out_q, cpu))
+            pbar = tqdm(position=cpu + 1, total=self.large_samples, desc="Worker {}".format(cpu), leave=True)
+            pbars.append(pbar)
+            p = multiprocessing.Process(target=self.get_mito_chunk, args=(in_q, out_q, cpu, pbar))
             p.start()
             processes.append(p)
         for p in processes:
             p.join()
+
+        for pbar in pbars:
+            pbar.close()
 
         p = multiprocessing.Process(target=self.save_mito_chunks, args=(in_q, out_q))
         p.start()
@@ -448,13 +461,14 @@ class Dataloader():
 
         return
 
-    def get_mito_chunk(self, in_q, out_q, id):
+    def get_mito_chunk(self, in_q, out_q, id, pbar):
         while True:
+            pbar.reset(total=0)
             if in_q.empty():
-                print("Worker {} done".format(id))
+                # print("Worker {} done".format(id))
                 break
             region = in_q.get(timeout=10)
-            gt_volume, em_volume = self.get_volumes_from_slices(region)
+            gt_volume, em_volume = self.get_volumes_from_slices(region, pbar)
 
             mito_regions = regionprops(gt_volume, cache=False)
             if len(mito_regions) != 1:
@@ -466,8 +480,8 @@ class Dataloader():
             if len(mito_region.bbox) < 6:
                 texture = np.zeros((*em_volume.shape, 2))
                 texture[mito_region.bbox[0]:mito_region.bbox[2] + 1,
-                          mito_region.bbox[1]:mito_region.bbox[3] + 1, 0] = em_volume[mito_region.bbox[0]:mito_region.bbox[2] + 1,
-                          mito_region.bbox[1]:mito_region.bbox[3] + 1]
+                mito_region.bbox[1]:mito_region.bbox[3] + 1, 0] = em_volume[mito_region.bbox[0]:mito_region.bbox[2] + 1,
+                                                                  mito_region.bbox[1]:mito_region.bbox[3] + 1]
             else:
                 texture = em_volume[mito_region.bbox[0]:mito_region.bbox[3] + 1,
                           mito_region.bbox[1]:mito_region.bbox[4] + 1,
@@ -491,7 +505,7 @@ class Dataloader():
                              x:x + self.target_size[0],
                              y:y + self.target_size[1],
                              z:z + self.target_size[2]]
-                    if np.count_nonzero(sample)/sample.size < 0.33:
+                    if np.count_nonzero(sample) / sample.size < 0.33:
                         continue
                     sample_padding = np.zeros(self.target_size)
 
@@ -506,12 +520,12 @@ class Dataloader():
 
     def save_mito_chunks(self, in_q, out_q):
         begin = in_q.qsize()
-        pbar = tqdm(total=begin)
+        pbar = tqdm(total=begin, position=0)
         counter = 0
 
         while True:
             if out_q.empty() and in_q.empty():
-                print("save process finished")
+                # print("save process finished")
                 break
 
             region_id, sample = out_q.get()
