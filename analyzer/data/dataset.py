@@ -484,12 +484,16 @@ class Dataloader():
                              x:x + self.target_size[0],
                              y:y + self.target_size[1],
                              z:z + self.target_size[2]]
-                    if np.count_nonzero(sample)/sample.size < 0.33:
+                    if np.count_nonzero(sample) / sample.size < 0.33:
                         continue
                     sample_padding = np.zeros(self.target_size)
 
                     sample_padding[0:texture.shape[0], 0:texture.shape[1], 0:texture.shape[2]] = sample
                     out_q.put([region[0], sample_padding])
+                    texture[
+                    x:x + self.target_size[0],
+                    y:y + self.target_size[1],
+                    z:z + self.target_size[2]] = 0
 
             else:
                 sample_padding = np.zeros(self.target_size)
@@ -511,7 +515,7 @@ class Dataloader():
             with h5py.File(self.mito_volume_file_name, "a") as f:
                 chunk_ds = f["chunk"]
                 id_ds = f["id"]
-                id_ds[counter] = region_id
+                id_ds[counter] = int(region_id)
                 chunk_ds[counter] = sample
                 counter += 1
                 for i in range(begin - in_q.qsize()):
