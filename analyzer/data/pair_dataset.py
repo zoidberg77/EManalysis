@@ -16,6 +16,7 @@ class PairDataset():
     def __init__(self, cfg, iter_num: int = -1):
         self.cfg = cfg
         self.volume, self.label = self.get_input()
+        self.chunks_path = self.cfg.DATASET_CHUNKS_PATH
         self.sample_volume_size = (17, 129, 129)
         self.sample_stride = (1, 1, 1)
         self.augmentor = Augmentor(self.sample_volume_size)
@@ -33,6 +34,8 @@ class PairDataset():
         self.iter_num = max(iter_num, self.sample_num_a)
         print('Dataset chunks that will be iterated over: {}'.format(self.iter_num))
 
+        self.create_sample_pair()
+
     def __len__(self):
         return self.iter_num
 
@@ -42,7 +45,12 @@ class PairDataset():
     def create_sample_pair(self):
         '''Create a sample pair that will be used for contrastive learning.
         '''
-        sample = self.reject_sample()
+        if self.cfg.SSL_USE_PREP_DATASET is False:
+            sample = self.reject_sample()
+        else:
+            with h5py.File(self.chunks_path, 'r') as f:
+                print([key for key in f.keys()])
+    			sample = f[self.vae_feature + "_volume"][idx]
         sample_pair = self.augmentor(sample)
         return sample_pair
 
@@ -74,6 +82,8 @@ class PairDataset():
             label = readvol(labelfns[0])
         else:
             pass
+
+        self.ptfn = cfg.DATASET.ROOTD + 'vae/pts' + '.h5'
         return vol, label
 
     def crop_with_pos(self, pos, vol_size):

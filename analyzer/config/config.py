@@ -51,6 +51,7 @@ _C.SSL.OPTIMIZER = 'sgd'
 _C.SSL.OPTIMIZER_LR = 0.05
 _C.SSL.OPTIMIZER_WEIGHT_DECAY = 0.0005
 _C.SSL.OPTIMIZER_MOMENTUM = 0.9
+_C.SSL.USE_PREP_DATASET = True
 # -----------------------------------------------------------------------------
 # Dataset
 # -----------------------------------------------------------------------------
@@ -63,6 +64,7 @@ _C.DATASET.FILE_FORMAT = 'png'
 _C.DATASET.ROOTF = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'features/')
 _C.DATASET.ROOTD = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'datasets/')
 _C.DATASET.DATAINFO = 'features/data_info.json'
+_C.DATASET_CHUNKS_PATH = ''
 # -----------------------------------------------------------------------------
 # Mode
 # := sets different run options.
