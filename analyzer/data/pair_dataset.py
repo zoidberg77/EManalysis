@@ -21,7 +21,7 @@ class PairDataset():
 		self.augmentor = Augmentor(self.sample_volume_size)
 
 		# Data information if you want to produce input on the fly.
-		self.cfg.SSL.USE_PREP_DATASET is False:
+		if self.cfg.SSL.USE_PREP_DATASET is False:
 			self.volume_size = [np.array(self.volume.shape)]
 			self.sample_volume_size = np.array(self.sample_volume_size).astype(int)
 			self.sample_stride = np.array(self.sample_stride).astype(int)
@@ -49,9 +49,9 @@ class PairDataset():
 		else:
 			with h5py.File(self.chunks_path, 'r') as f:
 				sample = f['chunk'][idx]
-				id = f['id'][idx]
+				label = f['id'][idx]
 		sample_pair = self.augmentor(sample)
-		return (sample_pair[0], sample_pair[1], id)
+		return (sample_pair, label)
 
 	def create_chunk_volume(self):
 		'''
