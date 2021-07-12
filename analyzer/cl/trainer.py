@@ -26,7 +26,7 @@ class CLTrainer():
 		self.dataloader = torch.utils.data.DataLoader(self.dataset, batch_size=self.cfg.SSL.BATCH_SIZE,
 		shuffle=False, pin_memory=True)
 		self.optimizer = build_optimizer(self.cfg, self.model)
-		self.lr_scheduler = build_lr_scheduler(self.cfg, self.optimizer)
+		self.lr_scheduler = build_lr_scheduler(self.cfg, self.optimizer, len(self.dataloader))
 
 	def train(self):
 		for epoch in range(0, self.epochs):
