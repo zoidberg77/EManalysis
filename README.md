@@ -4,6 +4,10 @@
 
 The field of Connectomics aims to reconstruct the wiring diagram of the brain by mapping the neural connections at a cellular level. Based on electronic microscopy (EM) data the goal of this repository is enabling analysis on human brain tissue, particularly on mitochondria. Besides having algorithms that enable dense segmentation and alignment, the need for classification and clustering is key. Therefore, this software enables to cluster mitochondria (or any segments you want to cluster) automatically without relying on powerful computational resources.
 
+<p align="center">
+  <img width="500" height="500" src="https://github.com/frommwonderland/EManalysis/blob/main/resources/gt_5_em_220.png">
+</p>
+
 ## Installation
 Create a new conda environment:
 ```
