@@ -378,32 +378,26 @@ class Dataloader():
         gt_fns = [gt_all_fn[id] for id in region[2]]
         em_fns = [em_all_fn[id] for id in region[2]]
 
-        gt_volume = imageio.imread(gt_fns[0])
-        em_volume = imageio.imread(em_fns[0])
-
-        gt_volume[gt_volume != region[0]] = 0
-        em_volume[gt_volume != region[0]] = 0
+        gt_volume = []
+        em_volume = []
 
         if pbar is not None:
             pbar.reset(total=len(gt_fns) - 1)
 
-        for i in range(len(gt_fns) - 1):
+        for i in range(len(gt_fns)):
             gt_slice = imageio.imread(gt_fns[i])
             em_slice = imageio.imread(em_fns[i])
 
             gt_slice[gt_slice != region[0]] = 0
             em_slice[gt_slice != region[0]] = 0
 
-            gt_volume = np.dstack((gt_volume, gt_slice))
-            em_volume = np.dstack((em_volume, em_slice))
+            gt_volume.append(gt_slice)
+            em_volume.append(em_slice)
 
             if pbar is not None:
                 pbar.update()
 
-        gt_volume = np.moveaxis(gt_volume, -1, 0)
-        em_volume = np.moveaxis(em_volume, -1, 0)
-
-        return gt_volume, em_volume
+        return np.array(gt_volume), np.array(em_volume)
 
     def extract_scale_mitos_samples(self):
         '''
@@ -432,9 +426,9 @@ class Dataloader():
             f.create_dataset("id", (len(regions) * self.large_samples,), maxshape=(len(regions) * self.large_samples,))
 
         in_q = multiprocessing.Queue()
-        out_q = multiprocessing.Queue(self.cpus)
+        out_q = multiprocessing.Queue(self.chunks_per_cpu)
         processes = []
-        pbars = []
+        #pbars = []
 
         for region in regions:
             in_q.put(region)
@@ -443,17 +437,17 @@ class Dataloader():
         p.start()
         processes.append(p)
         for cpu in range(self.cpus - 1):
-            pbar = tqdm(position=cpu + 1, total=self.large_samples, desc="Worker {}".format(cpu), leave=True)
-            pbars.append(pbar)
-            p = multiprocessing.Process(target=self.get_mito_chunk, args=(in_q, out_q, cpu, pbar))
+            #pbar = tqdm(position=cpu + 1, total=self.large_samples, desc="Worker {}".format(cpu), leave=True)
+            #pbars.append(pbar)
+            p = multiprocessing.Process(target=self.get_mito_chunk, args=(in_q, out_q, cpu, None))
             p.start()
             processes.append(p)
         for p in processes:
             p.join()
-
+        '''
         for pbar in pbars:
             pbar.close()
-
+        '''
         p = multiprocessing.Process(target=self.save_mito_chunks, args=(in_q, out_q))
         p.start()
         p.join()
@@ -463,7 +457,7 @@ class Dataloader():
 
     def get_mito_chunk(self, in_q, out_q, id, pbar):
         while True:
-            pbar.reset(total=0)
+            #pbar.reset(total=0)
             if in_q.empty():
                 # print("Worker {} done".format(id))
                 break
@@ -495,16 +489,16 @@ class Dataloader():
                     x, y, z = 0, 0, 0
 
                     if texture.shape[0] > self.target_size[0]:
-                        x = np.random.random_integers(0, texture.shape[0] - self.target_size[0])
+                        z = np.random.random_integers(0, texture.shape[0] - self.target_size[0])
                     if texture.shape[1] > self.target_size[1]:
-                        y = np.random.random_integers(0, texture.shape[1] - self.target_size[1])
+                        x = np.random.random_integers(0, texture.shape[1] - self.target_size[1])
                     if texture.shape[2] > self.target_size[2]:
-                        z = np.random.random_integers(0, texture.shape[2] - self.target_size[2])
+                        y = np.random.random_integers(0, texture.shape[2] - self.target_size[2])
 
                     sample = texture[
-                             x:x + self.target_size[0],
-                             y:y + self.target_size[1],
-                             z:z + self.target_size[2]]
+                             z:z + self.target_size[0],
+                             x:x + self.target_size[1],
+                             y:y + self.target_size[2]]
                     if np.count_nonzero(sample) / sample.size < 0.33:
                         continue
                     sample_padding = np.zeros(self.target_size)

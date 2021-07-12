@@ -100,7 +100,7 @@ class Clustermodel():
 				elif fns == 'slenf':
 					feat = self.fe.compute_seg_slength()
 				elif fns == 'spatial_densityf':
-					volume, count = self.fe.compute_seg_spatial_density(n_block=20)
+					volume, count = self.fe.compute_seg_spatial_density(n_block=30)
 					with h5py.File(self.cfg.DATASET.ROOTF + "spatial_densityf" + '.h5', 'w') as h5f:
 						h5f.create_dataset('volume', data=volume)
 						h5f.create_dataset('count', data=count)
