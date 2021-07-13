@@ -82,7 +82,7 @@ class Dataloader():
         :returns: object from the volume
         '''
         with h5py.File(self.mito_volume_file_name, 'r') as f:
-            return f["chunk"][idx]
+            return f["chunk"][idx], idx
 
     def get_fns(self):
         '''returns the em, label and gt filenames of every image.'''

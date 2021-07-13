@@ -17,6 +17,8 @@ from analyzer.cl.trainer import CLTrainer
 
 # RUN THE SCRIPT LIKE: $ python main.py --cfg configs/process.yaml
 # Apply your specification within the .yaml file.
+from analyzer.vae.model.vae import Vae, VaeDataModule
+
 
 def create_arg_parser():
     '''
@@ -80,22 +82,17 @@ def main():
         trainer.save_latent_feature()
         return
     elif cfg.MODE.PROCESS == "train":
-        for feature in cfg.AUTOENCODER.FEATURES:
-            dl = Dataloader(cfg, feature=feature)
-            print('--- Starting the training process of the {} autoencoder. --- \n'.format(feature))
-            trainer = train.Trainer(dataset=dl, train_percentage=0.7, optimizer_type="adam", loss_function="l1",
-                                    cfg=cfg)
-            train_total_loss, test_total_loss = trainer.train()
-            print("train loss: {}".format(train_total_loss))
-            print("test loss: {}".format(test_total_loss))
+        print('--- Starting the training process for the vae --- \n')
+        vae_model = Vae(cfg).double()
+        vae_dataset = Dataloader(cfg)
+        trainer = pl.Trainer(default_root_dir='datasets/vae/checkpoints', max_epochs=cfg.AUTOENCODER.EPOCHS,
+                             gpus=cfg.SYSTEM.NUM_GPUS)
+        vae_datamodule = VaeDataModule(cfg=cfg, dataset=vae_dataset)
+        trainer.fit(vae_model, vae_datamodule)
         return
     elif cfg.MODE.PROCESS == "infer":
-        print('--- Starting the inference for the features of the autoencoder. --- \n')
-        for feature in cfg.AUTOENCODER.FEATURES:
-            dl = Dataloader(cfg, feature=feature)
-            trainer = train.Trainer(dataset=dl, train_percentage=0.7, optimizer_type="adam", loss_function="l1",
-                                    cfg=cfg)
-            trainer.save_latent_feature()
+        print('--- Starting the inference for the features of the vae. --- \n')
+        pass
         return
     elif cfg.MODE.PROCESS == "rptctrain":
         print('--- Starting the training process for the vae based on point clouds(random). --- \n')
