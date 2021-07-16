@@ -7,6 +7,7 @@ from analyzer.cl.model import get_model
 from analyzer.data import PairDataset
 from analyzer.cl.engine.loss import similarity_func
 from analyzer.cl.engine.optimizer import build_optimizer, build_lr_scheduler
+from analyzer.utils.vis.monitor import build_monitor
 
 class CLTrainer():
 	'''
@@ -27,8 +28,10 @@ class CLTrainer():
 		shuffle=False, pin_memory=True)
 		self.optimizer = build_optimizer(self.cfg, self.model)
 		self.lr_scheduler = build_lr_scheduler(self.cfg, self.optimizer, len(self.dataloader))
+		self.logger = build_monitor(self.cfg)
 
 	def train(self):
+		counter = 0
 		for epoch in range(0, self.epochs):
 			self.model.train()
 			for idx, ((x1, x2), labels) in enumerate(self.dataloader):
@@ -40,6 +43,8 @@ class CLTrainer():
 				loss.backward()
 				self.optimizer.step()
 				self.lr_scheduler.step()
+				counter = counter + 1
+				self.logger.update(loss, counter, self.lr_scheduler.get_lr())
 
 			self.save_checkpoint(epoch)
 
