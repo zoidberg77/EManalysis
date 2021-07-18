@@ -205,19 +205,28 @@ class Dataloader():
         with multiprocessing.Pool(processes=self.cpus) as pool:
             result = pool.starmap(self.calc_props, enumerate(fns))
 
+
         added = {}
         for dicts in result:
             for key, value in dicts.items():
                 if key in added:
                     added[key][0] += value[0]
                     added[key][1].append(value[1])
+                    if self.exclude_borders:
+                        if not added[key][2]:
+                            added[key].append(value[2])
+
                 else:
                     added.setdefault(key, [])
                     added[key].append(value[0])
                     added[key].append([value[1]])
+                    if self.exclude_borders:
+                        added[key].append(value[2])
 
         result_array = []
         for result in added.keys():
+            if self.exclude_borders and added[result][2]:
+                continue
             result_array.append({
                 'id': result,
                 'size': added[result][0],
@@ -241,15 +250,16 @@ class Dataloader():
         if os.path.exists(fns):
             tmp = imageio.imread(fns)
             for region in regionprops(tmp):
-                if self.exclude_borders:
-                    minr, minc, maxr, maxc = region.bbox
-                    if minr == 0 or minc == 0:
-                        continue
-                    if maxr == tmp.shape[0] or maxc == tmp.shape[0]:
-                        continue
                 result.setdefault(region.label, [])
                 result[region.label].append(region.area)
                 result[region.label].append(idx)
+                result[region.label].append(False)
+                if self.exclude_borders:
+                    minr, minc, maxr, maxc = region.bbox
+                    if minr == 0 or minc == 0:
+                        result[region.label][-1] = True
+                    if maxr == tmp.shape[0] or maxc == tmp.shape[0]:
+                        result[region.label][-1] = True
 
         return result
 
