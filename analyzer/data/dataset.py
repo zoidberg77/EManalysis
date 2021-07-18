@@ -66,6 +66,7 @@ class Dataloader():
         self.target_size = cfg.AUTOENCODER.TARGET
         self.vae_feature = feature
         self.mito_volume_file_name = "datasets/vae/" + "vae_data_{}.h5".format(cfg.AUTOENCODER.TARGET[0])
+        self.exclude_borders = cfg.DATASET.EXCLUDE_BORDER_OBJECTS
 
     def __len__(self):
         '''
@@ -198,6 +199,9 @@ class Dataloader():
         else:
             raise ValueError('Please enter the volume on which \'prep_data_info\' should run on.')
 
+        if self.exclude_borders:
+            fns = fns[1:-1]
+
         with multiprocessing.Pool(processes=self.cpus) as pool:
             result = pool.starmap(self.calc_props, enumerate(fns))
 
@@ -234,17 +238,18 @@ class Dataloader():
         :returns result: (dict) with each segment. key: idx of segment -- value: [number of pixels in segment, idx of slice].
         '''
         result = {}
-        idx_list = []
         if os.path.exists(fns):
             tmp = imageio.imread(fns)
-            labels, num_labels = np.unique(tmp, return_counts=True)
-
-            for l in range(labels.shape[0]):
-                if labels[l] == 0:
-                    continue
-                result.setdefault(labels[l], [])
-                result[labels[l]].append(num_labels[l])
-                result[labels[l]].append(idx)
+            for region in regionprops(tmp):
+                if self.exclude_borders:
+                    minr, minc, maxr, maxc = region.bbox
+                    if minr == 0 or minc == 0:
+                        continue
+                    if maxr == tmp.shape[0] or maxc == tmp.shape[0]:
+                        continue
+                result.setdefault(region.label, [])
+                result[region.label].append(region.area)
+                result[region.label].append(idx)
 
         return result
 
@@ -399,7 +404,7 @@ class Dataloader():
 
         return np.array(gt_volume), np.array(em_volume)
 
-    def extract_scale_mitos_samples(self):
+    def extract_scale_mitos_samples(self, parallel=False):
         '''
         Function to extract the objects as volumes and scale them. Then its saves the scaled volumes to an h5 file.
         '''
@@ -425,32 +430,95 @@ class Dataloader():
                              maxshape=(len(regions) * self.large_samples, *self.target_size))
             f.create_dataset("id", (len(regions) * self.large_samples,), maxshape=(len(regions) * self.large_samples,))
 
-        in_q = multiprocessing.Queue()
-        out_q = multiprocessing.Queue(self.chunks_per_cpu)
-        processes = []
-        #pbars = []
+        if parallel:
 
-        for region in regions:
-            in_q.put(region)
+            in_q = multiprocessing.Queue()
+            out_q = multiprocessing.Queue(self.chunks_per_cpu)
+            processes = []
+            #pbars = []
 
-        p = multiprocessing.Process(target=self.save_mito_chunks, args=(in_q, out_q))
-        p.start()
-        processes.append(p)
-        for cpu in range(self.cpus - 1):
-            #pbar = tqdm(position=cpu + 1, total=self.large_samples, desc="Worker {}".format(cpu), leave=True)
-            #pbars.append(pbar)
-            p = multiprocessing.Process(target=self.get_mito_chunk, args=(in_q, out_q, cpu, None))
+            for region in regions:
+                in_q.put(region)
+
+            p = multiprocessing.Process(target=self.save_mito_chunks, args=(in_q, out_q))
             p.start()
             processes.append(p)
-        for p in processes:
+            for cpu in range(self.cpus - 1):
+                #pbar = tqdm(position=cpu + 1, total=self.large_samples, desc="Worker {}".format(cpu), leave=True)
+                #pbars.append(pbar)
+                p = multiprocessing.Process(target=self.get_mito_chunk, args=(in_q, out_q, cpu, None))
+                p.start()
+                processes.append(p)
+            for p in processes:
+                p.join()
+            '''
+            for pbar in pbars:
+                pbar.close()
+            '''
+            p = multiprocessing.Process(target=self.save_mito_chunks, args=(in_q, out_q))
+            p.start()
             p.join()
-        '''
-        for pbar in pbars:
-            pbar.close()
-        '''
-        p = multiprocessing.Process(target=self.save_mito_chunks, args=(in_q, out_q))
-        p.start()
-        p.join()
+
+        else:
+            counter = 0
+            for region in tqdm(regions):
+                gt_volume, em_volume = self.get_volumes_from_slices(region)
+
+                mito_regions = regionprops(gt_volume, cache=False)
+                if len(mito_regions) != 1:
+                    print("something went wrong during volume building. region count: {}".format(len(mito_regions)))
+
+                mito_region = mito_regions[0]
+                samples = []
+
+                if len(mito_region.bbox) < 6:
+                    texture = np.zeros((*em_volume.shape, 2))
+                    texture[mito_region.bbox[0]:mito_region.bbox[2] + 1,
+                    mito_region.bbox[1]:mito_region.bbox[3] + 1, 0] = em_volume[
+                                                                      mito_region.bbox[0]:mito_region.bbox[2] + 1,
+                                                                      mito_region.bbox[1]:mito_region.bbox[3] + 1]
+                else:
+                    texture = em_volume[mito_region.bbox[0]:mito_region.bbox[3] + 1,
+                              mito_region.bbox[1]:mito_region.bbox[4] + 1,
+                              mito_region.bbox[2]:mito_region.bbox[5] + 1].astype(np.float32)
+
+                large = any([d > self.target_size[i] for i, d in enumerate(texture.shape)])
+
+                if large:
+                    for j in range(self.large_samples):
+
+                        x, y, z = 0, 0, 0
+
+                        if texture.shape[0] > self.target_size[0]:
+                            z = np.random.random_integers(0, texture.shape[0] - self.target_size[0])
+                        if texture.shape[1] > self.target_size[1]:
+                            x = np.random.random_integers(0, texture.shape[1] - self.target_size[1])
+                        if texture.shape[2] > self.target_size[2]:
+                            y = np.random.random_integers(0, texture.shape[2] - self.target_size[2])
+
+                        sample = texture[
+                                 z:z + self.target_size[0],
+                                 x:x + self.target_size[1],
+                                 y:y + self.target_size[2]]
+                        if np.count_nonzero(sample) / sample.size < 0.33:
+                            continue
+                        sample_padding = np.zeros(self.target_size)
+
+                        sample_padding[0:texture.shape[0], 0:texture.shape[1], 0:texture.shape[2]] = sample
+                        samples.append([region[0], sample_padding])
+
+                else:
+                    sample_padding = np.zeros(self.target_size)
+                    sample_padding[0:texture.shape[0], 0:texture.shape[1], 0:texture.shape[2]] = texture
+                    samples.append([region[0], sample_padding])
+                with h5py.File(self.mito_volume_file_name, "a") as f:
+                    for sample in samples:
+                        region_id, sample = sample
+                        chunk_ds = f["chunk"]
+                        id_ds = f["id"]
+                        id_ds[counter] = region_id
+                        chunk_ds[counter] = sample
+                        counter += 1
         self.cleanup_h5()
 
         return

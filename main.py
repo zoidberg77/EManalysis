@@ -59,8 +59,7 @@ def main():
     if cfg.MODE.PROCESS == "preprocessing":
         dl = Dataloader(cfg)
         em, labels, gt = dl.load_chunk()
-        #dl.extract_scale_mitos()
-        dl.extract_scale_mitos_samples()
+        dl.extract_scale_mitos_samples(parallel=False)
 
         return
     elif cfg.MODE.PROCESS == "ptcprep":

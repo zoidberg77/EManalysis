@@ -29,6 +29,7 @@ DATASET:
   CHUNK_SIZE: [2, 4096, 4096]
   DATAINFO: 'features/mouseA/data_info.json'
   ROOTF: 'features/mouseA/'
+  EXCLUDE_BORDER_OBJECTS: True
 MODE:
   PROCESS: ''
   DPRC: 'iter'

@@ -65,6 +65,7 @@ _C.DATASET.ROOTF = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(
 _C.DATASET.ROOTD = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'datasets/')
 _C.DATASET.DATAINFO = 'features/data_info.json'
 _C.DATASET.CHUNKS_PATH = ''
+_C.DATASET.EXCLUDE_BORDER_OBJECTS = True
 # -----------------------------------------------------------------------------
 # Mode
 # := sets different run options.
