@@ -23,7 +23,8 @@ class PTCvae(nn.Module):
 				 num_points,
 				 in_channel: int = 1,
 				 out_channel: int = 1,
-				 filters: List[int] =[64, 64, 64, 128, 512],
+				 filters: List[int] = [64, 64, 64, 128, 512],
+				 linear_layers: List[int] = [1024, 1024],
 				 pad_mode: str = 'replicate',
 				 act_mode: str = 'elu',
 				 norm_mode: str = 'bn',
@@ -40,13 +41,19 @@ class PTCvae(nn.Module):
 			'act_mode': act_mode,
 			'norm_mode': norm_mode}
 
-		self.linear = 1024
+		self.linear_layers = linear_layers
 		#self.latent_space = latent_space
 		self.num_points = num_points
 
-		self.encoder = nn.Sequential(
+		# --- encoding ---
+		self.input_transform = TNet(k=3)
+        self.feature_transform = TNet(k=self.filters[1])
+
+		self.conv_in = nn.Sequential(
 			conv2d_norm_act(self.in_channel, self.filters[0], self.kernel_size, self.padding, **shared_kwargs),
-			conv2d_norm_act(self.filters[0], self.filters[1], self.kernel_size, self.padding, **shared_kwargs),
+			conv2d_norm_act(self.filters[0], self.filters[1], self.kernel_size, self.padding, **shared_kwargs)
+		)
+		self.conv_feat = nn.Sequential(
 			conv2d_norm_act(self.filters[1], self.filters[2], self.kernel_size, self.padding, **shared_kwargs),
 			conv2d_norm_act(self.filters[2], self.filters[3], self.kernel_size, self.padding, **shared_kwargs),
 			conv2d_norm_act(self.filters[3], self.filters[4], self.kernel_size, self.padding, **shared_kwargs)
@@ -55,13 +62,20 @@ class PTCvae(nn.Module):
 
 		# --- decoding ---
 		self.decoder = nn.Sequential(
-					   nn.Linear(self.filters[4], self.linear), nn.ReLU(),
-					   nn.Linear(self.linear, self.linear), nn.ReLU(),
-					   nn.Linear(self.linear, (self.num_points * 3)),
+					   nn.Linear(self.filters[4], self.linear_layers[0]), nn.ReLU(),
+					   nn.Linear(self.linear_layers[0], self.linear_layers[1]), nn.ReLU(),
+					   nn.Linear(self.linear_layers[1], (self.num_points * 3)),
 					   )
 
 	def forward(self, x):
-		x = self.encoder(x)
+		matrix3x3 = self.input_transform(x)
+		x = torch.bmm(torch.transpose(x, 1, 2), matrix3x3).transpose(1,2)
+		x = self.conv_in(x)
+
+		matrix64x64 = self.feature_transform(x)
+        x = torch.bmm(torch.transpose(x, 1, 2), matrix64x64).transpose(1,2)
+		x = self.conv_feat(x)
+
 		x = self.pool(x)
 		x = torch.flatten(x, start_dim=1)
 		x = self.decoder(x)
@@ -75,11 +89,13 @@ class PTCvae(nn.Module):
 		return x
 
 
-class Tnet(nn.Module):
+class TNet(nn.Module):
 	'''Transformer Network that predicts an affine transformation matrix and directly apply this
 	transformation to the coordinates of input points.
 
 	Args:
+		k: dimension of matrix transformation.
+		filters: filter planes.
 	'''
 	def __init__(self,
 				 k: int = 3,
