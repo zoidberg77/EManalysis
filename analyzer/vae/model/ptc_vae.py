@@ -61,6 +61,13 @@ class PTCvae(nn.Module):
 		self.pool = nn.AdaptiveMaxPool2d(output_size=(1,1))
 
 		# --- decoding ---
+		self.conv_decoder = nn.Sequential(
+			trans_conv2d_norm_act(self.filters[4], 256, kernel_size=(2,2), self.padding, **shared_kwargs),
+			trans_conv2d_norm_act(256, 256, kernel_size=(3,3), self.padding, **shared_kwargs),
+			trans_conv2d_norm_act(256, 128, kernel_size=(4,4), self.padding, **shared_kwargs),
+			trans_conv2d_norm_act(128, 64, kernel_size=(5,5), self.padding, **shared_kwargs),
+			trans_conv2d_norm_act(64, 3, kernel_size=(1,1), self.padding, **shared_kwargs)
+		)
 		self.decoder = nn.Sequential(
 					   nn.Linear(self.filters[4], self.linear_layers[0]), nn.ReLU(),
 					   nn.Linear(self.linear_layers[0], self.linear_layers[1]), nn.ReLU(),
