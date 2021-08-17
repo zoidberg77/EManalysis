@@ -7,17 +7,18 @@ import numpy as np
 from .block import *
 
 class PTCvae(nn.Module):
-	'''point cloud autoencoder. https://github.com/charlesq34/pointnet-autoencoder
+	'''point cloud autoencoder. https://github.com/charlesq34/pointnet-autoencoder that directly consumes point
+	point clouds, which well respects the permutation invariance of points in the input.
 
-	@InProceedings{Yang_2018_CVPR,
-		author = {Yang, Yaoqing and Feng, Chen and Shen, Yiru and Tian, Dong},
-		title = {FoldingNet: Point Cloud Auto-Encoder via Deep Grid Deformation},
-		booktitle = {Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR)},
-		month = {June},
-		year = {2018}
+	@article{
+		author = {Charles Ruizhongtai Qi and Hao Su and Kaichun Mo and Leonidas J. Guibas},
+		  title     = {PointNet: Deep Learning on Point Sets for 3D Classification and Segmentation},
+		  journal   = {CoRR},
+		  volume    = {abs/1612.00593},
+		  year      = {2016},
+		  url       = {http://arxiv.org/abs/1612.00593}
 	}
 	'''
-
 	def __init__(self,
 				 num_points,
 				 in_channel: int = 1,
@@ -72,3 +73,48 @@ class PTCvae(nn.Module):
 		x = self.pool(x)
 		x = torch.flatten(x, start_dim=0)
 		return x
+
+
+class Tnet(nn.Module):
+	'''Transformer Network that predicts an affine transformation matrix and directly apply this
+	transformation to the coordinates of input points.
+
+	Args:
+	'''
+	def __init__(self,
+				 k: int = 3,
+				 filters: List[int] = [64, 128, 1024],
+				 linear_layers: List[int] = [512, 256],
+				 kernel_size: int = 1):
+		super().__init__()
+		self.k = k
+		self.filters = filters
+		self.linear_layers = linear_layers
+		self.kernel_size = kernel_size
+
+		self.conv = nn.Sequential(
+			conv2d_norm_act(self.k, self.filters[0], self.kernel_size),
+			conv2d_norm_act(self.filters[0], self.filters[1], self.kernel_size),
+			conv2d_norm_act(self.filters[1], self.filters[2], self.kernel_size)
+		)
+
+		self.fc1 = nn.Linear(self.filters[2], self.linear_layers[0]),
+		self.fc2 = nn.Linear(self.linear_layers[0], self.linear_layers[1]),
+		self.fc3 = nn.Linear(self.linear_layers[1], self.k * self.k)
+
+		self.bn4 = nn.BatchNorm1d(self.linear_layers[0])
+		self.bn5 = nn.BatchNorm1d(self.linear_layers[1])
+
+   def forward(self, x):
+	   x = self.conv(x)
+	   pool = nn.MaxPool1d(xb.size(-1))(x)
+	   flat = nn.Flatten(1)(pool)
+	   x = F.relu(self.bn4(self.fc1(flat)))
+	   x = F.relu(self.bn5(self.fc2(x)))
+
+	   #initialize as identity
+	   init = torch.eye(self.k, requires_grad=True).repeat(x.size(0), 1, 1)
+	   if x.is_cuda:
+		   init = init.cuda()
+	   matrix = self.fc3(x).view(-1, self.k, self.k) + init
+	   return matrix

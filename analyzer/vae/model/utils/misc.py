@@ -77,14 +77,14 @@ class SplitActivation(object):
     num_channels_dict = {
         '0': 1,
         '1': 3,
-        '2': 3,  
+        '2': 3,
         '3': 1,
         '4': 1,
         '5': 11,
         '6': 1,
     }
-    def __init__(self, 
-                 target_opt: List[str] = ['0'], 
+    def __init__(self,
+                 target_opt: List[str] = ['0'],
                  output_act: Optional[List[str]] = None,
                  split_only: bool = False,
                  do_cat: bool = True,
@@ -93,7 +93,7 @@ class SplitActivation(object):
         if output_act is not None:
             assert len(target_opt) == len(output_act)
         if do_2d: self.num_channels_dict['2'] = 2
-        
+
         self.split_channels = []
         self.target_opt = target_opt
         self.do_cat = do_cat
@@ -166,13 +166,13 @@ class MemoryEfficientSwish(nn.Module):
 # Activation Layers
 #--------------------
 def get_activation(activation: str = 'relu') -> nn.Module:
-    """Get the specified activation layer. 
+    """Get the specified activation layer.
 
     Args:
-        activation (str): one of ``'relu'``, ``'leaky_relu'``, ``'elu'``, ``'gelu'``, 
+        activation (str): one of ``'relu'``, ``'leaky_relu'``, ``'elu'``, ``'gelu'``,
             ``'swish'``, 'efficient_swish'`` and ``'none'``. Default: ``'relu'``
     """
-    assert activation in ["relu", "leaky_relu", "elu", "gelu", 
+    assert activation in ["relu", "leaky_relu", "elu", "gelu",
                           "swish", "efficient_swish", "none"], \
                           "Get unknown activation key {}".format(activation)
     activation_dict = {
@@ -187,10 +187,10 @@ def get_activation(activation: str = 'relu') -> nn.Module:
     return activation_dict[activation]
 
 def get_functional_act(activation: str = 'relu'):
-    """Get the specified activation function. 
+    """Get the specified activation function.
 
     Args:
-        activation (str): one of ``'relu'``, ``'tanh'``, ``'elu'``, ``'sigmoid'``, 
+        activation (str): one of ``'relu'``, ``'tanh'``, ``'elu'``, ``'sigmoid'``,
             ``'softmax'`` and ``'none'``. Default: ``'sigmoid'``
     """
     assert activation in ["relu", "tanh", "elu", "sigmoid", "softmax", "none"], \
@@ -222,7 +222,7 @@ def get_norm_3d(norm: str, out_channels: int, bn_momentum: float = 0.1) -> nn.Mo
         "Get unknown normalization layer key {}".format(norm)
     norm = {
         "bn": nn.BatchNorm3d,
-        "sync_bn": nn.BatchNorm3d, 
+        "sync_bn": nn.BatchNorm3d,
         "gn": nn.InstanceNorm3d,
         "in": lambda channels: nn.GroupNorm(16, channels),
         "none": nn.Identity,
@@ -246,11 +246,35 @@ def get_norm_2d(norm: str, out_channels: int, bn_momentum: float = 0.1) -> nn.Mo
         "Get unknown normalization layer key {}".format(norm)
     norm = {
         "bn": nn.BatchNorm2d,
-        "sync_bn": nn.BatchNorm2d, 
+        "sync_bn": nn.BatchNorm2d,
         "gn": nn.InstanceNorm2d,
         "in": lambda channels: nn.GroupNorm(16, channels),
         "none": nn.Identity,
         }[norm]
+    if norm in ["bn", "sync_bn", "in"]:
+        return norm(out_channels, momentum=bn_momentum)
+    else:
+        return norm(out_channels)
+
+def get_norm_1d(norm: str, out_channels: int, bn_momentum: float = 0.1) -> nn.Module:
+    """Get the specified normalization layer for a 1D model.
+
+    Args:
+        norm (str): one of ``'bn'``, ``'sync_bn'`` ``'in'``, ``'gn'`` or ``'none'``.
+        out_channels (int): channel number.
+        bn_momentum (float): the momentum of normalization layers.
+    Returns:
+        nn.Module: the normalization layer
+    """
+    assert norm in ["bn", "sync_bn", "gn", "in", "none"], \
+        "Get unknown normalization layer key {}".format(norm)
+    norm = {
+        "bn": nn.BatchNorm1d,
+        "sync_bn": nn.BatchNorm1d,
+        "in": nn.InstanceNorm1d,
+        "gn": lambda channels: nn.GroupNorm(16, channels),
+        "none": nn.Identity,
+    }[norm]
     if norm in ["bn", "sync_bn", "in"]:
         return norm(out_channels, momentum=bn_momentum)
     else:
