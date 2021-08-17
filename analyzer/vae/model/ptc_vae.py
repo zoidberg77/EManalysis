@@ -93,9 +93,9 @@ class Tnet(nn.Module):
 		self.kernel_size = kernel_size
 
 		self.conv = nn.Sequential(
-			conv2d_norm_act(self.k, self.filters[0], self.kernel_size),
-			conv2d_norm_act(self.filters[0], self.filters[1], self.kernel_size),
-			conv2d_norm_act(self.filters[1], self.filters[2], self.kernel_size)
+			conv1d_norm_act(self.k, self.filters[0], self.kernel_size),
+			conv1d_norm_act(self.filters[0], self.filters[1], self.kernel_size),
+			conv1d_norm_act(self.filters[1], self.filters[2], self.kernel_size)
 		)
 
 		self.fc1 = nn.Linear(self.filters[2], self.linear_layers[0]),
