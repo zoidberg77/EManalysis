@@ -3,7 +3,10 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-
+datasets/
+features/
+outputs/
+models/
 
 .ipynb_checkpoints
 notebooks/analyzer
