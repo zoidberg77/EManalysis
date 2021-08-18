@@ -31,7 +31,7 @@ DATASET:
   ROOTF: 'features/mouseA/'
   EXCLUDE_BORDER_OBJECTS: True
 MODE:
-  PROCESS: ''
+  PROCESS: 'ptctrain'
   DPRC: 'iter'
 CLUSTER:
   ALG: 'kmeans'
