@@ -12,6 +12,7 @@ from analyzer.vae.model.ptc_vae import PTCvae
 from chamferdist import ChamferDistance
 
 from analyzer.vae.model.random_ptc_ae import RandomPtcDataModule
+from analyzer.utils.vis.monitor import build_monitor
 
 
 class Trainer:
@@ -243,26 +244,28 @@ class PtcTrainer():
 		self.train_percentage = train_percentage
 		self.optimizer_type = optimizer_type
 		self.dist = ChamferDistance()
-		self.num_points = cfg.PTC.RECON_NUM_POINTS
+		self.num_points = self.cfg.PTC.RECON_NUM_POINTS
 		#self.model_type = cfg.PTC.ARCHITECTURE
-		self.vae_ptc_feature = cfg.PTC.FEATURE_NAME
-		self.epochs = cfg.PTC.EPOCHS
-		self.device = cfg.PTC.DEVICE
+		self.vae_ptc_feature = self.cfg.PTC.FEATURE_NAME
+		self.epochs = self.cfg.PTC.EPOCHS
+		self.device = self.cfg.PTC.DEVICE
+		self.logger = build_monitor(self.cfg)
 
 		#self.keys = self.dataset.keys
 		train_length = int(train_percentage * len(self.dataset))
 		train_dataset, test_dataset = torch.utils.data.random_split(self.dataset, (train_length, len(self.dataset) - train_length))
-		self.train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=cfg.PTC.BATCH_SIZE, shuffle=False)
-		self.test_dl = torch.utils.data.DataLoader(test_dataset, batch_size=cfg.PTC.BATCH_SIZE, shuffle=False)
+		self.train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=self.cfg.PTC.BATCH_SIZE, shuffle=False)
+		self.test_dl = torch.utils.data.DataLoader(test_dataset, batch_size=self.cfg.PTC.BATCH_SIZE, shuffle=False)
 
-		self.model = PTCvae(num_points=self.num_points, latent_space=cfg.PTC.LATENT_SPACE)
+		self.model = PTCvae(num_points=self.num_points, latent_space=self.cfg.PTC.LATENT_SPACE)
 		if self.optimizer_type == "adam":
-			self.optimizer = torch.optim.Adam(self.model.parameters(), lr=cfg.PTC.LR, weight_decay=cfg.PTC.WEIGHT_DECAY)
+			self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.cfg.PTC.LR, weight_decay=self.cfg.PTC.WEIGHT_DECAY)
 
 	def train(self):
 		self.model.train()
 		self.model.to(self.device)
 
+		counter = 0
 		running_loss = list()
 		for epoch in range(1, self.epochs + 1):
 			for i, data in enumerate(self.train_dl):
@@ -275,11 +278,13 @@ class PtcTrainer():
 				running_loss.append(loss.item())
 				loss.backward()
 				self.optimizer.step()
+				counter = counter + 1
 
 				if not i % self.cfg.PTC.LOG_INTERVAL and i > 0:
 					print("[{}/{}] Train total loss: {} \n".format(i, int(\
 					len(self.train_dl.dataset) / self.train_dl.batch_size),\
 					(sum(running_loss) / len(running_loss))))
+					self.logger.update(loss, counter, self.cfg.PTC.LR)
 
 			self.current_epoch = epoch
 			train_total_loss = sum(running_loss) / len(running_loss)

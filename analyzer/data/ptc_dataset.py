@@ -9,7 +9,6 @@ from tqdm import tqdm
 from sklearn.metrics import pairwise_distances
 import multiprocessing as mp
 
-
 def normalize_ptc(ptc):
     '''
     Function normalizes the ptc (Nxd) by min-max-scaling.
@@ -28,7 +27,7 @@ class PtcDataset():
         self.ptfn = cfg.DATASET.ROOTD + 'vae/pts' + '.h5'
         self.sample_mode = sample_mode
         self.dists = {}
-        self.blue_noise_sample_points = cfg.AUTOENCODER.BLUE_NOISE_SAMPLE_POINTS
+        self.blue_noise_sample_points = cfg.PTC.BLUE_NOISE_SAMPLE_POINTS
         self.rptcfn = cfg.DATASET.ROOTD + 'vae/random_ptc' + '.h5'
 
         if sample_mode == 'whitenoise':

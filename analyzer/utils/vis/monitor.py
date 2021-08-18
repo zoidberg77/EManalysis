@@ -7,12 +7,12 @@ import torch
 import torch.nn as nn
 from torch.utils.tensorboard import SummaryWriter
 
-def build_monitor(cfg):
+def build_monitor(cfg, output_path):
     '''building a tensorboard monitor for pytorch models.'''
     time_now = str(datetime.datetime.now()).split(' ')
     date = time_now[0]
     time = time_now[1].split('.')[0].replace(':', '-')
-    log_dir = os.path.join(cfg.SSL.OUTPUT_MODEL_PATH, 'log' + date + '_' + time)
+    log_dir = os.path.join(output_path, 'log' + date + '_' + time)
     return Logger(log_dir)
 
 

@@ -56,6 +56,7 @@ _C.PTC.LOG_INTERVAL = 10
 _C.PTC.DEVICE = 'cpu'
 _C.PTC.FEATURE_NAME = 'ptc_shapef'
 _C.PTC.OUTPUT_FOLDER = 'features/'
+_C.PTC.MONITOR_PATH = 'features/'
 # -----------------------------------------------------------------------------
 # Self-Supervised Learning
 # -----------------------------------------------------------------------------
