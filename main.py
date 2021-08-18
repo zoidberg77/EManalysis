@@ -69,15 +69,13 @@ def main():
     elif cfg.MODE.PROCESS == "ptctrain":
         print('--- Starting the training process for the vae based on point clouds. --- \n')
         ptcdl = PtcDataset(cfg)
-        trainer = train.PtcTrainer(cfg=cfg, dataset=ptcdl, train_percentage=0.7, optimizer_type="adam",
-                                   loss_function="l1")
+        trainer = train.PtcTrainer(cfg=cfg, dataset=ptcdl, train_percentage=0.7, optimizer_type="adam")
         trainer.train()
         return
     elif cfg.MODE.PROCESS == "ptcinfer":
         print('--- Starting to infer the features of the autoencoder based on point clouds. --- \n')
         ptcdl = PtcDataset(cfg)
-        trainer = train.PtcTrainer(cfg=cfg, dataset=ptcdl, train_percentage=0.7, optimizer_type="adam",
-                                   loss_function="l1")
+        trainer = train.PtcTrainer(cfg=cfg, dataset=ptcdl, train_percentage=0.7, optimizer_type="adam")
         trainer.save_latent_feature()
         return
     elif cfg.MODE.PROCESS == "train":

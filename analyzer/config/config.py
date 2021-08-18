@@ -38,6 +38,25 @@ _C.AUTOENCODER.BLUE_NOISE_SAMPLE_POINTS = 10
 _C.AUTOENCODER.LARGE_OBJECT_SAMPLES = 4
 
 # -----------------------------------------------------------------------------
+# PointCloud based Learning
+# -----------------------------------------------------------------------------
+_C.PTC = CN()
+_C.PTC.ARCHITECTURE = 'ptc_ae'
+_C.PTC.BATCH_SIZE = 1
+_C.PTC.EPOCHS = 10
+_C.PTC.LR = 0.0001
+_C.PTC.WEIGHT_DECAY = 0.0001
+_C.PTC.LATENT_SPACE = 512
+_C.PTC.FILTER_LIST = [64, 64, 64, 128, 512]
+_C.PTC.LINEAR_LAYERS = [1024, 1024]
+_C.PTC.SAMPLE_MODE = None
+_C.PTC.RECON_NUM_POINTS = 1000
+_C.PTC.BLUE_NOISE_SAMPLE_POINTS = 10
+_C.PTC.LOG_INTERVAL = 10
+_C.PTC.DEVICE = 'cpu'
+_C.PTC.FEATURE_NAME = 'ptc_shapef'
+_C.PTC.OUTPUT_FOLDER = 'features/'
+# -----------------------------------------------------------------------------
 # Self-Supervised Learning
 # -----------------------------------------------------------------------------
 _C.SSL = CN()

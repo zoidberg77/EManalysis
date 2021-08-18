@@ -225,38 +225,39 @@ class Trainer:
 						f[self.vae_feature][i] = x
 						f["id"][i] = region["id"]
 
-#### ---- Pointcloud section ----- ####
+
+######################################################
+#### ---- Pointcloud based Learning section ----- ####
+######################################################
 class PtcTrainer():
 	'''
 	Training object for the pointcloud Autoencoder.
 	:params cfg: configuration sheet.
 	:params dataloader: related dataloader class object.
 	:params train_percentage: (float) split dataset into train and test.
-	:params optimizer_type:
-	:params loss_function:
+	:params optimizer_type: optimization algorithm (default: Adam)
 	'''
-	def __init__(self, cfg, dataset, train_percentage, optimizer_type, loss_function):
+	def __init__(self, cfg, dataset, train_percentage, optimizer_type):
 		self.cfg = cfg
 		self.dataset = dataset
 		self.train_percentage = train_percentage
 		self.optimizer_type = optimizer_type
-		self.loss_function = loss_function
 		self.dist = ChamferDistance()
-		self.num_points = cfg.AUTOENCODER.PTC_NUM_POINTS
-		#self.model_type = cfg.AUTOENCODER.ARCHITECTURE
-		self.vae_ptc_feature = 'ptc'
-		self.epochs = cfg.AUTOENCODER.EPOCHS
-		self.device = 'cpu'
+		self.num_points = cfg.PTC.RECON_NUM_POINTS
+		#self.model_type = cfg.PTC.ARCHITECTURE
+		self.vae_ptc_feature = cfg.PTC.FEATURE_NAME
+		self.epochs = cfg.PTC.EPOCHS
+		self.device = cfg.PTC.DEVICE
 
 		#self.keys = self.dataset.keys
 		train_length = int(train_percentage * len(self.dataset))
 		train_dataset, test_dataset = torch.utils.data.random_split(self.dataset, (train_length, len(self.dataset) - train_length))
-		self.train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=cfg.AUTOENCODER.BATCH_SIZE, shuffle=False)
-		self.test_dl = torch.utils.data.DataLoader(test_dataset, batch_size=cfg.AUTOENCODER.BATCH_SIZE, shuffle=False)
+		self.train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=cfg.PTC.BATCH_SIZE, shuffle=False)
+		self.test_dl = torch.utils.data.DataLoader(test_dataset, batch_size=cfg.PTC.BATCH_SIZE, shuffle=False)
 
-		self.model = PTCvae(num_points=self.num_points, latent_space=cfg.AUTOENCODER.LATENT_SPACE_PTC)
+		self.model = PTCvae(num_points=self.num_points, latent_space=cfg.PTC.LATENT_SPACE)
 		if self.optimizer_type == "adam":
-			self.optimizer = torch.optim.Adam(self.model.parameters(), lr=0.0001, weight_decay=0.0001)
+			self.optimizer = torch.optim.Adam(self.model.parameters(), lr=cfg.PTC.LR, weight_decay=cfg.PTC.WEIGHT_DECAY)
 
 	def train(self):
 		self.model.train()
@@ -265,8 +266,6 @@ class PtcTrainer():
 		running_loss = list()
 		for epoch in range(1, self.epochs + 1):
 			for i, data in enumerate(self.train_dl):
-				print('index: ', i)
-				print('data: ', data)
 				data, y = data
 				data = data.to(self.device).float()
 				self.optimizer.zero_grad()
@@ -277,7 +276,7 @@ class PtcTrainer():
 				loss.backward()
 				self.optimizer.step()
 
-				if not i % self.cfg.AUTOENCODER.LOG_INTERVAL and i > 0:
+				if not i % self.cfg.PTC.LOG_INTERVAL and i > 0:
 					print("[{}/{}] Train total loss: {} \n".format(i, int(\
 					len(self.train_dl.dataset) / self.train_dl.batch_size),\
 					(sum(running_loss) / len(running_loss))))
@@ -324,7 +323,7 @@ class PtcTrainer():
 		self.model.eval()
 		self.model.to(self.device)
 		keys = self.dataset.keys
-		with h5py.File('features/{}f.h5'.format(self.vae_ptc_feature), 'w') as h5f:
+		with h5py.File('features/{}.h5'.format(self.vae_ptc_feature), 'w') as h5f:
 			h5f.create_dataset(name='ptc_shape', shape=(len(keys), self.cfg.AUTOENCODER.LATENT_SPACE_PTC))
 			h5f.create_dataset(name='id', shape=(len(keys),))
 
@@ -371,7 +370,7 @@ def random_ptc_infer(model, dataset):
 	ptc_datamodule.setup()
 	ptc_dataloader = ptc_datamodule.train_dataloader()
 	keys = dataset.keys
-	with h5py.File('features/ptc_shapef.h5', 'w') as f:
+	with h5py.File('features/{}.h5'.format(self.vae_ptc_feature), 'w') as f:
 		f.create_dataset(name='id', shape=(len(keys),))
 		for i, x in tqdm(enumerate(ptc_dataloader), total=len(keys)):
 			f['id'][i] = i
