@@ -7,6 +7,7 @@ datasets/
 features/
 outputs/
 models/
+jobs/
 
 .ipynb_checkpoints
 notebooks/analyzer
