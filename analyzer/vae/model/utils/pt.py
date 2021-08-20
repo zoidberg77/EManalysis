@@ -22,7 +22,7 @@ def point_cloud(cfg, dl, save=True):
 	:returns result_array: An (np.array) full of (dict)s that contain id and pts.
 	'''
 	_, fns, _ = dl.get_fns()
-	print('Starting to compute the point representation of {} segments.'.format(len(fns)))
+	print('Starting to compute the point representation extracted from {} images.'.format(len(fns)))
 	result_dict = {}
 
 	with multiprocessing.Pool(processes=cfg.SYSTEM.NUM_CPUS) as pool:
@@ -37,14 +37,14 @@ def point_cloud(cfg, dl, save=True):
 				result_dict[key].append(value[0])
 
 	if save:
-		with h5py.File(cfg.DATASET.ROOTD + 'vae/pts' + '.h5', 'w') as h5f:
+		with h5py.File(cfg.PTC.INPUT_DATA, 'w') as h5f:
 			h5f.create_dataset('labels', data=list(result_dict.keys()))
 			grp = h5f.create_group('ptcs')
 			for result in result_dict.keys():
 				std_rs = normalize_ptc(result_dict[result][0])
 				grp.create_dataset(str(result), data=std_rs)
 			h5f.close()
-		print('saved point representations to {}.'.format(cfg.DATASET.ROOTD + 'vae/pts' + '.h5'))
+		print('saved point representations to {}.'.format(cfg.PTC.INPUT_DATA))
 	print('point cloud generation finished.')
 
 def calc_point_repr(fns):
@@ -55,8 +55,8 @@ def calc_point_repr(fns):
 	'''
 	idx, fns = fns
 	result = {}
-	if idx >= 2:
-		return result
+	# if idx >= 2:
+	# 	return result
 	if os.path.exists(fns):
 		tmp = imageio.imread(fns)
 		regions = regionprops(tmp, cache=False)
@@ -131,8 +131,6 @@ def generate_volume_ptc(cfg, dl):
 	print("finished writing point clouds to h5")
 	return
 
-
-
 def get_coords_from_slice(fn):
 	z, fn = fn
 	slice = imageio.imread(fn)
@@ -159,7 +157,7 @@ def generate_volume_ptc(cfg, dl):
 			ptcs[str(obj)] += [[coords[0], coords[1], z] for coords in zip(*np.where(slice == obj))]
 	print("finished calculating point clouds")
 	print("writing point clouds {} to h5".format(len(ptcs.keys())))
-	with h5py.File(cfg.DATASET.ROOTD + 'vae/pts' + '.h5', 'w') as h5f:
+	with h5py.File(cfg.PTC.INPUT_DATA, 'w') as h5f:
 		h5f.create_dataset('labels', data=[key for key in ptcs.keys()])
 		grp = h5f.create_group('ptcs')
 		for key in ptcs.keys():
@@ -172,9 +170,7 @@ def generate_volume_ptc(cfg, dl):
 			grp.create_dataset(str(key), data=coords)
 	print("finished writing point clouds to h5")
 
-
 '''
-	
 class PtcGenerator:
 	def __init__(self, cfg, dl):
 		self.cfg = cfg

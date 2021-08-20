@@ -249,7 +249,7 @@ class PtcTrainer():
 		self.vae_ptc_feature = self.cfg.PTC.FEATURE_NAME
 		self.epochs = self.cfg.PTC.EPOCHS
 		self.device = self.cfg.PTC.DEVICE
-		self.logger = build_monitor(self.cfg)
+		self.logger = build_monitor(self.cfg, self.cfg.PTC.MONITOR_PATH)
 
 		#self.keys = self.dataset.keys
 		train_length = int(train_percentage * len(self.dataset))
@@ -291,7 +291,7 @@ class PtcTrainer():
 			print("Epoch {}: Train total loss: {} \n".format(self.current_epoch, train_total_loss))
 
 			test_loss = self.test()
-			torch.save(self.model.state_dict(), self.cfg.DATASET.ROOTD + 'vae/vae_ptc_model.pt')
+			torch.save(self.model.state_dict(), self.cfg.PTC.MONITOR_PATH + 'vae_ptc_model.pt')
 
 		print('Training and Testing of the point cloud based autoencoder is done.')
 		print("train loss: {}".format(train_total_loss))
@@ -324,7 +324,7 @@ class PtcTrainer():
 
 	def save_latent_feature(self):
 		'''saving the latent space representation of every point cloud.'''
-		self.model.load_state_dict(torch.load(self.cfg.DATASET.ROOTD + "vae/" + "vae_ptc_model.pt"))
+		self.model.load_state_dict(torch.load(self.cfg.PTC.MONITOR_PATH + 'vae_ptc_model.pt'))
 		self.model.eval()
 		self.model.to(self.device)
 		keys = self.dataset.keys
@@ -349,7 +349,7 @@ class PtcTrainer():
 		'''
 		rec_ptc = reconstructions.view(reconstructions.size(2), reconstructions.size(3))
 		ptc = rec_ptc.detach().numpy()
-		with h5py.File(self.cfg.DATASET.ROOTD + 'eval/rec_pts' + '.h5', 'w') as h5f:
+		with h5py.File(self.cfg.PTC.MONITOR_PATH + self.cfg.PTC.RECONSTRUCTION_DATA, 'w') as h5f:
 			grp = h5f.create_group('ptcs')
 			grp.create_dataset(idx, data=ptc)
 			h5f.close()
@@ -368,7 +368,6 @@ class PtcTrainer():
 				print(x.shape)
 				if idx == 1:
 					break
-
 
 def random_ptc_infer(model, dataset):
 	ptc_datamodule = RandomPtcDataModule(cfg=dataset.cfg, dataset=dataset)

@@ -1,0 +1,23 @@
+SYSTEM:
+  NUM_CPUS: 8
+  NUM_GPUS: 0
+DATASET:
+  EM_PATH: 'datasets/human/human_em_export_8nm/'
+  LABEL_PATH: 'datasets/human/human_gt_export_8nm/'
+  FILE_FORMAT: 'png'
+  CHUNK_SIZE: [2, 4096, 4096]
+  ROOTF: 'features/human/'
+  DATAINFO: 'features/human/data_info.json'
+PTC:
+  BATCH_SIZE: 1
+  EPOCHS: 25
+  INPUT_DATA: 'datasets/human/pts.h5'
+  MONITOR_PATH: 'models/ptc/human/'
+MODE:
+  PROCESS: 'ptcprep'
+CLUSTER:
+  ALG: 'kmeans'
+  FEAT_LIST: ['sizef', 'distf', 'circf', 'shapef', 'texturef']
+  WEIGHTSF: [1, 1, 1, 1, 1]
+  N_CLUSTER: 5
+  OUTPUTPATH: 'outputs/human/'

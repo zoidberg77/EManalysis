@@ -60,7 +60,18 @@ def main():
         dl = Dataloader(cfg)
         em, labels, gt = dl.load_chunk()
         dl.extract_scale_mitos_samples(parallel=False)
-
+        return
+    elif cfg.MODE.PROCESS == "train":
+        print('--- Starting the training process for the vae --- \n')
+        vae_model = Vae(cfg).double()
+        vae_dataset = Dataloader(cfg)
+        trainer = pl.Trainer(default_root_dir='datasets/vae/checkpoints', max_epochs=cfg.AUTOENCODER.EPOCHS,
+                             gpus=cfg.SYSTEM.NUM_GPUS)
+        vae_datamodule = VaeDataModule(cfg=cfg, dataset=vae_dataset)
+        trainer.fit(vae_model, vae_datamodule)
+        return
+    elif cfg.MODE.PROCESS == "infer":
+        print('--- Starting the inference for the features of the vae. --- \n')
         return
     elif cfg.MODE.PROCESS == "ptcprep":
         dl = Dataloader(cfg)
@@ -77,19 +88,6 @@ def main():
         ptcdl = PtcDataset(cfg)
         trainer = train.PtcTrainer(cfg=cfg, dataset=ptcdl, train_percentage=0.7, optimizer_type="adam")
         trainer.save_latent_feature()
-        return
-    elif cfg.MODE.PROCESS == "train":
-        print('--- Starting the training process for the vae --- \n')
-        vae_model = Vae(cfg).double()
-        vae_dataset = Dataloader(cfg)
-        trainer = pl.Trainer(default_root_dir='datasets/vae/checkpoints', max_epochs=cfg.AUTOENCODER.EPOCHS,
-                             gpus=cfg.SYSTEM.NUM_GPUS)
-        vae_datamodule = VaeDataModule(cfg=cfg, dataset=vae_dataset)
-        trainer.fit(vae_model, vae_datamodule)
-        return
-    elif cfg.MODE.PROCESS == "infer":
-        print('--- Starting the inference for the features of the vae. --- \n')
-        pass
         return
     elif cfg.MODE.PROCESS == "rptctrain":
         print('--- Starting the training process for the vae based on point clouds(random). --- \n')
@@ -119,6 +117,7 @@ def main():
         trainer.test(model=rptc_model, test_dataloaders=ptc_datamodule.test_dataloader())
         return
     elif cfg.MODE.PROCESS == "visptc":
+        #Will be deprecated
         vis_reconstructed_ptc(cfg)
     elif cfg.MODE.PROCESS == "cl":
         data = PairDataset(cfg)

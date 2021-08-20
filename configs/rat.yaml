@@ -1,0 +1,23 @@
+SYSTEM:
+  NUM_CPUS: 8
+  NUM_GPUS: 0
+DATASET:
+  EM_PATH: 'datasets/rat/em_export/'
+  LABEL_PATH: 'datasets/rat/mito_export_unique_id_8nm/'
+  FILE_FORMAT: 'png'
+  CHUNK_SIZE: [2, 4096, 4096]
+  ROOTF: 'features/rat/'
+  DATAINFO: 'features/rat/data_info.json'
+PTC:
+  BATCH_SIZE: 1
+  EPOCHS: 20
+  INPUT_DATA: 'datasets/rat/pts.h5'
+  MONITOR_PATH: 'models/ptc/rat/'
+MODE:
+  PROCESS: ''
+CLUSTER:
+  ALG: 'kmeans'
+  FEAT_LIST: ['sizef', 'distf', 'circf']
+  WEIGHTSF: [1, 1, 1, 1, 1]
+  N_CLUSTER: 5
+  OUTPUTPATH: 'outputs/rat/'

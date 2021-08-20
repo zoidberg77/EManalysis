@@ -20,11 +20,10 @@ class PtcDataset():
     '''
     This is the Data module for the pointcloud autoencoder.
     '''
-
     def __init__(self, cfg, sample_size=2000, sample_mode=None):
         self.cfg = cfg
         self.sample_size = sample_size
-        self.ptfn = cfg.DATASET.ROOTD + 'vae/pts' + '.h5'
+        self.ptfn = self.cfg.PTC.INPUT_DATA
         self.sample_mode = sample_mode
         self.dists = {}
         self.blue_noise_sample_points = cfg.PTC.BLUE_NOISE_SAMPLE_POINTS

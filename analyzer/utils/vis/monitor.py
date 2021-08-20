@@ -15,7 +15,6 @@ def build_monitor(cfg, output_path):
     log_dir = os.path.join(output_path, 'log' + date + '_' + time)
     return Logger(log_dir)
 
-
 class Logger(object):
     def __init__(self, log_dir=''):
         self.log_tb = SummaryWriter(log_dir)

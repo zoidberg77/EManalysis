@@ -54,9 +54,11 @@ _C.PTC.RECON_NUM_POINTS = 1000
 _C.PTC.BLUE_NOISE_SAMPLE_POINTS = 10
 _C.PTC.LOG_INTERVAL = 10
 _C.PTC.DEVICE = 'cpu'
+_C.PTC.INPUT_DATA = ''
 _C.PTC.FEATURE_NAME = 'ptc_shapef'
 _C.PTC.OUTPUT_FOLDER = 'features/'
-_C.PTC.MONITOR_PATH = 'features/'
+_C.PTC.MONITOR_PATH = 'models/ptc/'
+_C.PTC.RECONSTRUCTION_DATA = 'rec_pts.h5'
 # -----------------------------------------------------------------------------
 # Self-Supervised Learning
 # -----------------------------------------------------------------------------
@@ -72,6 +74,7 @@ _C.SSL.OPTIMIZER_LR = 0.05
 _C.SSL.OPTIMIZER_WEIGHT_DECAY = 0.0005
 _C.SSL.OPTIMIZER_MOMENTUM = 0.9
 _C.SSL.USE_PREP_DATASET = True
+_C.SSL.MONITOR_PATH = 'models/cl/'
 # -----------------------------------------------------------------------------
 # Dataset
 # -----------------------------------------------------------------------------

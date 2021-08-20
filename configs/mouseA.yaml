@@ -21,17 +21,22 @@ AUTOENCODER:
   PTC_SAMPLE_MODE: 'bluenoise'
   BLUE_NOISE_SAMPLE_POINTS: 1000
   LARGE_OBJECT_SAMPLES: 10
+PTC:
+  BATCH_SIZE: 1
+  EPOCHS: 25
+  INPUT_DATA: 'datasets/mouseA/pts.h5'
+  MONITOR_PATH: 'models/ptc/mouseA/'
 DATASET:
   EM_PATH: 'datasets/mouseA/em_export/'
   LABEL_PATH: 'datasets/mouseA/mito_export_unique_id/'
   GT_PATH: 'datasets/mouseA/mito_export_allgroups/'
   FILE_FORMAT: 'png'
   CHUNK_SIZE: [2, 4096, 4096]
-  DATAINFO: 'features/mouseA/data_info.json'
   ROOTF: 'features/mouseA/'
+  DATAINFO: 'features/mouseA/data_info.json'
   EXCLUDE_BORDER_OBJECTS: True
 MODE:
-  PROCESS: 'ptctrain'
+  PROCESS: 'ptcprep'
   DPRC: 'iter'
 CLUSTER:
   ALG: 'kmeans'
