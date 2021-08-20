@@ -36,7 +36,7 @@ DATASET:
   DATAINFO: 'features/mouseA/data_info.json'
   EXCLUDE_BORDER_OBJECTS: True
 MODE:
-  PROCESS: 'ptcprep'
+  PROCESS: 'ptctrain'
   DPRC: 'iter'
 CLUSTER:
   ALG: 'kmeans'

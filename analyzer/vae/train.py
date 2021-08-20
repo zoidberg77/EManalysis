@@ -286,6 +286,9 @@ class PtcTrainer():
 					(sum(running_loss) / len(running_loss))))
 					self.logger.update(loss, counter, self.cfg.PTC.LR)
 
+				if i == 500:
+					break
+
 			self.current_epoch = epoch
 			train_total_loss = sum(running_loss) / len(running_loss)
 			print("Epoch {}: Train total loss: {} \n".format(self.current_epoch, train_total_loss))
