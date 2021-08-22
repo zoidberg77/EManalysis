@@ -14,7 +14,7 @@ PTC:
   INPUT_DATA: 'datasets/rat/pts.h5'
   MONITOR_PATH: 'models/ptc/rat/'
 MODE:
-  PROCESS: ''
+  PROCESS: 'ptcprep'
 CLUSTER:
   ALG: 'kmeans'
   FEAT_LIST: ['sizef', 'distf', 'circf']

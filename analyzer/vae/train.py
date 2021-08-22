@@ -286,15 +286,12 @@ class PtcTrainer():
 					(sum(running_loss) / len(running_loss))))
 					self.logger.update(loss, counter, self.cfg.PTC.LR)
 
-				if i == 500:
-					break
-
 			self.current_epoch = epoch
 			train_total_loss = sum(running_loss) / len(running_loss)
 			print("Epoch {}: Train total loss: {} \n".format(self.current_epoch, train_total_loss))
 
 			test_loss = self.test()
-			torch.save(self.model.state_dict(), self.cfg.PTC.MONITOR_PATH + 'vae_ptc_model.pt')
+			torch.save(self.model.state_dict(), self.cfg.PTC.MONITOR_PATH + 'vae_ptc_model_{}.pt'.format(epoch))
 
 		print('Training and Testing of the point cloud based autoencoder is done.')
 		print("train loss: {}".format(train_total_loss))
@@ -332,7 +329,7 @@ class PtcTrainer():
 		self.model.to(self.device)
 		keys = self.dataset.keys
 		with h5py.File('features/{}.h5'.format(self.vae_ptc_feature), 'w') as h5f:
-			h5f.create_dataset(name='ptc_shape', shape=(len(keys), self.cfg.AUTOENCODER.LATENT_SPACE_PTC))
+			h5f.create_dataset(name='ptc_shape', shape=(len(keys), self.cfg.PTC.LATENT_SPACE))
 			h5f.create_dataset(name='id', shape=(len(keys),))
 
 			with torch.no_grad():
