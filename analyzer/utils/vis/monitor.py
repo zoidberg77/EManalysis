@@ -7,12 +7,12 @@ import torch
 import torch.nn as nn
 from torch.utils.tensorboard import SummaryWriter
 
-def build_monitor(cfg, output_path):
+def build_monitor(cfg, output_path, mode='train'):
     '''building a tensorboard monitor for pytorch models.'''
     time_now = str(datetime.datetime.now()).split(' ')
     date = time_now[0]
     time = time_now[1].split('.')[0].replace(':', '-')
-    log_dir = os.path.join(output_path, 'log' + date + '_' + time)
+    log_dir = os.path.join(output_path, 'log' + '_' + date + '_' + time + '_' + mode)
     return Logger(log_dir)
 
 class Logger(object):
@@ -23,7 +23,7 @@ class Logger(object):
     def reset(self):
         pass
 
-    def update(self, loss, iter, lr):
+    def update(self, loss, iter, lr, epoch=0):
         if self.log_tb is not None:
             self.log_tb.add_scalar('Loss', loss, iter)
             self.log_tb.add_scalar('Learning Rate', lr, iter)

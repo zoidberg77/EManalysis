@@ -14,7 +14,7 @@ PTC:
   INPUT_DATA: 'datasets/human/pts.h5'
   MONITOR_PATH: 'models/ptc/human/'
 MODE:
-  PROCESS: 'ptcprep'
+  PROCESS: 'ptcinfer'
 CLUSTER:
   ALG: 'kmeans'
   FEAT_LIST: ['sizef', 'distf', 'circf', 'shapef', 'texturef']

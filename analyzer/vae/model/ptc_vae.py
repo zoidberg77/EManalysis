@@ -100,7 +100,12 @@ class PTCvae(nn.Module):
 		#x = torch.bmm(torch.transpose(x, 1, 2), matrix64x64).transpose(1,2)
 		x = self.conv_feat(x)
 		x = self.pool(x)
-		x = torch.flatten(x, start_dim=0)
+		x = torch.flatten(x, start_dim=1)
+		return x
+
+	def latent_recon(self, x):
+		x = self.conv_decoder(x[(None,)*2].transpose(1, 3))
+		x = x.view(x.size(0), x.size(0), -1, 3)
 		return x
 
 

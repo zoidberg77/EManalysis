@@ -14,11 +14,10 @@ from analyzer.vae.model.utils.pt import generate_volume_ptc, point_cloud
 from analyzer.vae.model.random_ptc_ae import RandomPtcAe, RandomPtcDataModule
 from analyzer.utils.vis.ptc import vis_reconstructed_ptc, vis_original_ptc
 from analyzer.cl.trainer import CLTrainer
+from analyzer.vae.model.vae import Vae, VaeDataModule
 
 # RUN THE SCRIPT LIKE: $ python main.py --cfg configs/process.yaml
 # Apply your specification within the .yaml file.
-from analyzer.vae.model.vae import Vae, VaeDataModule
-
 
 def create_arg_parser():
     '''
@@ -29,7 +28,6 @@ def create_arg_parser():
     parser.add_argument('--mode', type=str, help='infer or train mode')
 
     return parser
-
 
 def main():
     '''
@@ -86,15 +84,15 @@ def main():
     elif cfg.MODE.PROCESS == "ptcinfer":
         print('--- Starting to infer the features of the autoencoder based on point clouds. --- \n')
         ptcdl = PtcDataset(cfg)
-        trainer = train.PtcTrainer(cfg=cfg, dataset=ptcdl, train_percentage=0.7, optimizer_type="adam")
-        trainer.save_latent_feature()
+        trainer = train.PtcTrainer(cfg=cfg, dataset=ptcdl)
+        trainer.save_latent_feature(m_version=cfg.PTC.MODEL_VERSION)
         return
     elif cfg.MODE.PROCESS == "rptctrain":
         print('--- Starting the training process for the vae based on point clouds(random). --- \n')
         rptc_model = RandomPtcAe(cfg).double()
-        ptc_dataset = PtcDataset(cfg, sample_mode=cfg.AUTOENCODER.PTC_SAMPLE_MODE,
-                                 sample_size=cfg.AUTOENCODER.PTC_NUM_POINTS)
-        trainer = pl.Trainer(default_root_dir='datasets/vae/checkpoints', max_epochs=cfg.AUTOENCODER.EPOCHS,
+        ptc_dataset = PtcDataset(cfg, sample_mode=cfg.PTC.SAMPLE_MODE,
+                                 sample_size=cfg.PTC.RECON_NUM_POINTS)
+        trainer = pl.Trainer(default_root_dir='datasets/vae/checkpoints', max_epochs=cfg.PTC.EPOCHS,
                              gpus=cfg.SYSTEM.NUM_GPUS)
         ptc_datamodule = RandomPtcDataModule(cfg=cfg, dataset=ptc_dataset)
         trainer.fit(rptc_model, ptc_datamodule)
@@ -104,9 +102,9 @@ def main():
         last_checkpoint = glob('datasets/vae/checkpoints/lightning_logs/**/*.ckpt', recursive=True)[-1]
         rptc_model = RandomPtcAe(cfg).load_from_checkpoint(last_checkpoint, cfg=cfg).double()
         rptc_model.freeze()
-        ptc_dataset = PtcDataset(cfg, sample_mode=cfg.AUTOENCODER.PTC_SAMPLE_MODE,
-                                 sample_size=cfg.AUTOENCODER.PTC_NUM_POINTS)
-        trainer = pl.Trainer(default_root_dir='datasets/vae/checkpoints', max_epochs=cfg.AUTOENCODER.EPOCHS,
+        ptc_dataset = PtcDataset(cfg, sample_mode=cfg.PTC.SAMPLE_MODE,
+                                 sample_size=cfg.PTC.RECON_NUM_POINTS)
+        trainer = pl.Trainer(default_root_dir='datasets/vae/checkpoints', max_epochs=cfg.PTC.EPOCHS,
                              checkpoint_callback=False, gpus=cfg.SYSTEM.NUM_GPUS)
         ptc_datamodule = RandomPtcDataModule(cfg=cfg, dataset=ptc_dataset)
 

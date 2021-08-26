@@ -238,7 +238,7 @@ class PtcTrainer():
 	:params train_percentage: (float) split dataset into train and test.
 	:params optimizer_type: optimization algorithm (default: Adam)
 	'''
-	def __init__(self, cfg, dataset, train_percentage, optimizer_type):
+	def __init__(self, cfg, dataset, train_percentage=0.7, optimizer_type='adam'):
 		self.cfg = cfg
 		self.dataset = dataset
 		self.train_percentage = train_percentage
@@ -249,7 +249,6 @@ class PtcTrainer():
 		self.vae_ptc_feature = self.cfg.PTC.FEATURE_NAME
 		self.epochs = self.cfg.PTC.EPOCHS
 		self.device = self.cfg.PTC.DEVICE
-		self.logger = build_monitor(self.cfg, self.cfg.PTC.MONITOR_PATH)
 
 		#self.keys = self.dataset.keys
 		train_length = int(train_percentage * len(self.dataset))
@@ -266,6 +265,7 @@ class PtcTrainer():
 		self.model.to(self.device)
 
 		counter = 0
+		self.logger = build_monitor(self.cfg, self.cfg.PTC.MONITOR_PATH, 'train')
 		running_loss = list()
 		for epoch in range(1, self.epochs + 1):
 			for i, data in enumerate(self.train_dl):
@@ -301,6 +301,8 @@ class PtcTrainer():
 		self.model.eval()
 		self.model.to(self.device)
 		running_loss = list()
+		counter = 0
+		self.logger = build_monitor(self.cfg, self.cfg.PTC.MONITOR_PATH, 'test')
 		with torch.no_grad():
 			for i, data in enumerate(self.test_dl):
 				data, y = data
@@ -308,8 +310,10 @@ class PtcTrainer():
 				x = self.model(data)
 				loss = self.loss(x, data)
 				running_loss.append(loss.item())
-				#if not i % self.cfg.AUTOENCODER.LOG_INTERVAL and i > 0:
-					#self.save_ptcs(x)
+
+				counter = counter + 1
+				if not i % self.cfg.PTC.LOG_INTERVAL and i > 0:
+					self.logger.update(loss, counter, self.cfg.PTC.LR)
 
 			test_total_loss = sum(running_loss) / len(running_loss)
 			print("Epoch {}: Test total loss: {} \n".format(self.current_epoch, test_total_loss))
@@ -322,25 +326,29 @@ class PtcTrainer():
 		rec_loss = self.dist(rec, org)
 		return rec_loss
 
-	def save_latent_feature(self):
+	def save_latent_feature(self, m_version: int = 5):
 		'''saving the latent space representation of every point cloud.'''
-		self.model.load_state_dict(torch.load(self.cfg.PTC.MONITOR_PATH + 'vae_ptc_model.pt'))
+		self.model.load_state_dict(torch.load(self.cfg.PTC.MONITOR_PATH + 'vae_ptc_model_{}.pt'.format(m_version)))
 		self.model.eval()
 		self.model.to(self.device)
-		keys = self.dataset.keys
+
+		whole_ds = torch.utils.data.DataLoader(self.dataset)
 		with h5py.File('features/{}.h5'.format(self.vae_ptc_feature), 'w') as h5f:
-			h5f.create_dataset(name='ptc_shape', shape=(len(keys), self.cfg.PTC.LATENT_SPACE))
-			h5f.create_dataset(name='id', shape=(len(keys),))
+			h5f.create_dataset(name='ptc_shape', shape=(len(self.dataset.keys), self.cfg.PTC.LATENT_SPACE))
+			h5f.create_dataset(name='id', shape=(len(self.dataset.keys),))
 
 			with torch.no_grad():
-				for c, idx in enumerate(self.dataset.keys):
-					data = torch.from_numpy(self.dataset[idx])
-					data = data.unsqueeze(0).float()
-					data.to(self.device)
-					x = self.model.latent_representation(data).cpu().numpy()
+				for i, data in tqdm(enumerate(whole_ds), total=len(self.dataset.keys)):
+					data, y = data
+					data = data.to(self.device).float()
 
-					h5f['ptc_shape'][c] = x
-					h5f['id'][c] = idx
+					x = self.model.latent_representation(data)
+					recon = self.model.latent_recon(x)
+					self.save_ptcs(recon, y[0])
+					x = x.cpu().numpy()
+
+					h5f['ptc_shape'][i] = x
+					h5f['id'][i] = int(y[0])
 			h5f.close()
 
 	def save_ptcs(self, reconstructions, idx, save=True):
@@ -349,25 +357,30 @@ class PtcTrainer():
 		'''
 		rec_ptc = reconstructions.view(reconstructions.size(2), reconstructions.size(3))
 		ptc = rec_ptc.detach().numpy()
-		with h5py.File(self.cfg.PTC.MONITOR_PATH + self.cfg.PTC.RECONSTRUCTION_DATA, 'w') as h5f:
-			grp = h5f.create_group('ptcs')
-			grp.create_dataset(idx, data=ptc)
-			h5f.close()
+		if os.path.exists(self.cfg.PTC.MONITOR_PATH + self.cfg.PTC.RECONSTRUCTION_DATA) is False:
+			with h5py.File(self.cfg.PTC.MONITOR_PATH + self.cfg.PTC.RECONSTRUCTION_DATA, 'w') as h5f:
+				grp = h5f.create_group('rec_ptc')
+				grp.create_dataset(idx, data=ptc)
+				h5f.close()
+		else:
+			with h5py.File(self.cfg.PTC.MONITOR_PATH + self.cfg.PTC.RECONSTRUCTION_DATA, 'r+') as h5f:
+				grp = h5f.get(list(h5f.keys())[0])
+				grp.create_dataset(idx, data=ptc)
+				h5f.close()
 
-	def visualise_ptcs(self, model):
-		#self.model.load_state_dict(torch.load(self.cfg.DATASET.ROOTD + "vae/" + "vae_ptc_model.pt"))
-		model.eval()
-		model.to(self.device)
-
-		with torch.no_grad():
-			for c, idx in enumerate(self.dataset.keys):
-				data = torch.from_numpy(self.dataset[idx])
-				data = data.unsqueeze(0).float()
-				data.to(self.device)
-				x = model.latent_representation(data).cpu().numpy()
-				print(x.shape)
-				if idx == 1:
-					break
+	# def visualise_ptcs(self, model):
+	# 	model.eval()
+	# 	model.to(self.device)
+	#
+	# 	with torch.no_grad():
+	# 		for c, idx in enumerate(self.dataset.keys):
+	# 			data = torch.from_numpy(self.dataset[idx])
+	# 			data = data.unsqueeze(0).float()
+	# 			data.to(self.device)
+	# 			x = model.latent_representation(data).cpu().numpy()
+	# 			print(x.shape)
+	# 			if idx == 1:
+	# 				break
 
 def random_ptc_infer(model, dataset):
 	ptc_datamodule = RandomPtcDataModule(cfg=dataset.cfg, dataset=dataset)
