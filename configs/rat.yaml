@@ -12,8 +12,8 @@ PTC:
   BATCH_SIZE: 1
   EPOCHS: 25
   INPUT_DATA: 'datasets/rat/pts.h5'
-  SAMPLE_MODE: 'bluenoise'
-  INPUT_DATA_SAMPLED: 'datasets/rat/bn_pts.h5'
+  #SAMPLE_MODE: 'bluenoise'
+  #INPUT_DATA_SAMPLED: 'datasets/rat/bn_pts.h5'
   MONITOR_PATH: 'models/ptc/rat/'
   FEATURE_NAME: 'rat/ptc_shapef'
   MODEL_VERSION: 4

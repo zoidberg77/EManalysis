@@ -293,14 +293,14 @@ class PtcTrainer():
 					(sum(running_loss) / len(running_loss))))
 					self.logger.update((sum(running_loss) / len(running_loss)), counter, self.cfg.PTC.LR, epoch)
 				counter = counter + 1
+				break
 
 			self.current_epoch = epoch
 			train_total_loss = sum(running_loss) / len(running_loss)
 			print("Epoch {}: Train total loss: {} \n".format(self.current_epoch, train_total_loss))
 
 			test_loss = self.test()
-			torch.save(self.model.state_dict(), self.output_path + 'vae_ptc_model_{}.pt'.format(epoch))
-
+			torch.save(self.model.state_dict(), os.path.join(self.output_path, 'vae_ptc_model_{}.pt'.format(epoch)))
 
 		print('Training and Testing of the point cloud based autoencoder is done.')
 		print("train loss: {}".format(train_total_loss))
@@ -337,7 +337,7 @@ class PtcTrainer():
 
 	def save_latent_feature(self, m_version: int = 5):
 		'''saving the latent space representation of every point cloud.'''
-		self.model.load_state_dict(torch.load(self.output_path + 'vae_ptc_model_{}.pt'.format(m_version)))
+		self.model.load_state_dict(torch.load(os.path.join(self.output_path, 'vae_ptc_model_{}.pt'.format(m_version))))
 		self.model.eval()
 		self.model.to(self.device)
 
