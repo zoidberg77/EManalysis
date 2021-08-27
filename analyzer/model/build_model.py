@@ -9,7 +9,7 @@ from sklearn.preprocessing import StandardScaler, MinMaxScaler
 
 from analyzer.model.utils.helper import *
 from analyzer.data.data_vis import visvol, vissegments
-from analyzer.utils import Evaluationmodel
+from analyzer.utils.eval_model import Evaluationmodel
 
 from .feat_extr_model import FeatureExtractor
 

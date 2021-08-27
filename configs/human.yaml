@@ -13,8 +13,9 @@ PTC:
   EPOCHS: 25
   INPUT_DATA: 'datasets/human/pts.h5'
   MONITOR_PATH: 'models/ptc/human/'
+  FEATURE_NAME: 'human/ptc_shapef'
 MODE:
-  PROCESS: 'ptcinfer'
+  PROCESS: 'visptc'
 CLUSTER:
   ALG: 'kmeans'
   FEAT_LIST: ['sizef', 'distf', 'circf', 'shapef', 'texturef']

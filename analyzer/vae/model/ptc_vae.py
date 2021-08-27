@@ -85,9 +85,9 @@ class PTCvae(nn.Module):
 
 		x = self.pool(x)
 		x = torch.flatten(x, start_dim=1)
-		#x = self.decoder(x)
-		#x = x[(None,)*2].transpose(1, 3)
-		x = self.conv_decoder(x[(None,)*2].transpose(1, 3))
+		x = self.decoder(x)
+		x = x[(None,)*2].transpose(1, 3)
+		# x = self.conv_decoder(x[(None,)*2].transpose(1, 3))
 		x = x.view(x.size(0), x.size(0), -1, 3)
 		return x
 
@@ -104,7 +104,9 @@ class PTCvae(nn.Module):
 		return x
 
 	def latent_recon(self, x):
-		x = self.conv_decoder(x[(None,)*2].transpose(1, 3))
+		x = self.decoder(x)
+		x = x[(None,)*2].transpose(1, 3)
+		# x = self.conv_decoder(x[(None,)*2].transpose(1, 3))
 		x = x.view(x.size(0), x.size(0), -1, 3)
 		return x
 

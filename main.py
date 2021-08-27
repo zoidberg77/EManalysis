@@ -7,12 +7,11 @@ import pytorch_lightning as pl
 
 from analyzer.config import get_cfg_defaults
 from analyzer.data import Dataloader, PtcDataset, PairDataset
-from analyzer.model import Clustermodel
-from analyzer.utils import Evaluationmodel
+from analyzer.model.build_model import Clustermodel
+from analyzer.utils.eval_model import Evaluationmodel
 from analyzer.vae import train
 from analyzer.vae.model.utils.pt import generate_volume_ptc, point_cloud
 from analyzer.vae.model.random_ptc_ae import RandomPtcAe, RandomPtcDataModule
-from analyzer.utils.vis.ptc import vis_reconstructed_ptc, vis_original_ptc
 from analyzer.cl.trainer import CLTrainer
 from analyzer.vae.model.vae import Vae, VaeDataModule
 
@@ -114,9 +113,6 @@ def main():
             f.create_group('ptc_reconstruction')
         trainer.test(model=rptc_model, test_dataloaders=ptc_datamodule.test_dataloader())
         return
-    elif cfg.MODE.PROCESS == "visptc":
-        #Will be deprecated
-        vis_reconstructed_ptc(cfg)
     elif cfg.MODE.PROCESS == "cl":
         data = PairDataset(cfg)
         trainer = CLTrainer(cfg)

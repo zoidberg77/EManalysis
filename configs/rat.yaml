@@ -10,11 +10,15 @@ DATASET:
   DATAINFO: 'features/rat/data_info.json'
 PTC:
   BATCH_SIZE: 1
-  EPOCHS: 20
+  EPOCHS: 25
   INPUT_DATA: 'datasets/rat/pts.h5'
+  #SAMPLE_MODE: 'bluenoise'
+  #INPUT_DATA_SAMPLED: 'datasets/rat/bn_pts.h5'
   MONITOR_PATH: 'models/ptc/rat/'
+  FEATURE_NAME: 'rat/ptc_shapef'
+  MODEL_VERSION: 4
 MODE:
-  PROCESS: 'ptcprep'
+  PROCESS: 'ptctrain'
 CLUSTER:
   ALG: 'kmeans'
   FEAT_LIST: ['sizef', 'distf', 'circf']

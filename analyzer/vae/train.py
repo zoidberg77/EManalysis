@@ -5,6 +5,7 @@ import torch
 from tqdm import tqdm
 import os
 import glob
+import datetime
 
 from analyzer.data.data_vis import visptc
 from analyzer.vae.model import unet
@@ -250,7 +251,14 @@ class PtcTrainer():
 		self.epochs = self.cfg.PTC.EPOCHS
 		self.device = self.cfg.PTC.DEVICE
 
-		#self.keys = self.dataset.keys
+		# Setting the outputpath for each run.
+		time_now = str(datetime.datetime.now()).split(' ')
+		if os.path.exists(os.path.join(self.cfg.PTC.MONITOR_PATH, 'run_' + time_now[0])):
+			self.output_path = os.path.join(self.cfg.PTC.MONITOR_PATH, 'run_' + time_now[0])
+		else:
+			self.output_path = os.path.join(self.cfg.PTC.MONITOR_PATH, 'run_' + time_now[0])
+			os.mkdir(self.output_path)
+
 		train_length = int(train_percentage * len(self.dataset))
 		train_dataset, test_dataset = torch.utils.data.random_split(self.dataset, (train_length, len(self.dataset) - train_length))
 		self.train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=self.cfg.PTC.BATCH_SIZE, shuffle=False)
@@ -265,7 +273,7 @@ class PtcTrainer():
 		self.model.to(self.device)
 
 		counter = 0
-		self.logger = build_monitor(self.cfg, self.cfg.PTC.MONITOR_PATH, 'train')
+		self.logger = build_monitor(self.cfg, self.output_path, 'train')
 		running_loss = list()
 		for epoch in range(1, self.epochs + 1):
 			for i, data in enumerate(self.train_dl):
@@ -280,18 +288,19 @@ class PtcTrainer():
 				self.optimizer.step()
 				counter = counter + 1
 
-				if not i % self.cfg.PTC.LOG_INTERVAL and i > 0:
+				if (not i % self.cfg.PTC.LOG_INTERVAL or i == 1) and i > 0:
 					print("[{}/{}] Train total loss: {} \n".format(i, int(\
 					len(self.train_dl.dataset) / self.train_dl.batch_size),\
 					(sum(running_loss) / len(running_loss))))
-					self.logger.update(loss, counter, self.cfg.PTC.LR)
+					self.logger.update(loss, counter, self.cfg.PTC.LR, epoch)
 
 			self.current_epoch = epoch
 			train_total_loss = sum(running_loss) / len(running_loss)
 			print("Epoch {}: Train total loss: {} \n".format(self.current_epoch, train_total_loss))
 
 			test_loss = self.test()
-			torch.save(self.model.state_dict(), self.cfg.PTC.MONITOR_PATH + 'vae_ptc_model_{}.pt'.format(epoch))
+			torch.save(self.model.state_dict(), self.output_path + 'vae_ptc_model_{}.pt'.format(epoch))
+
 
 		print('Training and Testing of the point cloud based autoencoder is done.')
 		print("train loss: {}".format(train_total_loss))
@@ -302,7 +311,7 @@ class PtcTrainer():
 		self.model.to(self.device)
 		running_loss = list()
 		counter = 0
-		self.logger = build_monitor(self.cfg, self.cfg.PTC.MONITOR_PATH, 'test')
+		self.logger = build_monitor(self.cfg,self.output_path, 'test')
 		with torch.no_grad():
 			for i, data in enumerate(self.test_dl):
 				data, y = data
@@ -328,7 +337,7 @@ class PtcTrainer():
 
 	def save_latent_feature(self, m_version: int = 5):
 		'''saving the latent space representation of every point cloud.'''
-		self.model.load_state_dict(torch.load(self.cfg.PTC.MONITOR_PATH + 'vae_ptc_model_{}.pt'.format(m_version)))
+		self.model.load_state_dict(torch.load(self.output_path + 'vae_ptc_model_{}.pt'.format(m_version)))
 		self.model.eval()
 		self.model.to(self.device)
 
@@ -367,6 +376,11 @@ class PtcTrainer():
 				grp = h5f.get(list(h5f.keys())[0])
 				grp.create_dataset(idx, data=ptc)
 				h5f.close()
+
+	def visualize_single_ptc(self, x):
+		'''visualize one single point cloud in training process.'''
+		tmp = torch.squeeze(x).detach().numpy()
+		visptc(tmp)
 
 	# def visualise_ptcs(self, model):
 	# 	model.eval()

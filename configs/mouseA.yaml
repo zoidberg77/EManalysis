@@ -26,6 +26,7 @@ PTC:
   EPOCHS: 25
   INPUT_DATA: 'datasets/mouseA/pts.h5'
   MONITOR_PATH: 'models/ptc/mouseA/'
+  FEATURE_NAME: 'mouseA/ptc_shapef'
 DATASET:
   EM_PATH: 'datasets/mouseA/em_export/'
   LABEL_PATH: 'datasets/mouseA/mito_export_unique_id/'

@@ -32,5 +32,5 @@ class Logger(object):
             #plt.close('all')
 
         if self.log_txt is not None:
-            self.log_txt.write('[iteration %d] train_loss=%0.4f lr=%.5f\n' % (iter, loss, lr))
+            self.log_txt.write('[iteration %d] train_loss=%0.4f lr=%.5f\n epoch=%d' % (iter, loss, lr, epoch))
             self.log_txt.flush()
