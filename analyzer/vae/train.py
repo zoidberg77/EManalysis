@@ -293,7 +293,6 @@ class PtcTrainer():
 					(sum(running_loss) / len(running_loss))))
 					self.logger.update((sum(running_loss) / len(running_loss)), counter, self.cfg.PTC.LR, epoch)
 				counter = counter + 1
-				break
 
 			self.current_epoch = epoch
 			train_total_loss = sum(running_loss) / len(running_loss)
