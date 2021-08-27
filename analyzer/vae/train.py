@@ -286,13 +286,13 @@ class PtcTrainer():
 				running_loss.append(loss.item())
 				loss.backward()
 				self.optimizer.step()
-				counter = counter + 1
 
 				if (not i % self.cfg.PTC.LOG_INTERVAL or i == 1) and i > 0:
 					print("[{}/{}] Train total loss: {} \n".format(i, int(\
 					len(self.train_dl.dataset) / self.train_dl.batch_size),\
 					(sum(running_loss) / len(running_loss))))
-					self.logger.update(loss, counter, self.cfg.PTC.LR, epoch)
+					self.logger.update((sum(running_loss) / len(running_loss)), counter, self.cfg.PTC.LR, epoch)
+				counter = counter + 1
 
 			self.current_epoch = epoch
 			train_total_loss = sum(running_loss) / len(running_loss)
@@ -320,9 +320,9 @@ class PtcTrainer():
 				loss = self.loss(x, data)
 				running_loss.append(loss.item())
 
-				counter = counter + 1
 				if not i % self.cfg.PTC.LOG_INTERVAL and i > 0:
-					self.logger.update(loss, counter, self.cfg.PTC.LR)
+					self.logger.update((sum(running_loss) / len(running_loss)), counter, self.cfg.PTC.LR)
+				counter = counter + 1
 
 			test_total_loss = sum(running_loss) / len(running_loss)
 			print("Epoch {}: Test total loss: {} \n".format(self.current_epoch, test_total_loss))
@@ -361,9 +361,7 @@ class PtcTrainer():
 			h5f.close()
 
 	def save_ptcs(self, reconstructions, idx, save=True):
-		'''
-		Save the reconstructed point clouds to h5
-		'''
+		'''Save the reconstructed point clouds to h5.'''
 		rec_ptc = reconstructions.view(reconstructions.size(2), reconstructions.size(3))
 		ptc = rec_ptc.detach().numpy()
 		if os.path.exists(self.cfg.PTC.MONITOR_PATH + self.cfg.PTC.RECONSTRUCTION_DATA) is False:

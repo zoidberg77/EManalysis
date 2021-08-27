@@ -22,58 +22,70 @@ class PtcDataset():
     '''
     def __init__(self, cfg, sample_size=2000, sample_mode=None):
         self.cfg = cfg
-        self.sample_size = sample_size
+        self.sample_size = self.cfg.PTC.SAMPLE_SIZE
         self.ptfn = self.cfg.PTC.INPUT_DATA
-        self.sample_mode = sample_mode
+        self.sample_mode = self.cfg.PTC.SAMPLE_MODE
         self.dists = {}
         self.blue_noise_sample_points = cfg.PTC.BLUE_NOISE_SAMPLE_POINTS
+        self.sampled_ptfn = self.cfg.PTC.INPUT_DATA_SAMPLED
         self.rptcfn = cfg.DATASET.ROOTD + 'vae/random_ptc' + '.h5'
 
-        if sample_mode == 'whitenoise':
-            if os.path.exists(self.rptcfn):
-                return
-            print("calculating random points via white noise sampling")
-            with h5py.File(self.ptfn, 'r') as h5f:
-                with h5py.File(self.rptcfn, 'w') as random_points_file:
-                    for key, cloud in tqdm(h5f['ptcs'].items(), total=len(h5f['ptcs'].keys())):
-                        idxs = np.random.randint(0, len(cloud), sample_size)
-                        random_points_file[key] = np.array(cloud)[idxs, :].astype(np.double)
+        if self.sample_mode == 'whitenoise':
+            if os.path.exists(self.rptcfn) or os.path.exists(self.sampled_ptfn):
+                print('{} exists and will be used.'.format(self.sampled_ptfn))
+            else:
+                print("Calculating random points via white noise sampling.")
+                with h5py.File(self.ptfn, 'r') as h5f:
+                    #with h5py.File(self.rptcfn, 'w') as random_points_file:
+                    with h5py.File(self.sampled_ptfn, 'w') as random_points_file:
+                        for key, cloud in tqdm(h5f['ptcs'].items(), total=len(h5f['ptcs'].keys())):
+                            idxs = np.random.randint(0, len(cloud), self.sample_size)
+                            random_points_file[key] = np.array(cloud)[idxs, :].astype(np.double)
 
-        if sample_mode == 'montecarlo':
-            if os.path.exists(self.rptcfn):
-                return
-            print("calculating random points via monte carlo sampling")
-            with h5py.File(self.ptfn, 'r') as h5f:
-                with h5py.File(self.rptcfn, 'w') as random_points_file:
-                    group = h5f.get('ptcs')
-                    for idx in tqdm(group.keys(), total=len(group.keys())):
-                        cloud = np.array(group[idx])
-                        centroid = np.mean(cloud, axis=0)
-                        dists = []
-                        for point in cloud:
-                            dists.append(np.linalg.norm(point - centroid))
-                        dists /= sum(dists)
-                        xk = np.arange(len(dists))
-                        custm = stats.rv_discrete(name='custm', values=(xk, dists))
-                        random_points = cloud[custm.rvs(size=self.sample_size), :]
-                        random_points_file[idx] = random_points
+        if self.sample_mode == 'montecarlo':
+            if os.path.exists(self.rptcfn) or os.path.exists(self.sampled_ptfn):
+                print('{} exists and will be used.'.format(self.sampled_ptfn))
+            else:
+                print("Calculating random points via monte carlo (MC) sampling")
+                with h5py.File(self.ptfn, 'r') as h5f:
+                    #with h5py.File(self.rptcfn, 'w') as random_points_file:
+                    with h5py.File(self.sampled_ptfn, 'w') as random_points_file:
+                        group = h5f.get('ptcs')
+                        for idx in tqdm(group.keys(), total=len(group.keys())):
+                            cloud = np.array(group[idx])
+                            centroid = np.mean(cloud, axis=0)
+                            dists = []
+                            for point in cloud:
+                                dists.append(np.linalg.norm(point - centroid))
+                            dists /= sum(dists)
+                            xk = np.arange(len(dists))
+                            custm = stats.rv_discrete(name='custm', values=(xk, dists))
+                            random_points = cloud[custm.rvs(size=self.sample_size), :]
+                            random_points_file[idx] = random_points
 
-        if sample_mode == "bluenoise":
-            if os.path.exists(self.rptcfn):
-                return
-            print("calculating random points via bluenoise sampling")
-
-            with h5py.File(self.ptfn, 'r') as h5f:
-                clouds = [(str(key), np.array(cloud)) for key, cloud in h5f['ptcs'].items()]
-                clouds = clouds[:10]
-                pool = mp.Pool(processes=cfg.SYSTEM.NUM_CPUS)
-                results = [pool.apply(self.calculate_blue_noise_samples, args=(key, cloud,)) for key, cloud in
-                           tqdm(clouds, total=len(clouds))]
-                with h5py.File(self.rptcfn, 'w') as random_points_file:
-                    for result in results:
-                        random_points_file[result[0]] = result[1]
+        if self.sample_mode == "bluenoise":
+            if os.path.exists(self.rptcfn) or os.path.exists(self.sampled_ptfn):
+                print('{} exists and will be used.'.format(self.sampled_ptfn))
+            else:
+                print("calculating random points via bluenoise sampling")
+                with h5py.File(self.ptfn, 'r') as h5f:
+                    # clouds = [(str(key), np.array(cloud)) for key, cloud in h5f['ptcs'].items()]
+                    # #clouds = clouds[:10]
+                    # pool = mp.Pool(processes=cfg.SYSTEM.NUM_CPUS)
+                    # results = [pool.apply(self.calculate_blue_noise_samples, args=(key, cloud,)) for key, cloud in
+                    #            tqdm(clouds, total=len(clouds))]
+                    # with h5py.File(self.rptcfn, 'w') as random_points_file:
+                    #     for result in results:
+                    #         random_points_file[result[0]] = result[1]
+                    with h5py.File(self.sampled_ptfn, 'w') as random_points_file:
+                        for k, c in tqdm(list(h5f['ptcs'].items()), total=len(h5f['ptcs'].items())):
+                            key = str(k)
+                            cloud = np.array(c)
+                            key, random_points = self.calculate_blue_noise_samples(key, cloud)
+                            random_points_file[key] = random_points
 
     def calculate_blue_noise_samples(self, key, cloud):
+        '''helper for calculating blue noise.'''
         idxs = []
         dists = pairwise_distances(cloud)
         possible_idx = list(np.arange(0, len(cloud)))
@@ -92,15 +104,13 @@ class PtcDataset():
         return key, random_points
 
     def __len__(self):
-        '''
-        Required by torch to return the length of the dataset.
-        :returns: integer
-        '''
+        '''Required by torch to return the length of the dataset. Returns: (int).'''
         if self.sample_mode == 'partial':
             with h5py.File(self.ptfn, 'r') as h5f:
                 return len(list(h5f.get('ptcs').keys()))
         elif self.sample_mode is not None:
-            with h5py.File(self.rptcfn, 'r') as random_points_file:
+            #with h5py.File(self.rptcfn, 'r') as random_points_file:
+            with h5py.File(self.sampled_ptfn, 'r') as random_points_file:
                 return len(random_points_file.keys())
         else:
             with h5py.File(self.ptfn, 'r') as h5f:
@@ -122,7 +132,8 @@ class PtcDataset():
                     return np.expand_dims(ptc[randome_indices, :], axis=0), idx
                 return np.expand_dims(ptc, axis=0), idx
         elif self.sample_mode is not None:
-            with h5py.File(self.rptcfn, 'r') as random_points_file:
+            #with h5py.File(self.rptcfn, 'r') as random_points_file:
+            with h5py.File(self.sampled_ptfn, 'r') as random_points_file:
                 return np.expand_dims(random_points_file[str(idx)], axis=0), idx
         else:
             return np.expand_dims(ptc, axis=0), idx

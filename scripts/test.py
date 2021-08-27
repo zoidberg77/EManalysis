@@ -7,7 +7,7 @@ parent = os.path.abspath(os.getcwd())
 sys.path.append(parent)
 
 from analyzer.config import get_cfg_defaults
-from analyzer.utils.vis.ptc import vis_reconstructed_ptc, vis_original_ptc
+from analyzer.utils.vis.ptc import *
 
 def create_arg_parser():
     '''Get arguments from command lines.'''
@@ -40,7 +40,8 @@ def main():
         print(cfg, '\n')
 
     ### section free to use.
-    vis_reconstructed_ptc(cfg)
+    #vis_reconstructed_ptc(cfg)
+    vis_sampled_ptc(cfg, 'datasets/rat/mc_pts.h5')
 
 if __name__ == "__main__":
     main()

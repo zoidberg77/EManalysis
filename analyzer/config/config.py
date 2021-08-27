@@ -56,12 +56,12 @@ _C.PTC.BLUE_NOISE_SAMPLE_POINTS = 10
 _C.PTC.LOG_INTERVAL = 10
 _C.PTC.DEVICE = 'cpu'
 _C.PTC.INPUT_DATA = ''
-_C.PTC.INPUT_DATA_SAMPLED = ''
+_C.PTC.INPUT_DATA_SAMPLED = '' # wn_pts.h5, mc_pts.h5, bn_pts.h5
 _C.PTC.FEATURE_NAME = 'ptc_shapef'
 _C.PTC.OUTPUT_FOLDER = 'features/'
 _C.PTC.MONITOR_PATH = 'models/ptc/'
 _C.PTC.RECONSTRUCTION_DATA = 'rec_pts.h5'
-_C.PTC.MODEL_VERSION = 1
+_C.PTC.MODEL_VERSION = 1 
 # -----------------------------------------------------------------------------
 # Self-Supervised Learning
 # -----------------------------------------------------------------------------
