@@ -15,7 +15,6 @@ from chamferdist import ChamferDistance
 from analyzer.vae.model.random_ptc_ae import RandomPtcDataModule
 from analyzer.utils.vis.monitor import build_monitor
 
-
 class Trainer:
 	'''
 	Unet training object.
@@ -227,7 +226,6 @@ class Trainer:
 						f[self.vae_feature][i] = x
 						f["id"][i] = region["id"]
 
-
 ######################################################
 #### ---- Pointcloud based Learning section ----- ####
 ######################################################
@@ -298,9 +296,9 @@ class PtcTrainer():
 			train_total_loss = sum(running_loss) / len(running_loss)
 			print("Epoch {}: Train total loss: {} \n".format(self.current_epoch, train_total_loss))
 
-			test_loss = self.test()
 			torch.save(self.model.state_dict(), os.path.join(self.output_path, 'vae_ptc_model_{}.pt'.format(epoch)))
 
+		test_loss = self.test()
 		print('Training and Testing of the point cloud based autoencoder is done.')
 		print("train loss: {}".format(train_total_loss))
 		print("test loss: {}".format(test_loss))
