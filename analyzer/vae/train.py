@@ -285,7 +285,7 @@ class PtcTrainer():
 				loss.backward()
 				self.optimizer.step()
 
-				if (not i % self.cfg.PTC.LOG_INTERVAL or i == 1) and i > 0:
+				if not i % self.cfg.PTC.LOG_INTERVAL:
 					print("[{}/{}] Train total loss: {} \n".format(i, int(\
 					len(self.train_dl.dataset) / self.train_dl.batch_size),\
 					(sum(running_loss) / len(running_loss))))
@@ -317,7 +317,7 @@ class PtcTrainer():
 				loss = self.loss(x, data)
 				running_loss.append(loss.item())
 
-				if not i % self.cfg.PTC.LOG_INTERVAL and i > 0:
+				if not i % self.cfg.PTC.LOG_INTERVAL:
 					self.logger.update((sum(running_loss) / len(running_loss)), counter, self.cfg.PTC.LR)
 				counter = counter + 1
 
@@ -327,10 +327,12 @@ class PtcTrainer():
 			return test_total_loss
 
 	def loss(self, reconstruction, org_data):
-		rec = torch.squeeze(reconstruction, axis=0)
-		org = torch.squeeze(org_data, axis=0)
-		rec_loss = self.dist(rec, org)
-		return rec_loss
+		'''compute the chamfer loss.'''
+		# rec = torch.squeeze(reconstruction, axis=0)
+		# org = torch.squeeze(org_data, axis=0)
+		# rec_loss = self.dist(rec, org)
+		# return rec_loss
+		return self.dist(torch.squeeze(reconstruction, axis=1), torch.squeeze(org_data, axis=1))
 
 	def save_latent_feature(self, m_version: int = 5):
 		'''saving the latent space representation of every point cloud.'''

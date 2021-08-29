@@ -75,26 +75,26 @@ class PTCvae(nn.Module):
 		)
 
 	def forward(self, x):
-		matrix3x3 = self.input_transform(torch.squeeze(x, 0).transpose(1, 2))
-		x = torch.bmm(torch.squeeze(x, 0), matrix3x3)
-		x = self.conv_in(torch.unsqueeze(x, 0))
+		matrix3x3 = self.input_transform(torch.squeeze(x, 1).transpose(1, 2))
+        x = torch.bmm(torch.squeeze(x, 1), matrix3x3)
+        x = self.conv_in(torch.unsqueeze(x, 0).transpose(0, 1))
 
-		#matrix64x64 = self.feature_transform(torch.squeeze(x, 0).transpose(1, 2))
-		#x = torch.bmm(torch.transpose(x, 1, 2), matrix64x64).transpose(1,2)
+		# matrix64x64 = self.feature_transform(torch.squeeze(x, 0).transpose(1, 2))
+		# x = torch.bmm(torch.transpose(x, 1, 2), matrix64x64).transpose(1,2)
 		x = self.conv_feat(x)
 
 		x = self.pool(x)
 		x = torch.flatten(x, start_dim=1)
 		x = self.decoder(x)
-		x = x[(None,)*2].transpose(1, 3)
+		x = x[:,None,:,None]
 		# x = self.conv_decoder(x[(None,)*2].transpose(1, 3))
-		x = x.view(x.size(0), x.size(0), -1, 3)
+		x = x.view(x.size(0), x.size(1), -1, 3)
 		return x
 
 	def latent_representation(self, x):
-		matrix3x3 = self.input_transform(torch.squeeze(x, 0).transpose(1, 2))
-		x = torch.bmm(torch.squeeze(x, 0), matrix3x3)
-		x = self.conv_in(torch.unsqueeze(x, 0))
+		matrix3x3 = self.input_transform(torch.squeeze(x, 1).transpose(1, 2))
+        x = torch.bmm(torch.squeeze(x, 1), matrix3x3)
+        x = self.conv_in(torch.unsqueeze(x, 0).transpose(0, 1))
 
 		#matrix64x64 = self.feature_transform(torch.squeeze(x, 0).transpose(1, 2))
 		#x = torch.bmm(torch.transpose(x, 1, 2), matrix64x64).transpose(1,2)
@@ -105,9 +105,9 @@ class PTCvae(nn.Module):
 
 	def latent_recon(self, x):
 		x = self.decoder(x)
-		x = x[(None,)*2].transpose(1, 3)
+		x = x[:,None,:,None]
 		# x = self.conv_decoder(x[(None,)*2].transpose(1, 3))
-		x = x.view(x.size(0), x.size(0), -1, 3)
+		x = x.view(x.size(0), x.size(1), -1, 3)
 		return x
 
 

@@ -61,14 +61,14 @@ _C.PTC.FEATURE_NAME = 'ptc_shapef'
 _C.PTC.OUTPUT_FOLDER = 'features/'
 _C.PTC.MONITOR_PATH = 'models/ptc/'
 _C.PTC.RECONSTRUCTION_DATA = 'rec_pts.h5'
-_C.PTC.MODEL_VERSION = 1 
+_C.PTC.MODEL_VERSION = 1
 # -----------------------------------------------------------------------------
 # Self-Supervised Learning
 # -----------------------------------------------------------------------------
 _C.SSL = CN()
 _C.SSL.MODEL = 'siamnet'
 _C.SSL.ENCODER = 'resnet3d'
-_C.SSL.OUTPUT_MODEL_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'datasets/cl/')
+#_C.SSL.OUTPUT_MODEL_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'datasets/cl/')
 _C.SSL.BATCH_SIZE = 256
 _C.SSL.EPOCHS = 25
 _C.SSL.ITERATION_SAVE = 5000
@@ -77,7 +77,10 @@ _C.SSL.OPTIMIZER_LR = 0.05
 _C.SSL.OPTIMIZER_WEIGHT_DECAY = 0.0005
 _C.SSL.OPTIMIZER_MOMENTUM = 0.9
 _C.SSL.USE_PREP_DATASET = True
+_C.SSL.FEATURE_NAME = 'cl_shapef'
+_C.SSL.OUTPUT_FOLDER = 'features/'
 _C.SSL.MONITOR_PATH = 'models/cl/'
+_C.SSL.LOG_INTERVAL = 10
 # -----------------------------------------------------------------------------
 # Dataset
 # -----------------------------------------------------------------------------
