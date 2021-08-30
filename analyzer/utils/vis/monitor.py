@@ -13,12 +13,13 @@ def build_monitor(cfg, output_path, mode='train'):
     date = time_now[0]
     time = time_now[1].split('.')[0].replace(':', '-')
     log_dir = os.path.join(output_path, 'log' + '_' + date + '_' + time + '_' + mode)
-    return Logger(log_dir)
+    return Logger(cfg, log_dir)
 
 class Logger(object):
-    def __init__(self, log_dir=''):
+    def __init__(self, cfg, log_dir=''):
         self.log_tb = SummaryWriter(log_dir)
         self.log_txt = open(os.path.join(log_dir, 'log.txt'), 'w')
+        #self.yaml_txt = open(os.path.join(log_dir, 'log.txt'), 'w')
 
     def reset(self):
         pass

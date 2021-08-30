@@ -76,8 +76,8 @@ class PTCvae(nn.Module):
 
 	def forward(self, x):
 		matrix3x3 = self.input_transform(torch.squeeze(x, 1).transpose(1, 2))
-        x = torch.bmm(torch.squeeze(x, 1), matrix3x3)
-        x = self.conv_in(torch.unsqueeze(x, 0).transpose(0, 1))
+		x = torch.bmm(torch.squeeze(x, 1), matrix3x3)
+		x = self.conv_in(torch.unsqueeze(x, 0).transpose(0, 1))
 
 		# matrix64x64 = self.feature_transform(torch.squeeze(x, 0).transpose(1, 2))
 		# x = torch.bmm(torch.transpose(x, 1, 2), matrix64x64).transpose(1,2)
@@ -93,8 +93,8 @@ class PTCvae(nn.Module):
 
 	def latent_representation(self, x):
 		matrix3x3 = self.input_transform(torch.squeeze(x, 1).transpose(1, 2))
-        x = torch.bmm(torch.squeeze(x, 1), matrix3x3)
-        x = self.conv_in(torch.unsqueeze(x, 0).transpose(0, 1))
+		x = torch.bmm(torch.squeeze(x, 1), matrix3x3)
+		x = self.conv_in(torch.unsqueeze(x, 0).transpose(0, 1))
 
 		#matrix64x64 = self.feature_transform(torch.squeeze(x, 0).transpose(1, 2))
 		#x = torch.bmm(torch.transpose(x, 1, 2), matrix64x64).transpose(1,2)

@@ -124,7 +124,6 @@ class PtcDataset():
         '''
         with h5py.File(self.ptfn, 'r') as h5f:
             group = h5f.get('ptcs')
-            idx = sorted(list(group.keys()))[idx]
             ptc = np.array(group[idx])
         if self.sample_mode == 'partial':
                 if ptc.shape[0] > self.sample_size:

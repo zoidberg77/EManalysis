@@ -7,6 +7,7 @@ DATASET:
   FILE_FORMAT: 'png'
   CHUNK_SIZE: [2, 4096, 4096]
   ROOTF: 'features/rat/'
+  ROOTD: 'datasets/rat/'
   DATAINFO: 'features/rat/data_info.json'
 PTC:
   BATCH_SIZE: 1

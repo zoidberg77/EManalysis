@@ -84,7 +84,7 @@ def main():
         print('--- Starting to infer the features of the autoencoder based on point clouds. --- \n')
         ptcdl = PtcDataset(cfg)
         trainer = train.PtcTrainer(cfg=cfg, dataset=ptcdl)
-        trainer.save_latent_feature(m_version=cfg.PTC.MODEL_VERSION)
+        trainer.save_latent_feature()
         return
     elif cfg.MODE.PROCESS == "rptctrain":
         print('--- Starting the training process for the vae based on point clouds(random). --- \n')

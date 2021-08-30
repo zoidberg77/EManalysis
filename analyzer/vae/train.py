@@ -250,12 +250,18 @@ class PtcTrainer():
 		self.device = self.cfg.PTC.DEVICE
 
 		# Setting the outputpath for each run.
-		time_now = str(datetime.datetime.now()).split(' ')
-		if os.path.exists(os.path.join(self.cfg.PTC.MONITOR_PATH, 'run_' + time_now[0])):
-			self.output_path = os.path.join(self.cfg.PTC.MONITOR_PATH, 'run_' + time_now[0])
+		if self.cfg.MODE.PROCESS == 'ptctrain':
+			time_now = str(datetime.datetime.now()).split(' ')
+			if os.path.exists(os.path.join(self.cfg.PTC.MONITOR_PATH, 'run_' + time_now[0])):
+				self.output_path = os.path.join(self.cfg.PTC.MONITOR_PATH, 'run_' + time_now[0])
+			else:
+				self.output_path = os.path.join(self.cfg.PTC.MONITOR_PATH, 'run_' + time_now[0])
+				os.mkdir(self.output_path)
+		elif self.cfg.MODE.PROCESS == 'ptcinfer':
+			self.state_model = self.cfg.PTC.MODEL
+			self.output_path = self.cfg.PTC.MODEL.rsplit('/', 1)[0]
 		else:
-			self.output_path = os.path.join(self.cfg.PTC.MONITOR_PATH, 'run_' + time_now[0])
-			os.mkdir(self.output_path)
+			raise ValueError('No valid process. Choose \'ptctrain\' or \'ptcinfer\'.')
 
 		train_length = int(train_percentage * len(self.dataset))
 		train_dataset, test_dataset = torch.utils.data.random_split(self.dataset, (train_length, len(self.dataset) - train_length))
@@ -328,15 +334,11 @@ class PtcTrainer():
 
 	def loss(self, reconstruction, org_data):
 		'''compute the chamfer loss.'''
-		# rec = torch.squeeze(reconstruction, axis=0)
-		# org = torch.squeeze(org_data, axis=0)
-		# rec_loss = self.dist(rec, org)
-		# return rec_loss
 		return self.dist(torch.squeeze(reconstruction, axis=1), torch.squeeze(org_data, axis=1))
 
-	def save_latent_feature(self, m_version: int = 5):
+	def save_latent_feature(self):
 		'''saving the latent space representation of every point cloud.'''
-		self.model.load_state_dict(torch.load(os.path.join(self.output_path, 'vae_ptc_model_{}.pt'.format(m_version))))
+		self.model.load_state_dict(torch.load(self.state_model))
 		self.model.eval()
 		self.model.to(self.device)
 
@@ -363,13 +365,13 @@ class PtcTrainer():
 		'''Save the reconstructed point clouds to h5.'''
 		rec_ptc = reconstructions.view(reconstructions.size(2), reconstructions.size(3))
 		ptc = rec_ptc.detach().numpy()
-		if os.path.exists(self.cfg.PTC.MONITOR_PATH + self.cfg.PTC.RECONSTRUCTION_DATA) is False:
-			with h5py.File(self.cfg.PTC.MONITOR_PATH + self.cfg.PTC.RECONSTRUCTION_DATA, 'w') as h5f:
+		if os.path.exists(os.path.join(self.output_path, self.cfg.PTC.RECONSTRUCTION_DATA)) is False:
+			with h5py.File(os.path.join(self.output_path, self.cfg.PTC.RECONSTRUCTION_DATA), 'w') as h5f:
 				grp = h5f.create_group('rec_ptc')
 				grp.create_dataset(idx, data=ptc)
 				h5f.close()
 		else:
-			with h5py.File(self.cfg.PTC.MONITOR_PATH + self.cfg.PTC.RECONSTRUCTION_DATA, 'r+') as h5f:
+			with h5py.File(os.path.join(self.output_path, self.cfg.PTC.RECONSTRUCTION_DATA), 'r+') as h5f:
 				grp = h5f.get(list(h5f.keys())[0])
 				grp.create_dataset(idx, data=ptc)
 				h5f.close()

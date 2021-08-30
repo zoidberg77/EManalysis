@@ -7,15 +7,19 @@ DATASET:
   FILE_FORMAT: 'png'
   CHUNK_SIZE: [2, 4096, 4096]
   ROOTF: 'features/human/'
+  ROOTD: 'datasets/human/'
   DATAINFO: 'features/human/data_info.json'
 PTC:
   BATCH_SIZE: 1
   EPOCHS: 25
   INPUT_DATA: 'datasets/human/pts.h5'
+  #SAMPLE_MODE: 'montecarlo'
+  #INPUT_DATA_SAMPLED: 'datasets/rat/mc_pts.h5'
   MONITOR_PATH: 'models/ptc/human/'
   FEATURE_NAME: 'human/ptc_shapef'
+  MODEL: models/ptc/human/run_2021-08-29/vae_ptc_model_10.pt
 MODE:
-  PROCESS: 'visptc'
+  PROCESS: 'ptcinfer'
 CLUSTER:
   ALG: 'kmeans'
   FEAT_LIST: ['sizef', 'distf', 'circf', 'shapef', 'texturef']

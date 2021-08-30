@@ -61,7 +61,7 @@ _C.PTC.FEATURE_NAME = 'ptc_shapef'
 _C.PTC.OUTPUT_FOLDER = 'features/'
 _C.PTC.MONITOR_PATH = 'models/ptc/'
 _C.PTC.RECONSTRUCTION_DATA = 'rec_pts.h5'
-_C.PTC.MODEL_VERSION = 1
+_C.PTC.MODEL = '' # models/ptc/human/run_2021-08-29/vae_ptc_model_10.pt
 # -----------------------------------------------------------------------------
 # Self-Supervised Learning
 # -----------------------------------------------------------------------------

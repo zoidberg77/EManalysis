@@ -1,6 +1,7 @@
 import argparse
 import sys, os
 import h5py
+import numpy as np
 
 # adding the right path.
 parent = os.path.abspath(os.getcwd())
@@ -41,7 +42,16 @@ def main():
 
     ### section free to use.
     #vis_reconstructed_ptc(cfg)
-    vis_sampled_ptc(cfg, 'datasets/rat/mc_pts.h5')
+    #vis_sampled_ptc(cfg, 'datasets/rat/mc_pts.h5')
+
+    # from analyzer.data import Dataloader, PtcDataset, PairDataset
+    # ptcdl = PtcDataset(cfg)
+    # print(ptcdl[10682])
+    # from analyzer.data.data_vis import visptc
+    # with h5py.File('datasets/human/pts.h5', 'r') as ptcf:
+    #     group = ptcf.get('ptcs')
+    #     obj = np.array(group[str(1325)])
+    #     visptc(obj)
 
 if __name__ == "__main__":
     main()
