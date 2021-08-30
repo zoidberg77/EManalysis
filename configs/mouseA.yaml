@@ -29,6 +29,7 @@ DATASET:
   LABEL_PATH: 'datasets/mouseA/mito_export_unique_id/'
   GT_PATH: 'datasets/mouseA/mito_export_allgroups/'
   ROOTF: 'features/mouseA/'
+  ROOTD: 'datasets/rat/'
   DATAINFO: 'features/mouseA/data_info.json'
 MODE:
   PROCESS: 'ptctrain'
