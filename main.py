@@ -56,7 +56,7 @@ def main():
     if cfg.MODE.PROCESS == "preprocessing":
         dl = Dataloader(cfg)
         em, labels, gt = dl.load_chunk()
-        dl.extract_scale_mitos_samples(parallel=False)
+        dl.extract_scale_mitos_samples()
         return
     elif cfg.MODE.PROCESS == "train":
         print('--- Starting the training process for the vae --- \n')

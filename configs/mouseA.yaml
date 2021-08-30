@@ -34,6 +34,7 @@ DATASET:
   FILE_FORMAT: 'png'
   CHUNK_SIZE: [2, 4096, 4096]
   ROOTF: 'features/mouseA/'
+  ROOTD: 'datasets/rat/'
   DATAINFO: 'features/mouseA/data_info.json'
   EXCLUDE_BORDER_OBJECTS: True
 MODE:
