@@ -11,15 +11,15 @@ DATASET:
   DATAINFO: 'features/human/data_info.json'
 PTC:
   BATCH_SIZE: 1
-  EPOCHS: 25
+  EPOCHS: 200
   INPUT_DATA: 'datasets/human/pts.h5'
   #SAMPLE_MODE: 'montecarlo'
   #INPUT_DATA_SAMPLED: 'datasets/rat/mc_pts.h5'
   MONITOR_PATH: 'models/ptc/human/'
   FEATURE_NAME: 'human/ptc_shapef'
-  MODEL: models/ptc/human/run_2021-08-29/vae_ptc_model_10.pt
+  MODEL: 'models/ptc/human/run_2021-08-29/vae_ptc_model_16.pt'
 MODE:
-  PROCESS: 'ptcinfer'
+  PROCESS: 'ptctrain'
 CLUSTER:
   ALG: 'kmeans'
   FEAT_LIST: ['sizef', 'distf', 'circf', 'shapef', 'texturef']

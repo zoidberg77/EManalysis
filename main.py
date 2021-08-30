@@ -19,9 +19,7 @@ from analyzer.vae.model.vae import Vae, VaeDataModule
 # Apply your specification within the .yaml file.
 
 def create_arg_parser():
-    '''
-    Get arguments from command lines.
-    '''
+    '''Get arguments from command lines.'''
     parser = argparse.ArgumentParser(description="Model for clustering mitochondria.")
     parser.add_argument('--cfg', type=str, help='configuration file (path)')
     parser.add_argument('--mode', type=str, help='infer or train mode')
@@ -29,8 +27,7 @@ def create_arg_parser():
     return parser
 
 def main():
-    '''
-    Main function.
+    '''Main function.
     '''
     # input arguments are parsed.
     arg_parser = create_arg_parser()
@@ -113,7 +110,7 @@ def main():
             f.create_group('ptc_reconstruction')
         trainer.test(model=rptc_model, test_dataloaders=ptc_datamodule.test_dataloader())
         return
-    elif cfg.MODE.PROCESS == "cl":
+    elif cfg.MODE.PROCESS == "cltrain":
         data = PairDataset(cfg)
         trainer = CLTrainer(cfg)
         trainer.train()

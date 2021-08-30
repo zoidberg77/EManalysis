@@ -17,7 +17,7 @@ PTC:
   #INPUT_DATA_SAMPLED: 'datasets/rat/bn_pts.h5'
   MONITOR_PATH: 'models/ptc/rat/'
   FEATURE_NAME: 'rat/ptc_shapef'
-  MODEL_VERSION: 4
+  #MODEL: 'models/ptc/rat/run_2021-08-29/vae_ptc_model_10.pt'
 MODE:
   PROCESS: 'ptctrain'
 CLUSTER:

@@ -17,9 +17,6 @@ AUTOENCODER:
   MAX_VAR: 0.001
   MAX_GRADIENT: 1.0
   LOG_INTERVAL: 10
-  PTC_NUM_POINTS: 500
-  PTC_SAMPLE_MODE: 'bluenoise'
-  BLUE_NOISE_SAMPLE_POINTS: 1000
   LARGE_OBJECT_SAMPLES: 10
 PTC:
   BATCH_SIZE: 1
@@ -31,20 +28,14 @@ DATASET:
   EM_PATH: 'datasets/mouseA/em_export/'
   LABEL_PATH: 'datasets/mouseA/mito_export_unique_id/'
   GT_PATH: 'datasets/mouseA/mito_export_allgroups/'
-  FILE_FORMAT: 'png'
-  CHUNK_SIZE: [2, 4096, 4096]
   ROOTF: 'features/mouseA/'
   DATAINFO: 'features/mouseA/data_info.json'
-  EXCLUDE_BORDER_OBJECTS: True
 MODE:
   PROCESS: 'ptctrain'
-  DPRC: 'iter'
 CLUSTER:
   ALG: 'kmeans'
-  FEAT_LIST: ['surface_to_volumef']
-  WEIGHTSF: [1]
+  FEAT_LIST: ['sizef', 'distf', 'circf', 'shapef', 'texturef']
+  WEIGHTSF: [1, 1, 1, 1, 1]
   N_CLUSTER: 5
   OUTPUTPATH: 'outputs/mouseA/'
-  NEUROGLANCER: False
   GENERATE_MASKS: True
-  VISUALIZATION: False

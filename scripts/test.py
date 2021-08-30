@@ -41,7 +41,7 @@ def main():
         print(cfg, '\n')
 
     ### section free to use.
-    #vis_reconstructed_ptc(cfg)
+    vis_reconstructed_ptc(cfg, path='models/ptc/human/run_2021-08-29/')
     #vis_sampled_ptc(cfg, 'datasets/rat/mc_pts.h5')
 
     # from analyzer.data import Dataloader, PtcDataset, PairDataset

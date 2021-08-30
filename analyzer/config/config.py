@@ -32,9 +32,6 @@ _C.AUTOENCODER.MAX_MEAN = 0.001
 _C.AUTOENCODER.MAX_VAR = 0.001
 _C.AUTOENCODER.MAX_GRADIENT = 1.0
 _C.AUTOENCODER.FEATURES = ['shape', 'texture']
-_C.AUTOENCODER.PTC_NUM_POINTS = 1000
-_C.AUTOENCODER.PTC_SAMPLE_MODE = None
-_C.AUTOENCODER.BLUE_NOISE_SAMPLE_POINTS = 10
 _C.AUTOENCODER.LARGE_OBJECT_SAMPLES = 4
 
 # -----------------------------------------------------------------------------
@@ -50,7 +47,7 @@ _C.PTC.LATENT_SPACE = 512
 _C.PTC.FILTER_LIST = [64, 64, 64, 128, 512]
 _C.PTC.LINEAR_LAYERS = [1024, 1024]
 _C.PTC.SAMPLE_MODE = None
-_C.PTC.RECON_NUM_POINTS = 1000
+_C.PTC.RECON_NUM_POINTS = 5000
 _C.PTC.SAMPLE_SIZE = 4096
 _C.PTC.BLUE_NOISE_SAMPLE_POINTS = 10
 _C.PTC.LOG_INTERVAL = 10
@@ -76,11 +73,13 @@ _C.SSL.OPTIMIZER = 'sgd'
 _C.SSL.OPTIMIZER_LR = 0.05
 _C.SSL.OPTIMIZER_WEIGHT_DECAY = 0.0005
 _C.SSL.OPTIMIZER_MOMENTUM = 0.9
+_C.SSL.TRAIN_PORTION = 0.7
 _C.SSL.USE_PREP_DATASET = True
 _C.SSL.FEATURE_NAME = 'cl_shapef'
 _C.SSL.OUTPUT_FOLDER = 'features/'
 _C.SSL.MONITOR_PATH = 'models/cl/'
 _C.SSL.LOG_INTERVAL = 10
+_C.SSL.STATE_MODEL = '' # models/ptc/human/run_2021-08-29/cl_model_10.pt
 # -----------------------------------------------------------------------------
 # Dataset
 # -----------------------------------------------------------------------------

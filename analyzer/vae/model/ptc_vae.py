@@ -24,7 +24,7 @@ class PTCvae(nn.Module):
 				 in_channel: int = 1,
 				 out_channel: int = 1,
 				 filters: List[int] = [64, 64, 64, 128, 512],
-				 linear_layers: List[int] = [1024, 1024],
+				 linear_layers: List[int] = [1024, 2048, 4096],
 				 pad_mode: str = 'replicate',
 				 act_mode: str = 'elu',
 				 norm_mode: str = 'bn',
@@ -71,7 +71,8 @@ class PTCvae(nn.Module):
 		self.decoder = nn.Sequential(
 			nn.Linear(self.filters[4], self.linear_layers[0]), nn.ReLU(),
 			nn.Linear(self.linear_layers[0], self.linear_layers[1]), nn.ReLU(),
-			nn.Linear(self.linear_layers[1], (self.num_points * 3)),
+			nn.Linear(self.linear_layers[1], self.linear_layers[2]), nn.ReLU(),
+			nn.Linear(self.linear_layers[2], (self.num_points * 3))
 		)
 
 	def forward(self, x):

@@ -119,11 +119,12 @@ class PtcDataset():
     def __getitem__(self, idx):
         '''
         Required by torch to return one item of the dataset.
-        :param idx: (int) index of the object. Please note that this is the actual label e.g. 1325 not a pure index like 0,1,2, ... ,n
+        :param idx: (int) index of the object. Please note that this is NOT the actual label.
         :returns: object from the volume. (np.array)
         '''
         with h5py.File(self.ptfn, 'r') as h5f:
             group = h5f.get('ptcs')
+            idx = sorted(list(group.keys()))[idx]
             ptc = np.array(group[idx])
         if self.sample_mode == 'partial':
                 if ptc.shape[0] > self.sample_size:
@@ -135,7 +136,7 @@ class PtcDataset():
             with h5py.File(self.sampled_ptfn, 'r') as random_points_file:
                 return np.expand_dims(random_points_file[str(idx)], axis=0), idx
         else:
-            return np.expand_dims(ptc, axis=0), idx
+            return np.expand_dims(ptc, axis=0), str(idx)
 
     @property
     def keys(self):

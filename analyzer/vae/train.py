@@ -286,7 +286,6 @@ class PtcTrainer():
 				self.optimizer.zero_grad()
 				x = self.model(data)
 				loss = self.loss(x, data)
-
 				running_loss.append(loss.item())
 				loss.backward()
 				self.optimizer.step()
@@ -296,6 +295,7 @@ class PtcTrainer():
 					len(self.train_dl.dataset) / self.train_dl.batch_size),\
 					(sum(running_loss) / len(running_loss))))
 					self.logger.update((sum(running_loss) / len(running_loss)), counter, self.cfg.PTC.LR, epoch)
+
 				counter = counter + 1
 
 			self.current_epoch = epoch

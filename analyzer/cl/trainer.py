@@ -23,27 +23,38 @@ class CLTrainer():
 			self.device = 'cuda'
 		self.model = get_model(self.cfg).to(self.device)
 
+		# Setting up the dataset.
 		self.dataset = PairDataset(self.cfg)
-		self.dataloader = torch.utils.data.DataLoader(self.dataset, batch_size=self.cfg.SSL.BATCH_SIZE,
-		shuffle=False, pin_memory=True)
+		train_length = int(self.cfg.SSL.TRAIN_PORTION * len(self.dataset))
+		train_dataset, test_dataset = torch.utils.data.random_split(self.dataset, (train_length, len(self.dataset) - train_length))
+		self.train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=self.cfg.PTC.BATCH_SIZE, shuffle=False)
+		self.test_dl = torch.utils.data.DataLoader(test_dataset, batch_size=self.cfg.PTC.BATCH_SIZE, shuffle=False)
+
+		# Setting up the optimizer, lr & logger.
 		self.optimizer = build_optimizer(self.cfg, self.model)
-		self.lr_scheduler = build_lr_scheduler(self.cfg, self.optimizer, len(self.dataloader))
+		self.lr_scheduler = build_lr_scheduler(self.cfg, self.optimizer, len(self.train_dl))
 		self.logger = build_monitor(self.cfg)
 
 		# Setting the outputpath for each run.
-		time_now = str(datetime.datetime.now()).split(' ')
-		if os.path.exists(os.path.join(self.cfg.SSL.MONITOR_PATH, 'run_' + time_now[0])):
-			self.output_path = os.path.join(self.cfg.SSL.MONITOR_PATH, 'run_' + time_now[0])
+		if self.cfg.MODE.PROCESS == 'cltrain':
+			time_now = str(datetime.datetime.now()).split(' ')
+			if os.path.exists(os.path.join(self.cfg.SSL.MONITOR_PATH, 'run_' + time_now[0])):
+				self.output_path = os.path.join(self.cfg.SSL.MONITOR_PATH, 'run_' + time_now[0])
+			else:
+				self.output_path = os.path.join(self.cfg.SSL.MONITOR_PATH, 'run_' + time_now[0])
+				os.mkdir(self.output_path)
+		elif self.cfg.MODE.PROCESS == 'clinfer':
+			self.state_model = self.cfg.SSL.STATE_MODEL
+			self.output_path = self.cfg.SSL.MODEL.rsplit('/', 1)[0]
 		else:
-			self.output_path = os.path.join(self.cfg.SSL.MONITOR_PATH, 'run_' + time_now[0])
-			os.mkdir(self.output_path)
+			raise ValueError('No valid process. Choose \'cltrain\' or \'clinfer\'.')	
 
 	def train(self):
 		counter = 0
 		running_loss = list()
 		for epoch in range(0, self.epochs):
 			self.model.train()
-			for idx, ((x1, x2), labels) in enumerate(self.dataloader):
+			for idx, ((x1, x2), labels) in enumerate(self.train_dl):
 
 				self.model.zero_grad()
 				z1, p1, z2, p2 = self.model.forward(x1.to(self.device, non_blocking=True), x2.to(self.device, non_blocking=True))
@@ -71,6 +82,7 @@ class CLTrainer():
 		# 		 'lr_scheduler': self.lr_scheduler.state_dict()}
 
 		state = self.model.state_dict()
-		filename = 'checkpoint_%05d.pth.tar' % (idx + 1)
+		#filename = 'checkpoint_%05d.pth.tar' % (idx + 1)
+		filename = 'cl_model_{}.pt'.format(idx)
 		filename = os.path.join(self.output_path, filename)
 		torch.save(state, filename)

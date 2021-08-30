@@ -2,6 +2,7 @@ import os, sys
 import numpy as np
 import datetime
 from collections import OrderedDict
+import yaml
 
 import torch
 import torch.nn as nn
@@ -17,9 +18,14 @@ def build_monitor(cfg, output_path, mode='train'):
 
 class Logger(object):
     def __init__(self, cfg, log_dir=''):
-        self.log_tb = SummaryWriter(log_dir)
-        self.log_txt = open(os.path.join(log_dir, 'log.txt'), 'w')
-        #self.yaml_txt = open(os.path.join(log_dir, 'log.txt'), 'w')
+        self.cfg = cfg
+        self.log_dir = log_dir
+        self.log_tb = SummaryWriter(self.log_dir)
+        self.log_txt = open(os.path.join(self.log_dir, 'log.txt'), 'w')
+
+        # Addding all the parameters to certain run.
+        with open(os.path.join(log_dir, 'params.yaml'), 'w') as yfile:
+            yaml.dump(dict(cfg), yfile, default_flow_style=False)
 
     def reset(self):
         pass
@@ -28,9 +34,6 @@ class Logger(object):
         if self.log_tb is not None:
             self.log_tb.add_scalar('Loss', loss, iter)
             self.log_tb.add_scalar('Learning Rate', lr, iter)
-
-            #self.log_tb.add_figure('Loss', loss, iter)
-            #plt.close('all')
 
         if self.log_txt is not None:
             self.log_txt.write('[iteration %d] train_loss=%0.4f lr=%.5f\n epoch=%d' % (iter, loss, lr, epoch))
