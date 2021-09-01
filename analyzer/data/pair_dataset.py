@@ -14,7 +14,6 @@ class PairDataset():
 	'''
 	def __init__(self, cfg, iter_num: int = -1):
 		self.cfg = cfg
-		self.volume, self.label = self.get_input()
 		self.chunks_path = self.cfg.SSL.USE_PREP_DATASET
 		self.sample_volume_size = (64, 64, 64)
 		self.sample_stride = (1, 1, 1)
@@ -22,6 +21,7 @@ class PairDataset():
 
 		# Data information if you want to produce input on the fly.
 		if not self.cfg.SSL.USE_PREP_DATASET:
+			self.volume, self.label = self.get_input()
 			self.volume_size = [np.array(self.volume.shape)]
 			self.sample_volume_size = np.array(self.sample_volume_size).astype(int)
 			self.sample_stride = np.array(self.sample_stride).astype(int)
@@ -33,9 +33,6 @@ class PairDataset():
 
 			self.iter_num = max(iter_num, self.sample_num_a)
 			print('Dataset chunks that will be iterated over: {}'.format(self.iter_num))
-		else:
-			pass
-
 
 	def __len__(self):
 		if not self.cfg.SSL.USE_PREP_DATASET:
@@ -55,7 +52,7 @@ class PairDataset():
 		else:
 			with h5py.File(self.chunks_path, 'r') as f:
 				sample = f['chunk'][idx]
-				label = f['id'][idx]
+				label = int(f['id'][idx])
 		sample_pair = self.augmentor(sample)
 		return (sample_pair, label)
 

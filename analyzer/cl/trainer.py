@@ -1,7 +1,9 @@
 import os, sys
 import torch
+import datetime
 import numpy as np
 from tqdm import tqdm
+
 from analyzer.data.augmentation.augmentor import Augmentor
 from analyzer.cl.model import get_model
 from analyzer.data import PairDataset
@@ -26,13 +28,12 @@ class CLTrainer():
 		self.dataset = PairDataset(self.cfg)
 		train_length = int(self.cfg.SSL.TRAIN_PORTION * len(self.dataset))
 		train_dataset, test_dataset = torch.utils.data.random_split(self.dataset, (train_length, len(self.dataset) - train_length))
-		self.train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=self.cfg.PTC.BATCH_SIZE, shuffle=False)
-		self.test_dl = torch.utils.data.DataLoader(test_dataset, batch_size=self.cfg.PTC.BATCH_SIZE, shuffle=False)
+		self.train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=self.cfg.SSL.BATCH_SIZE, shuffle=False)
+		self.test_dl = torch.utils.data.DataLoader(test_dataset, batch_size=self.cfg.SSL.BATCH_SIZE, shuffle=False)
 
 		# Setting up the optimizer, lr & logger.
 		self.optimizer = build_optimizer(self.cfg, self.model)
 		self.lr_scheduler = build_lr_scheduler(self.cfg, self.optimizer, len(self.train_dl))
-		self.logger = build_monitor(self.cfg)
 
 		# Setting the outputpath for each run.
 		if self.cfg.MODE.PROCESS == 'cltrain':
@@ -41,7 +42,7 @@ class CLTrainer():
 				self.output_path = os.path.join(self.cfg.SSL.MONITOR_PATH, 'run_' + time_now[0])
 			else:
 				self.output_path = os.path.join(self.cfg.SSL.MONITOR_PATH, 'run_' + time_now[0])
-				os.mkdir(self.output_path)
+				os.makedirs(self.output_path)
 		elif self.cfg.MODE.PROCESS == 'clinfer':
 			self.state_model = self.cfg.SSL.STATE_MODEL
 			self.output_path = self.cfg.SSL.MODEL.rsplit('/', 1)[0]
@@ -51,6 +52,7 @@ class CLTrainer():
 	def train(self):
 		counter = 0
 		running_loss = list()
+		self.logger = build_monitor(self.cfg, self.output_path, 'train')
 		for epoch in range(0, self.epochs):
 			self.model.train()
 			for idx, ((x1, x2), labels) in enumerate(self.train_dl):
@@ -64,11 +66,9 @@ class CLTrainer():
 				self.optimizer.step()
 				self.lr_scheduler.step()
 
-				if not i % self.cfg.SSL.LOG_INTERVAL:
+				if not idx % self.cfg.SSL.LOG_INTERVAL:
 					self.logger.update((sum(running_loss) / len(running_loss)), counter, self.lr_scheduler.get_lr(), epoch)
 				counter = counter + 1
-
-				break
 
 			self.save_checkpoint(epoch)
 

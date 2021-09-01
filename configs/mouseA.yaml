@@ -1,6 +1,13 @@
 SYSTEM:
   NUM_CPUS: 8
   NUM_GPUS: 0
+DATASET:
+  EM_PATH: 'datasets/mouseA/em_export/'
+  LABEL_PATH: 'datasets/mouseA/mito_export_unique_id/'
+  GT_PATH: 'datasets/mouseA/mito_export_allgroups/'
+  ROOTF: 'features/mouseA/'
+  ROOTD: 'datasets/mouseA/'
+  DATAINFO: 'features/mouseA/data_info.json'
 AUTOENCODER:
   ARCHITECTURE: 'unet_3d'
   REGION_LIMIT: None
@@ -24,13 +31,11 @@ PTC:
   INPUT_DATA: 'datasets/mouseA/pts.h5'
   MONITOR_PATH: 'models/ptc/mouseA/'
   FEATURE_NAME: 'mouseA/ptc_shapef'
-DATASET:
-  EM_PATH: 'datasets/mouseA/em_export/'
-  LABEL_PATH: 'datasets/mouseA/mito_export_unique_id/'
-  GT_PATH: 'datasets/mouseA/mito_export_allgroups/'
-  ROOTF: 'features/mouseA/'
-  ROOTD: 'datasets/mouseA/'
-  DATAINFO: 'features/mouseA/data_info.json'
+SSL:
+  BATCH_SIZE: 16
+  USE_PREP_DATASET: '/n/boslfs02/LABS/lichtman_lab/EManalysis/datasets/mouseA/sw_vae_data_64.h5'
+  OUTPUT_FOLDER: 'features/mouseA/'
+  MONITOR_PATH: 'models/cl/mouseA/'
 MODE:
   PROCESS: 'ptctrain'
 CLUSTER:
