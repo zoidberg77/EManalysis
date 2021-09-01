@@ -17,7 +17,6 @@ class CLTrainer():
 	def __init__(self, cfg):
 		self.cfg = cfg
 		self.epochs = self.cfg.SSL.EPOCHS
-		self.output_dir = self.cfg.SSL.OUTPUT_MODEL_PATH
 		self.device = 'cpu'
 		if self.cfg.SYSTEM.NUM_GPUS > 0 and torch.cuda.is_available():
 			self.device = 'cuda'
@@ -47,7 +46,7 @@ class CLTrainer():
 			self.state_model = self.cfg.SSL.STATE_MODEL
 			self.output_path = self.cfg.SSL.MODEL.rsplit('/', 1)[0]
 		else:
-			raise ValueError('No valid process. Choose \'cltrain\' or \'clinfer\'.')	
+			raise ValueError('No valid process. Choose \'cltrain\' or \'clinfer\'.')
 
 	def train(self):
 		counter = 0
@@ -68,6 +67,8 @@ class CLTrainer():
 				if not i % self.cfg.SSL.LOG_INTERVAL:
 					self.logger.update((sum(running_loss) / len(running_loss)), counter, self.lr_scheduler.get_lr(), epoch)
 				counter = counter + 1
+
+				break
 
 			self.save_checkpoint(epoch)
 

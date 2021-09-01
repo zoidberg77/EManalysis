@@ -1,5 +1,6 @@
 import os, sys
 import numpy as np
+import time
 import datetime
 from collections import OrderedDict
 import yaml
@@ -22,19 +23,26 @@ class Logger(object):
         self.log_dir = log_dir
         self.log_tb = SummaryWriter(self.log_dir)
         self.log_txt = open(os.path.join(self.log_dir, 'log.txt'), 'w')
+        self.start_time = time.time()
 
         # Addding all the parameters to certain run.
-        with open(os.path.join(log_dir, 'params.yaml'), 'w') as yfile:
+        with open(os.path.join(self.log_dir, 'params.yaml'), 'w') as yfile:
             yaml.dump(dict(cfg), yfile, default_flow_style=False)
 
     def reset(self):
         pass
 
     def update(self, loss, iter, lr, epoch=0):
+        '''update the logger file.'''
         if self.log_tb is not None:
             self.log_tb.add_scalar('Loss', loss, iter)
             self.log_tb.add_scalar('Learning Rate', lr, iter)
 
         if self.log_txt is not None:
-            self.log_txt.write('[iteration %d] train_loss=%0.4f lr=%.5f\n epoch=%d' % (iter, loss, lr, epoch))
+            self.log_txt.write('[iteration %d] train_loss=%0.4f lr=%.5f\n epoch=%d \n' % (iter, loss, lr, epoch))
             self.log_txt.flush()
+
+    def note_run_time(self, iter=0):
+        '''calling this function will note the overall running time.'''
+        with open(os.path.join(self.log_dir, 'run_time.txt'), 'w'):
+            self.run_time.write('overall run_time: %.2f [iteration %d]' % (time.time() - self.start_time), iter)

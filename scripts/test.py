@@ -50,7 +50,8 @@ def main():
     # from analyzer.data.data_vis import visptc
     # with h5py.File('datasets/human/pts.h5', 'r') as ptcf:
     #     group = ptcf.get('ptcs')
-    #     obj = np.array(group[str(1325)])
+    #     obj = np.array(group[str(17920)])
+    #     print(obj.shape)
     #     visptc(obj)
 
 if __name__ == "__main__":

@@ -19,7 +19,7 @@ PTC:
   FEATURE_NAME: 'rat/ptc_shapef'
   #MODEL: 'models/ptc/rat/run_2021-08-29/vae_ptc_model_10.pt'
 MODE:
-  PROCESS: 'ptctrain'
+  PROCESS: 'cltrain'
 CLUSTER:
   ALG: 'kmeans'
   FEAT_LIST: ['sizef', 'distf', 'circf']

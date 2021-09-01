@@ -15,13 +15,13 @@ class PairDataset():
 	def __init__(self, cfg, iter_num: int = -1):
 		self.cfg = cfg
 		self.volume, self.label = self.get_input()
-		self.chunks_path = self.cfg.DATASET.CHUNKS_PATH
+		self.chunks_path = self.cfg.SSL.USE_PREP_DATASET
 		self.sample_volume_size = (64, 64, 64)
 		self.sample_stride = (1, 1, 1)
 		self.augmentor = Augmentor(self.sample_volume_size)
 
 		# Data information if you want to produce input on the fly.
-		if self.cfg.SSL.USE_PREP_DATASET is False:
+		if not self.cfg.SSL.USE_PREP_DATASET:
 			self.volume_size = [np.array(self.volume.shape)]
 			self.sample_volume_size = np.array(self.sample_volume_size).astype(int)
 			self.sample_stride = np.array(self.sample_stride).astype(int)
@@ -33,10 +33,16 @@ class PairDataset():
 
 			self.iter_num = max(iter_num, self.sample_num_a)
 			print('Dataset chunks that will be iterated over: {}'.format(self.iter_num))
+		else:
+			pass
+
 
 	def __len__(self):
-		with h5py.File(self.chunks_path, 'r') as f:
-			return len(f['id'])
+		if not self.cfg.SSL.USE_PREP_DATASET:
+			return self.iter_num
+		else:
+			with h5py.File(self.chunks_path, 'r') as f:
+				return len(f['id'])
 
 	def __getitem__(self, idx):
 		return self.create_sample_pair(idx)
@@ -44,7 +50,7 @@ class PairDataset():
 	def create_sample_pair(self, idx):
 		'''Create a sample pair that will be used for contrastive learning.
 		'''
-		if self.cfg.SSL.USE_PREP_DATASET is False:
+		if not self.cfg.SSL.USE_PREP_DATASET:
 			sample = self.reject_sample()
 		else:
 			with h5py.File(self.chunks_path, 'r') as f:
@@ -80,8 +86,8 @@ class PairDataset():
 			vol = readvol(emfns[0])
 			label = readvol(labelfns[0])
 		else:
-			vol = None
-			label = None
+			vol = folder2Vol(chunk_size=self.cfg.DATASET.CHUNK_SIZE, fns=emfns, file_format=self.cfg.DATASET.FILE_FORMAT)
+			label = folder2Vol(chunk_size=self.cfg.DATASET.CHUNK_SIZE, fns=labelfns, file_format=self.cfg.DATASET.FILE_FORMAT)
 
 		return vol, label
 

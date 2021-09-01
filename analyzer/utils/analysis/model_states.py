@@ -8,18 +8,17 @@ import pandas as pd
 from scipy.ndimage.filters import gaussian_filter1d
 import re
 from typing import Tuple, List, Optional
-
 #
 #   This file serves as an analysis board where model states should be visualized.
 #
-
 def read_log(txt_file):
     '''reading log/txt file. Returns pandas dataframe.'''
-    df = pd.DataFrame(columns=['iteration', 'loss', 'lr'])
+    df = pd.DataFrame(columns=['iteration', 'loss', 'lr', 'epoch'])
     with open(txt_file) as f:
         lines = f.readlines()
         for idx, line in enumerate(lines):
             cols = line.split()
+            print(cols)
             content = list()
             for i, c in enumerate(cols):
                 tmp_s = re.findall('[+-]? *(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?', c)
@@ -108,4 +107,15 @@ ax[2].set_yticks([ax2_yticks[1], ax2_yticks[-2]])
 plt.show()
 
 # sb.relplot(data=human_df, x='iteration', y='loss', kind='line')
+# plt.show()
+
+# human_log = parent + '/models/ptc/human/run_2021-08-30/log_2021-08-30_19-27-58_train/log.txt'
+# human_df = read_log(human_log)
+# fig, ax = plt.subplots(1,1)
+# ax = human_df.plot(x='iteration', y='loss', ax=ax, legend=False, color='cornflowerblue')
+# ax.set(xlabel='iteration step', ylabel='training loss [ChamferDistance]')
+# ax_xticks = ax.get_xticks()
+# ax.set_xticks([0, 25, 50 ,75, 100, 125, 150])
+# ax_yticks = ax.get_yticks()
+# ax.set_yticks([ax_yticks[1], ax_yticks[-2]])
 # plt.show()

@@ -74,6 +74,11 @@ class PTCvae(nn.Module):
 			nn.Linear(self.linear_layers[1], self.linear_layers[2]), nn.ReLU(),
 			nn.Linear(self.linear_layers[2], (self.num_points * 3))
 		)
+		# self.decoder = nn.Sequential(
+		# 	nn.Linear(self.filters[4], self.linear_layers[0]), nn.ReLU(),
+		# 	nn.Linear(self.linear_layers[0], self.linear_layers[1]), nn.ReLU(),
+		# 	nn.Linear(self.linear_layers[1], (self.num_points * 3))
+		# )
 
 	def forward(self, x):
 		matrix3x3 = self.input_transform(torch.squeeze(x, 1).transpose(1, 2))

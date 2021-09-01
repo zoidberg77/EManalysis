@@ -248,6 +248,8 @@ class PtcTrainer():
 		self.vae_ptc_feature = self.cfg.PTC.FEATURE_NAME
 		self.epochs = self.cfg.PTC.EPOCHS
 		self.device = self.cfg.PTC.DEVICE
+		if self.cfg.SYSTEM.NUM_GPUS > 0 and torch.cuda.is_available():
+			self.device = 'cuda'
 
 		# Setting the outputpath for each run.
 		if self.cfg.MODE.PROCESS == 'ptctrain':
@@ -305,6 +307,7 @@ class PtcTrainer():
 			torch.save(self.model.state_dict(), os.path.join(self.output_path, 'vae_ptc_model_{}.pt'.format(epoch)))
 
 		test_loss = self.test()
+		self.logger.note_run_time(counter)
 		print('Training and Testing of the point cloud based autoencoder is done.')
 		print("train loss: {}".format(train_total_loss))
 		print("test loss: {}".format(test_loss))
