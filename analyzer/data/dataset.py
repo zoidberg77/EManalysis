@@ -451,8 +451,8 @@ class Dataloader():
         h5file = self.cfg.DATASET.ROOTD + "{}_mito_samples.h5".format(id)
         with h5py.File(h5file, "w") as f:
             counter = 0
-            chunks = f.create_dataset("chunk", (1, *self.target_size),
-                                      maxshape=(None, *self.target_size))
+            chunks = f.create_dataset("chunk", (1, 1,  *self.target_size),
+                                      maxshape=(None, 1, *self.target_size))
             ids = f.create_dataset("id", (1,), maxshape=(None,))
 
             while True:
@@ -535,7 +535,7 @@ class Dataloader():
 
         counter = 0
         with h5py.File(self.cfg.DATASET.ROOTD + "mito_samples.h5", "w") as mainf:
-            chunks = mainf.create_dataset("chunk", (size_needed, *self.target_size))
+            chunks = mainf.create_dataset("chunk", (size_needed, 1, *self.target_size))
             ids = mainf.create_dataset("id", (size_needed,))
 
             for root, dirs, files in os.walk(self.cfg.DATASET.ROOTD):
