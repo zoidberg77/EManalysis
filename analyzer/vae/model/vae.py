@@ -36,6 +36,7 @@ class Vae(pl.LightningModule):
                  init_mode: str = 'orthogonal',
                  pooling: bool = False,
                  input_shape=(64, 64, 64),
+                 lr=1e-3,
                  **kwargs):
         super().__init__()
         self.in_channel = in_channel
@@ -45,6 +46,7 @@ class Vae(pl.LightningModule):
         self.padding = 0
         self.cfg = cfg
         self.stride = 1
+        self.lr = lr
         super().__init__()
         assert len(filters) == len(isotropy)
         self.depth = len(filters)
