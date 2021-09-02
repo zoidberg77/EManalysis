@@ -17,6 +17,7 @@ from sklearn.cluster import KMeans
 from tqdm import tqdm
 
 from analyzer.data.utils.data_raw import readvol, folder2Vol
+from analyzer.utils.eval_model import Evaluationmodel
 
 
 class Dataloader():
@@ -430,6 +431,12 @@ class Dataloader():
             regions = regions[:self.region_limit]
             print("{} will be extracted due to set region_limit".format(self.region_limit))
 
+        regex = re.compile('([0-9]+)_mito_samples.h5')
+        for root, dirs, files in os.walk(self.cfg.DATASET.ROOTD):
+            for file in files:
+                if regex.match(file):
+                    os.remove(self.cfg.DATASET.ROOTD + file)
+
         in_q = multiprocessing.Queue()
         processes = []
 
@@ -525,6 +532,8 @@ class Dataloader():
         return
 
     def cleanup_h5(self):
+        eval_model = Evaluationmodel(cfg=self.cfg, dl=self)
+        gt_vector = eval_model.fast_create_gt_vector(save=True)
         regex = re.compile('([0-9]+)_mito_samples.h5')
         size_needed = 0
         for root, dirs, files in os.walk(self.cfg.DATASET.ROOTD):
@@ -534,17 +543,22 @@ class Dataloader():
                         size_needed += len(f["id"])
 
         counter = 0
+        gt_counter = 0
         with h5py.File(self.cfg.DATASET.ROOTD + "mito_samples.h5", "w") as mainf:
             chunks = mainf.create_dataset("chunk", (size_needed, 1, *self.target_size))
             ids = mainf.create_dataset("id", (size_needed,))
+            gts = mainf.create_dataset("gt", (size_needed,))
 
             for root, dirs, files in os.walk(self.cfg.DATASET.ROOTD):
                 for file in files:
                     if regex.match(file):
                         with h5py.File(self.cfg.DATASET.ROOTD + file, "r") as f:
                             for id, chunk in zip(f["id"], f["chunk"]):
+                                if counter != 0 and id != ids[-1]:
+                                    gt_counter += 1
                                 ids[counter] = id
                                 chunks[counter] = chunk
+                                gts[counter] = int(gt_vector[gt_counter])
                                 counter += 1
                         os.remove(self.cfg.DATASET.ROOTD + file)
 
