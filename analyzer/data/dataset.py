@@ -505,6 +505,7 @@ class Dataloader():
                         if len(chunks) <= counter:
                             chunks.resize((chunks.shape[0] + 1), axis=0)
                             ids.resize((ids.shape[0] + 1), axis=0)
+                        np.expand_dims(sample_padding, 0)
                         chunks[counter] = sample_padding
                         ids[counter] = region[0]
                         counter += 1
@@ -515,6 +516,7 @@ class Dataloader():
                     if len(chunks) <= counter:
                         chunks.resize((chunks.shape[0] + 1), axis=0)
                         ids.resize((ids.shape[0] + 1), axis=0)
+                    np.expand_dims(sample_padding, 0)
                     chunks[counter] = sample_padding
                     ids[counter] = region[0]
                     counter += 1
