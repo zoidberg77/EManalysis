@@ -111,6 +111,7 @@ class Vae(pl.LightningModule):
         model_init(self)
 
     def forward(self, x):
+        x = x.double()
         x = self.conv_in(x)
         down_x = [None] * (self.depth - 1)
         for i in range(self.depth - 1):
