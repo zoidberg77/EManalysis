@@ -9,13 +9,19 @@ from torch.nn import functional as F
 import pytorch_lightning as pl
 from torchvision import transforms
 
-from analyzer.vae.model.block import conv2d_norm_act, conv3d_norm_act
+from analyzer.vae.model.block import conv2d_norm_act, conv3d_norm_act, BasicBlock3d, BasicBlock3dSE
 from torch.utils.data import random_split, DataLoader
 
 from analyzer.vae.model.utils import model_init
 
 
 class Vae(pl.LightningModule):
+
+    block_dict = {
+        'residual': BasicBlock3d,
+        'residual_se': BasicBlock3dSE,
+    }
+
     def __init__(self,
                  cfg,
                  block_type='residual',

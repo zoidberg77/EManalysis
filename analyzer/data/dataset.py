@@ -66,7 +66,7 @@ class Dataloader():
         self.large_samples = cfg.AUTOENCODER.LARGE_OBJECT_SAMPLES
         self.target_size = cfg.AUTOENCODER.TARGET
         self.vae_feature = feature
-        self.mito_volume_file_name = "datasets/vae/" + "vae_data_{}.h5".format(cfg.AUTOENCODER.TARGET[0])
+        self.mito_volume_file_name = "{}mito_samples.h5".format(cfg.DATASET.ROOTD)
         self.exclude_borders = cfg.DATASET.EXCLUDE_BORDER_OBJECTS
 
     def __len__(self):
