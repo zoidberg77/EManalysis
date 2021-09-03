@@ -9,13 +9,19 @@ from torch.nn import functional as F
 import pytorch_lightning as pl
 from torchvision import transforms
 
-from analyzer.vae.model.block import conv2d_norm_act, conv3d_norm_act
+from analyzer.vae.model.block import conv2d_norm_act, conv3d_norm_act, BasicBlock3d, BasicBlock3dSE
 from torch.utils.data import random_split, DataLoader
 
 from analyzer.vae.model.utils import model_init
 
 
 class Vae(pl.LightningModule):
+
+    block_dict = {
+        'residual': BasicBlock3d,
+        'residual_se': BasicBlock3dSE,
+    }
+
     def __init__(self,
                  cfg,
                  block_type='residual',
@@ -30,6 +36,7 @@ class Vae(pl.LightningModule):
                  init_mode: str = 'orthogonal',
                  pooling: bool = False,
                  input_shape=(64, 64, 64),
+                 lr=1e-3,
                  **kwargs):
         super().__init__()
         self.in_channel = in_channel
@@ -39,6 +46,7 @@ class Vae(pl.LightningModule):
         self.padding = 0
         self.cfg = cfg
         self.stride = 1
+        self.lr = lr
         super().__init__()
         assert len(filters) == len(isotropy)
         self.depth = len(filters)
@@ -103,6 +111,7 @@ class Vae(pl.LightningModule):
         model_init(self)
 
     def forward(self, x):
+        x = x.double()
         x = self.conv_in(x)
         down_x = [None] * (self.depth - 1)
         for i in range(self.depth - 1):

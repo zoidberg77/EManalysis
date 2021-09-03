@@ -17,6 +17,7 @@ from sklearn.cluster import KMeans
 from tqdm import tqdm
 
 from analyzer.data.utils.data_raw import readvol, folder2Vol
+from analyzer.utils.eval_model import Evaluationmodel
 
 
 class Dataloader():
@@ -66,7 +67,7 @@ class Dataloader():
         self.large_samples = cfg.AUTOENCODER.LARGE_OBJECT_SAMPLES
         self.target_size = cfg.AUTOENCODER.TARGET
         self.vae_feature = feature
-        self.mito_volume_file_name = "datasets/vae/" + "vae_data_{}.h5".format(cfg.AUTOENCODER.TARGET[0])
+        self.mito_volume_file_name = "{}mito_samples.h5".format(cfg.DATASET.ROOTD)
         self.exclude_borders = cfg.DATASET.EXCLUDE_BORDER_OBJECTS
 
     def __len__(self):
@@ -430,6 +431,12 @@ class Dataloader():
             regions = regions[:self.region_limit]
             print("{} will be extracted due to set region_limit".format(self.region_limit))
 
+        regex = re.compile('([0-9]+)_mito_samples.h5')
+        for root, dirs, files in os.walk(self.cfg.DATASET.ROOTD):
+            for file in files:
+                if regex.match(file):
+                    os.remove(self.cfg.DATASET.ROOTD + file)
+
         in_q = multiprocessing.Queue()
         processes = []
 
@@ -451,8 +458,8 @@ class Dataloader():
         h5file = self.cfg.DATASET.ROOTD + "{}_mito_samples.h5".format(id)
         with h5py.File(h5file, "w") as f:
             counter = 0
-            chunks = f.create_dataset("chunk", (1, *self.target_size),
-                                      maxshape=(None, *self.target_size))
+            chunks = f.create_dataset("chunk", (1, 1,  *self.target_size),
+                                      maxshape=(None, 1, *self.target_size))
             ids = f.create_dataset("id", (1,), maxshape=(None,))
 
             while True:
@@ -505,6 +512,7 @@ class Dataloader():
                         if len(chunks) <= counter:
                             chunks.resize((chunks.shape[0] + 1), axis=0)
                             ids.resize((ids.shape[0] + 1), axis=0)
+                        np.expand_dims(sample_padding, 0)
                         chunks[counter] = sample_padding
                         ids[counter] = region[0]
                         counter += 1
@@ -515,6 +523,7 @@ class Dataloader():
                     if len(chunks) <= counter:
                         chunks.resize((chunks.shape[0] + 1), axis=0)
                         ids.resize((ids.shape[0] + 1), axis=0)
+                    np.expand_dims(sample_padding, 0)
                     chunks[counter] = sample_padding
                     ids[counter] = region[0]
                     counter += 1
@@ -523,6 +532,8 @@ class Dataloader():
         return
 
     def cleanup_h5(self):
+        eval_model = Evaluationmodel(cfg=self.cfg, dl=self)
+        gt_vector = eval_model.fast_create_gt_vector(save=True)
         regex = re.compile('([0-9]+)_mito_samples.h5')
         size_needed = 0
         for root, dirs, files in os.walk(self.cfg.DATASET.ROOTD):
@@ -532,17 +543,22 @@ class Dataloader():
                         size_needed += len(f["id"])
 
         counter = 0
+        gt_counter = 0
         with h5py.File(self.cfg.DATASET.ROOTD + "mito_samples.h5", "w") as mainf:
-            chunks = mainf.create_dataset("chunk", (size_needed, *self.target_size))
+            chunks = mainf.create_dataset("chunk", (size_needed, 1, *self.target_size))
             ids = mainf.create_dataset("id", (size_needed,))
+            gts = mainf.create_dataset("gt", (size_needed,))
 
             for root, dirs, files in os.walk(self.cfg.DATASET.ROOTD):
                 for file in files:
                     if regex.match(file):
                         with h5py.File(self.cfg.DATASET.ROOTD + file, "r") as f:
                             for id, chunk in zip(f["id"], f["chunk"]):
+                                if counter != 0 and id != ids[-1]:
+                                    gt_counter += 1
                                 ids[counter] = id
                                 chunks[counter] = chunk
+                                gts[counter] = int(gt_vector[gt_counter])
                                 counter += 1
                         os.remove(self.cfg.DATASET.ROOTD + file)
 
