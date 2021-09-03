@@ -52,7 +52,6 @@ def main():
 
 	if cfg.MODE.PROCESS == "preprocessing":
 		dl = Dataloader(cfg)
-		em, labels, gt = dl.load_chunk()
 		dl.extract_scale_mitos_samples()
 		return
 	elif cfg.MODE.PROCESS == "train":
@@ -112,7 +111,6 @@ def main():
 		return
 	elif cfg.MODE.PROCESS == "cltrain":
 		print('--- Starting the training process for the Contrastive Learning setup. --- \n')
-		#data = PairDataset(cfg)
 		trainer = CLTrainer(cfg)
 		trainer.train()
 		return

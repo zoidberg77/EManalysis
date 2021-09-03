@@ -8,23 +8,6 @@ DATASET:
   ROOTF: 'features/mouseA/'
   ROOTD: 'datasets/mouseA/'
   DATAINFO: 'features/mouseA/data_info.json'
-AUTOENCODER:
-  ARCHITECTURE: 'unet_3d'
-  REGION_LIMIT: None
-  CHUNKS_CPU: 4
-  UPPER_BOUND: 10000000
-  LOWER_BOUND: 0
-  TARGET: (64, 64, 64)
-  EPOCHS: 5
-  BATCH_SIZE: 1
-  OUTPUT_FOLDER: 'features/mouseA/'
-  FEATURES: ['shape', 'texture']
-  LATENT_SPACE: 100
-  MAX_MEAN: 0.001
-  MAX_VAR: 0.001
-  MAX_GRADIENT: 1.0
-  LOG_INTERVAL: 10
-  LARGE_OBJECT_SAMPLES: 10
 PTC:
   BATCH_SIZE: 1
   EPOCHS: 25
@@ -36,8 +19,9 @@ SSL:
   USE_PREP_DATASET: '/n/boslfs02/LABS/lichtman_lab/EManalysis/datasets/mouseA/sw_vae_data_64.h5'
   OUTPUT_FOLDER: 'features/mouseA/'
   MONITOR_PATH: 'models/cl/mouseA/'
+  USE_PREP_DATASET: 'datasets/mouseA/mito_samples.h5'
 MODE:
-  PROCESS: 'ptctrain'
+  PROCESS: 'cltrain'
 CLUSTER:
   ALG: 'kmeans'
   FEAT_LIST: ['sizef', 'distf', 'circf', 'shapef', 'texturef']

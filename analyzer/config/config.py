@@ -64,7 +64,6 @@ _C.PTC.MODEL = '' # models/ptc/human/run_2021-08-29/vae_ptc_model_10.pt
 _C.SSL = CN()
 _C.SSL.MODEL = 'siamnet'
 _C.SSL.ENCODER = 'resnet3d'
-#_C.SSL.OUTPUT_MODEL_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'datasets/cl/')
 _C.SSL.BATCH_SIZE = 256
 _C.SSL.EPOCHS = 25
 _C.SSL.ITERATION_SAVE = 5000
