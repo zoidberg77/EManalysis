@@ -413,23 +413,10 @@ class Dataloader():
         '''
         Function to extract the objects as volumes and scale them. Then its saves the scaled volumes to an h5 file.
         '''
-        if os.path.exists(os.path.join(self.cfg.SYSTEM.ROOT_DIR, self.cfg.DATASET.DATAINFO)) \
-                and os.stat(os.path.join(self.cfg.SYSTEM.ROOT_DIR, self.cfg.DATASET.DATAINFO)).st_size != 0:
-            with open(os.path.join(self.cfg.SYSTEM.ROOT_DIR, self.cfg.DATASET.DATAINFO), 'r') as f:
-                regions = json.loads(f.read())
-        else:
-            regions = self.prep_data_info(save=True)
+        regions = self.prep_data_info(save=True)
+        regions = pd.DataFrame(regions).values.tolist()
 
         print("{} objects found in the ground truth".format(len(regions)))
-
-        regions = pd.DataFrame(regions)
-        regions = regions[(self.upper_limit > regions['size']) & (self.lower_limit < regions['size']) & (
-                len(regions['slices']) > 1)].values.tolist()
-        filtered_length = len(regions)
-        print("{} within limits {} and {}".format(filtered_length, self.lower_limit, self.upper_limit))
-        if self.region_limit is not None:
-            regions = regions[:self.region_limit]
-            print("{} will be extracted due to set region_limit".format(self.region_limit))
 
         regex = re.compile('([0-9]+)_mito_samples.h5')
         for root, dirs, files in os.walk(self.cfg.DATASET.ROOTD):
@@ -467,10 +454,9 @@ class Dataloader():
                     break
                 region = in_q.get(timeout=10)
                 gt_volume, em_volume = self.get_volumes_from_slices(region)
+
                 mito_regions = regionprops(gt_volume, cache=False)
                 if len(mito_regions) != 1:
-                    print("something went wrong during volume building. region count: {}".format(len(mito_regions)))
-                    print(region)
                     continue
                 mito_region = mito_regions[0]
                 texture = None
@@ -529,11 +515,12 @@ class Dataloader():
                     counter += 1
 
                 pbar.update()
+                return
         return
 
     def cleanup_h5(self):
         eval_model = Evaluationmodel(cfg=self.cfg, dl=self)
-        gt_vector = eval_model.fast_create_gt_vector(save=True)
+
         regex = re.compile('([0-9]+)_mito_samples.h5')
         size_needed = 0
         for root, dirs, files in os.walk(self.cfg.DATASET.ROOTD):
@@ -543,7 +530,6 @@ class Dataloader():
                         size_needed += len(f["id"])
 
         counter = 0
-        gt_counter = 0
         with h5py.File(self.cfg.DATASET.ROOTD + "mito_samples.h5", "w") as mainf:
             chunks = mainf.create_dataset("chunk", (size_needed, 1, *self.target_size))
             ids = mainf.create_dataset("id", (size_needed,))
@@ -554,12 +540,18 @@ class Dataloader():
                     if regex.match(file):
                         with h5py.File(self.cfg.DATASET.ROOTD + file, "r") as f:
                             for id, chunk in zip(f["id"], f["chunk"]):
-                                if counter != 0 and id != ids[-1]:
-                                    gt_counter += 1
                                 ids[counter] = id
                                 chunks[counter] = chunk
-                                gts[counter] = int(gt_vector[gt_counter])
                                 counter += 1
                         os.remove(self.cfg.DATASET.ROOTD + file)
+
+            gt_vector = eval_model.fast_create_gt_vector(save=True)
+            gt_lookup = {}
+            sort_ids = sorted(list(ids))
+            for i, id in enumerate(sort_ids):
+                gt_lookup[str(id)] = gt_vector[i]
+
+            for i, id in enumerate(ids):
+                gts[i] = gt_lookup[str(id)]
 
             print("samples collected: {}".format(len(mainf["id"])))
