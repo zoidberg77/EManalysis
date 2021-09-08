@@ -414,7 +414,7 @@ class Dataloader():
         Function to extract the objects as volumes and scale them. Then its saves the scaled volumes to an h5 file.
         '''
         regions = self.prep_data_info(save=True)
-        regions = pd.DataFrame(regions).values.tolist()
+        regions = pd.DataFrame(regions).values.tolist()[:10]
 
         print("{} objects found in the ground truth".format(len(regions)))
 
@@ -515,7 +515,6 @@ class Dataloader():
                     counter += 1
 
                 pbar.update()
-                return
         return
 
     def cleanup_h5(self):
