@@ -34,7 +34,6 @@ AUTOENCODER:
   TARGET: (64, 64, 64)
   EPOCHS: 5
   BATCH_SIZE: 2
-  OUTPUT_FOLDER: 'features/human/'
   FEATURES: ['shape', 'texture']
   LATENT_SPACE: 100
   MAX_MEAN: 0.001
