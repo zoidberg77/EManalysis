@@ -50,13 +50,13 @@ class CLTrainer():
 			raise ValueError('No valid process. Choose \'cltrain\' or \'clinfer\'.')
 
 	def train(self):
+		self.model.train()
 		counter = 0
 		running_loss = list()
 		self.logger = build_monitor(self.cfg, self.output_path, 'train')
-		for epoch in range(0, self.epochs):
-			self.model.train()
-			for idx, ((x1, x2), labels) in enumerate(self.train_dl):
 
+		for epoch in range(0, self.epochs):
+			for idx, ((x1, x2), labels) in enumerate(self.train_dl):
 				self.model.zero_grad()
 				z1, p1, z2, p2 = self.model.forward(x1.to(self.device, non_blocking=True), x2.to(self.device, non_blocking=True))
 				loss = similarity_func(p1, z2) / 2 + similarity_func(p2, z1) / 2
