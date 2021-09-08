@@ -183,7 +183,7 @@ class Evaluationmodel():
 
 	def fast_create_gt_vector(self, fn='gt_vector.json', save=True):
 		if os.path.exists(os.path.join(self.cfg.DATASET.ROOTF, fn)) \
-				and os.stat(os.path.join(self.cfg.DATASET.ROOTF, fn)).st_size != 0:
+				and os.stat(os.path.join(self.cfg.DATASET.ROOTF, fn)).st_size != 0 and save:
 			with open(os.path.join(self.cfg.DATASET.ROOTF, fn), 'r') as f:
 				gt_vector = np.array(json.loads(f.read()))
 		else:
