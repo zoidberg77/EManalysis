@@ -19,7 +19,7 @@ SSL:
   USE_PREP_DATASET: '/n/boslfs02/LABS/lichtman_lab/EManalysis/datasets/mouseA/sw_vae_data_64.h5'
   OUTPUT_FOLDER: 'features/mouseA/'
   MONITOR_PATH: 'models/cl/mouseA/'
-  USE_PREP_DATASET: 'datasets/mouseA/mito_samples.h5'
+  USE_PREP_DATASET: 'datasets/mouseA/1_mito_samples.h5'
 MODE:
   PROCESS: 'cltrain'
 CLUSTER:

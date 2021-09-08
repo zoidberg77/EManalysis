@@ -19,7 +19,8 @@ class SiameseNet(nn.Module):
 
 	def forward(self, x1, x2):
 		h1, h2 = self.encoder(x1), self.encoder(x2)
-		z1, z2 = self.projector(torch.squeeze(h1, 1)), self.projector(torch.squeeze(h2, 1))
+		#z1, z2 = self.projector(torch.squeeze(h1)), self.projector(torch.squeeze(h2))
+		z1, z2 = self.projector(h1.view(h1.shape[0], h1.shape[1])), self.projector(h2.view(h2.shape[0], h2.shape[1]))
 		p1, p2 = self.predictor(z1), self.predictor(z2)
 
 		return z1, p1, z2, p2

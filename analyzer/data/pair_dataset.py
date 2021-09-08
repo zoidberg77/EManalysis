@@ -51,6 +51,7 @@ class PairDataset():
 			sample = self.reject_sample()
 		else:
 			with h5py.File(self.chunks_path, 'r') as f:
+				print(list(f['id']))
 				sample = f['chunk'][idx]
 				label = int(f['id'][idx])
 		sample_pair = self.augmentor(sample)
