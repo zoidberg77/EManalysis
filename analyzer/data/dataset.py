@@ -426,9 +426,6 @@ class Dataloader():
         in_q = multiprocessing.Queue()
         processes = []
 
-        eval_model = Evaluationmodel(cfg=self.cfg, dl=self)
-        gt_vector = eval_model.fast_create_gt_vector(save=False)
-
         for region in regions:
             in_q.put(region)
         pbar = tqdm(total=len(regions))
