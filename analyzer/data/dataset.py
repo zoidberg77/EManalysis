@@ -434,13 +434,14 @@ class Dataloader():
             p.start()
             processes.append(p)
 
+        progress = 0
         while not in_q.empty():
+            progress = len(regions)-in_q.qsize()-progress
             time.sleep(30)
-            pbar.update(len(regions)-in_q.qsize())
+            pbar.update(progress)
         for p in processes:
             p.join()
 
-        pbar.update(len(regions))
         self.cleanup_h5()
         return
 
