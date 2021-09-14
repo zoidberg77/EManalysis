@@ -414,7 +414,6 @@ class Dataloader():
         Function to extract the objects as volumes and scale them. Then its saves the scaled volumes to an h5 file.
         '''
         regions = self.prep_data_info(save=True)
-        regions = pd.DataFrame(regions).values.tolist()
 
         print("{} objects found in the ground truth".format(len(regions)))
 
@@ -426,6 +425,9 @@ class Dataloader():
 
         in_q = multiprocessing.Queue()
         processes = []
+
+        eval_model = Evaluationmodel(cfg=self.cfg, dl=self)
+        gt_vector = eval_model.fast_create_gt_vector(save=False)
 
         for region in regions:
             in_q.put(region)
