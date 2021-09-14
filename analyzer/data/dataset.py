@@ -391,8 +391,8 @@ class Dataloader():
         gt_all_fn = sorted(glob.glob(self.labelpath + '*.' + self.ff))
         em_all_fn = sorted(glob.glob(self.volpath + '*.' + self.ff))
 
-        gt_fns = [gt_all_fn[id] for id in region[2]]
-        em_fns = [em_all_fn[id] for id in region[2]]
+        gt_fns = [gt_all_fn[id] for id in region["slices"]]
+        em_fns = [em_all_fn[id] for id in region["slices"]]
 
         gt_volume = []
         em_volume = []
@@ -401,8 +401,8 @@ class Dataloader():
             gt_slice = imageio.imread(gt_fns[i])
             em_slice = imageio.imread(em_fns[i])
 
-            gt_slice[gt_slice != region[0]] = 0
-            em_slice[gt_slice != region[0]] = 0
+            gt_slice[gt_slice != region["id"]] = 0
+            em_slice[gt_slice != region["id"]] = 0
 
             gt_volume.append(gt_slice)
             em_volume.append(em_slice)
@@ -414,6 +414,8 @@ class Dataloader():
         Function to extract the objects as volumes and scale them. Then its saves the scaled volumes to an h5 file.
         '''
         regions = self.prep_data_info(save=True)
+        print(regions)
+        exit()
 
         print("{} objects found in the ground truth".format(len(regions)))
 
