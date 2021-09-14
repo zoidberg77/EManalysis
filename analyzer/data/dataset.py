@@ -499,7 +499,7 @@ class Dataloader():
                             ids.resize((ids.shape[0] + 1), axis=0)
                         np.expand_dims(sample_padding, 0)
                         chunks[counter] = sample_padding
-                        ids[counter] = region[0]
+                        ids[counter] = region["id"]
                         counter += 1
 
                 else:
@@ -510,7 +510,7 @@ class Dataloader():
                         ids.resize((ids.shape[0] + 1), axis=0)
                     np.expand_dims(sample_padding, 0)
                     chunks[counter] = sample_padding
-                    ids[counter] = region[0]
+                    ids[counter] = region["id"]
                     counter += 1
 
                 pbar.update()
