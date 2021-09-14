@@ -430,9 +430,13 @@ class Dataloader():
             in_q.put(region)
         pbar = tqdm(total=len(regions))
         for cpu in range(self.cpus):
-            p = multiprocessing.Process(target=self.get_mito_chunk, args=(in_q, cpu, pbar))
+            p = multiprocessing.Process(target=self.get_mito_chunk, args=(in_q, cpu))
             p.start()
             processes.append(p)
+
+        while not in_q.empty():
+            time.sleep(30)
+            pbar.update(len(regions)-in_q.qsize())
         for p in processes:
             p.join()
 
@@ -440,7 +444,7 @@ class Dataloader():
         self.cleanup_h5()
         return
 
-    def get_mito_chunk(self, in_q, id, pbar):
+    def get_mito_chunk(self, in_q, id):
         h5file = self.cfg.DATASET.ROOTD + "{}_mito_samples.h5".format(id)
         with h5py.File(h5file, "w") as f:
             counter = 0
@@ -513,7 +517,6 @@ class Dataloader():
                     ids[counter] = region["id"]
                     counter += 1
 
-                pbar.update()
         return
 
     def cleanup_h5(self):
