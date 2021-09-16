@@ -17,9 +17,9 @@ PTC:
   #INPUT_DATA_SAMPLED: 'datasets/rat/mc_pts.h5'
   MONITOR_PATH: 'models/ptc/human/'
   FEATURE_NAME: 'human/ptc_shapef'
-  MODEL: 'models/ptc/human/run_2021-08-29/vae_ptc_model_16.pt'
+  MODEL: 'models/ptc/human/run_2021-08-31/vae_ptc_model_60.pt'
 MODE:
-  PROCESS: 'ptctrain'
+  PROCESS: 'ptcinfer'
 CLUSTER:
   ALG: 'kmeans'
   FEAT_LIST: ['sizef', 'distf', 'circf', 'shapef', 'texturef']

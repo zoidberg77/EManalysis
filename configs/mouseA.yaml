@@ -8,27 +8,6 @@ DATASET:
   ROOTF: 'features/mouseA/'
   ROOTD: 'datasets/mouseA/'
   DATAINFO: 'features/mouseA/data_info.json'
-PTC:
-  BATCH_SIZE: 1
-  EPOCHS: 25
-  INPUT_DATA: 'datasets/mouseA/pts.h5'
-  MONITOR_PATH: 'models/ptc/mouseA/'
-  FEATURE_NAME: 'mouseA/ptc_shapef'
-SSL:
-  BATCH_SIZE: 16
-  USE_PREP_DATASET: '/n/boslfs02/LABS/lichtman_lab/EManalysis/datasets/mouseA/sw_vae_data_64.h5'
-  OUTPUT_FOLDER: 'features/mouseA/'
-  MONITOR_PATH: 'models/cl/mouseA/'
-  USE_PREP_DATASET: 'datasets/mouseA/1_mito_samples.h5'
-MODE:
-  PROCESS: 'cltrain'
-CLUSTER:
-  ALG: 'kmeans'
-  FEAT_LIST: ['sizef', 'distf', 'circf', 'shapef', 'texturef']
-  WEIGHTSF: [1, 1, 1, 1, 1]
-  N_CLUSTER: 5
-  OUTPUTPATH: 'outputs/mouseA/'
-  GENERATE_MASKS: True
 AUTOENCODER:
   ARCHITECTURE: 'unet_3d'
   TARGET: (64, 64, 64)
@@ -41,3 +20,25 @@ AUTOENCODER:
   MAX_GRADIENT: 1.0
   LOG_INTERVAL: 10
   LARGE_OBJECT_SAMPLES: 2
+PTC:
+  BATCH_SIZE: 1
+  EPOCHS: 25
+  INPUT_DATA: 'datasets/mouseA/pts.h5'
+  MONITOR_PATH: 'models/ptc/mouseA/'
+  FEATURE_NAME: 'mouseA/ptc_shapef'
+SSL:
+  BATCH_SIZE: 16
+  USE_PREP_DATASET: '/n/boslfs02/LABS/lichtman_lab/EManalysis/datasets/mouseA/sw_vae_data_64.h5'
+  OUTPUT_FOLDER: 'features/mouseA/'
+  MONITOR_PATH: 'models/cl/mouseA/'
+  USE_PREP_DATASET: 'datasets/mouseA/mito_samples.h5'
+  STATE_MODEL: 'models/cl/mouseA/run_2021-09-07/cl_model_3.pt'
+MODE:
+  PROCESS: 'cltest'
+CLUSTER:
+  ALG: 'kmeans'
+  FEAT_LIST: ['sizef', 'distf', 'circf', 'shapef', 'texturef']
+  WEIGHTSF: [1, 1, 1, 1, 1]
+  N_CLUSTER: 5
+  OUTPUTPATH: 'outputs/mouseA/'
+  GENERATE_MASKS: True

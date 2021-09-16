@@ -32,7 +32,8 @@ _C.AUTOENCODER.MAX_VAR = 0.001
 _C.AUTOENCODER.MAX_GRADIENT = 1.0
 _C.AUTOENCODER.FEATURES = ['shape', 'texture']
 _C.AUTOENCODER.LARGE_OBJECT_SAMPLES = 4
-
+_C.AUTOENCODER.MONITOR_PATH = 'models/vae/'
+_C.AUTOENCODER.MODEL = '' # models/vae/human/run_2021-08-29/vae_ptc_model_10.pt
 # -----------------------------------------------------------------------------
 # PointCloud based Learning
 # -----------------------------------------------------------------------------
@@ -99,7 +100,7 @@ _C.DATASET.EXCLUDE_BORDER_OBJECTS = True
 _C.MODE = CN()
 # Choose between 'infer' and 'train'. Set to train in order to 'train' the autoencoder.
 # Set to 'infer' to use the features and cluster.
-_C.MODE.PROCESS = 'infer'
+_C.MODE.PROCESS = ''
 # Choose between 'iter' and 'full'. Dataprocessing decides how the data is processed.
 # 'iter' iterates over the data slice by slice in order to avoid memory erros.
 # 'full' enables to read in the full stack of your data.

@@ -32,14 +32,20 @@ class Logger(object):
     def reset(self):
         pass
 
-    def update(self, loss, iter, lr, epoch=0):
+    def update(self, loss, iter, lr, epoch=0, acc=0.0, recon_loss=0.0, kld_loss=0.0):
         '''update the logger file.'''
         if self.log_tb is not None:
             self.log_tb.add_scalar('Loss', loss, iter)
             self.log_tb.add_scalar('Learning Rate', lr, iter)
 
         if self.log_txt is not None:
-            self.log_txt.write('[iteration %d] train_loss=%0.4f lr=%.5f\n epoch=%d \n' % (iter, loss, lr, epoch))
+            if acc != 0.0:
+                self.log_txt.write('accuracy %d \n' % (acc))
+            elif recon_loss != 0.0 and kld_loss != 0.0:
+                self.log_txt.write('[iteration %d] train_loss=%0.4f recon_loss=%0.4f kld_loss= %0.4f lr=%.5f\n epoch=%d \n' \
+                % (iter, loss, recon_loss, kld_loss, lr, epoch))
+            else:
+                self.log_txt.write('[iteration %d] train_loss=%0.4f lr=%.5f\n epoch=%d \n' % (iter, loss, lr, epoch))
             self.log_txt.flush()
 
     def note_run_time(self, iter=0):
