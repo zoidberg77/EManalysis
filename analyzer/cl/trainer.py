@@ -81,7 +81,7 @@ class CLTrainer():
         running_loss = list()
         self.logger = build_monitor(self.cfg, self.output_path, 'test')
 
-        acc = knn_classifier(self.model.encoder, self.train_dl, self.test_dl, self.device, classes)
+        acc = knn_classifier(self.model.encoder, self.train_dl, self.test_dl, self.device, classes, 8)
 
     def save_checkpoint(self, idx: int):
         '''Save the model at certain checkpoints.'''
