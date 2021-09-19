@@ -8,6 +8,7 @@ import yaml
 import torch
 import torch.nn as nn
 from torch.utils.tensorboard import SummaryWriter
+from pytorch_lightning import loggers as pl_loggers
 
 def build_monitor(cfg, output_path, mode='train'):
     '''building a tensorboard monitor for pytorch models.'''

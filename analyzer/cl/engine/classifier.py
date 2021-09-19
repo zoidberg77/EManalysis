@@ -22,9 +22,9 @@ def knn_classifier(model, feat_data_loader, test_data_loader, device, classes, k
         if unique_labels.size(0) != classes:
             raise ValueError('labels do not match the number of classes.')
         else:
-        for i in range(unique_labels.size(0)):
-            label = unique_labels[i].item()
-            gt_labels_set = torch.where(gt_labels_set == label, i, gt_labels_set)
+            for i in range(unique_labels.size(0)):
+                label = unique_labels[i].item()
+                gt_labels_set = torch.where(gt_labels_set == label, i, gt_labels_set)
 
         for idx, (sample, _, gt_labels) in enumerate(test_data_loader):
             for i in range(unique_labels.size(0)):
