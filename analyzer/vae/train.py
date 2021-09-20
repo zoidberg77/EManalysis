@@ -55,7 +55,7 @@ class Trainer:
             self.state_model = self.cfg.AUTOENCODER.MODEL
             self.output_path = self.cfg.AUTOENCODER.MODEL.rsplit('/', 1)[0]
         else:
-            raise ValueError('No valid process. Choose \'ptctrain\' or \'ptcinfer\'.')
+            raise ValueError('No valid process. Choose \'train\' or \'infer\'.')
 
     def train(self):
         self.model.train()
@@ -107,24 +107,9 @@ class Trainer:
             print("Epoch {}: Train kld loss: {}".format(self.current_epoch, train_kld_loss))
             print("Epoch {}: Train total loss: {} \n".format(self.current_epoch, train_total_loss))
 
-            plt.clf()
-            plt.axis("on")
-            # plt.legend(["total loss", "reconstruction loss", "kld loss"])
-            # plt.plot(running_total_loss)
-            plt.plot(running_reconstruction_loss)
-            # plt.plot(running_kld_loss)
-            plt.ylabel("train reconstruction_loss")
-            plt.xlabel("# iterations")
-            # plt.yscale("log")
-            plt.ylim(0, 1)
-            plt.title("Train Loss in Epoch {}/{} ".format(self.current_epoch, self.epochs))
-            plt.savefig(
-                "datasets/vae/evaluation/{}/train_loss_curve_{}.png".format(self.vae_feature, self.current_epoch))
-
             test_loss = self.test()
 
-            torch.save(self.model.state_dict(),
-                       "datasets/vae/vae_{}_model.pt".format(self.vae_feature))
+            torch.save(self.model.state_dict(), os.path.join(self.output_path, 'vae_{}_model.pt'.format(epoch)))
 
         return train_total_loss, test_loss
 
@@ -168,19 +153,6 @@ class Trainer:
             print("Epoch {}: Test kld loss: {}".format(self.current_epoch, test_kld_loss))
             print("Epoch {}: Test total loss: {} \n".format(self.current_epoch, test_total_loss))
 
-            plt.clf()
-            plt.axis("on")
-            # plt.legend(["total loss", "reconstruction loss", "kld loss"])
-            # plt.plot(running_total_loss)
-            plt.plot(running_reconstruction_loss)
-            # plt.plot(running_kld_loss)
-            plt.ylabel("test reconstruction_loss")
-            plt.xlabel("# iterations")
-            # plt.yscale("log")
-            plt.ylim(0, 1)
-            plt.title("Test Loss over in Epoch {}/{} ".format(self.current_epoch, self.epochs))
-            plt.savefig(
-                "datasets/vae/evaluation/{}/test_loss_curve_{}.png".format(self.vae_feature, self.current_epoch))
             return test_total_loss
 
     def save_images(self, inputs, reconstructions, iteration, epoch, prefix):
@@ -198,8 +170,6 @@ class Trainer:
                     reconstruction_image = np.concatenate(
                         (reconstruction_image, reconstruction_item[j].detach().cpu().numpy()), 0)
 
-            # reconstruction_image -= reconstruction_image.min()
-            # reconstruction_image /= reconstruction_image.max()
             evaluation_image = np.concatenate((original_image, reconstruction_image), 1)
 
             plt.axis('off')
