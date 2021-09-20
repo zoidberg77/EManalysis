@@ -436,9 +436,11 @@ class Dataloader():
 
         progress = 0
         while not in_q.empty():
-            progress = len(regions)-in_q.qsize()-progress
+            progress_step = len(regions)-in_q.qsize()
+            if progress != progress_step:
+                pbar.update(progress_step-progress)
+                progress = progress_step
             time.sleep(30)
-            pbar.update(progress)
         for p in processes:
             p.join()
 
@@ -549,7 +551,7 @@ class Dataloader():
 
             gt_vector = eval_model.fast_create_gt_vector(save=False)
             gt_lookup = {}
-            sort_ids = sorted(list(ids))
+            sort_ids = sorted(list(set(ids)))
             for i, id in enumerate(sort_ids):
                 gt_lookup[str(id)] = gt_vector[i]
 
