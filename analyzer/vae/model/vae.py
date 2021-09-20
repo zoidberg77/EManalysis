@@ -141,6 +141,8 @@ class Vae(pl.LightningModule):
     def step(self, batch, batch_idx):
         reconstruction, mu, log_var = self.forward(batch)
         loss, recon_loss, kld_loss = self.loss(reconstruction, batch, mu, log_var)
+        self.log("recon_loss", recon_loss.item(), prog_bar=True)
+        self.log("kld_loss", kld_loss.item(), prog_bar=True)
         return loss, {"loss": loss}
 
     def training_step(self, batch, batch_idx):
