@@ -143,17 +143,17 @@ class Vae(pl.LightningModule):
         loss, recon_loss, kld_loss = self.loss(reconstruction, batch, mu, log_var)
         self.log("recon_loss", recon_loss.item(), prog_bar=True)
         self.log("kld_loss", kld_loss.item(), prog_bar=True)
-        return loss, {"loss": loss}
+        return loss, {"loss": loss}, reconstruction
 
     def training_step(self, batch, batch_idx):
         raw_x, y = batch
-        loss, logs = self.step(raw_x, batch_idx)
+        loss, logs, reconstruction = self.step(raw_x, batch_idx)
         self.log_dict({f"train_{k}": v for k, v in logs.items()}, on_step=True, on_epoch=False)
         return loss
 
     def validation_step(self, batch, batch_idx):
         raw_x, y = batch
-        loss, logs = self.step(raw_x, batch_idx)
+        loss, logs, reconstruction = self.step(raw_x, batch_idx)
         self.log_dict({f"val_{k}": v for k, v in logs.items()})
         return loss
 
@@ -171,7 +171,14 @@ class Vae(pl.LightningModule):
         return loss, recons_loss, kld_loss
 
     def test_step(self, batch, batch_idx):
-        pass
+        raw_x, y = batch
+        loss, logs, reconstruction = self.step(raw_x, batch_idx)
+        self.log_dict({f"train_{k}": v for k, v in logs.items()}, on_step=True, on_epoch=False)
+        with h5py.File(self.cfg.DATASET.ROOTD + "mito_samples.h5", "a") as mainf:
+            print(reconstruction.shape)
+            mainf["pred"][y] = reconstruction
+
+        return loss
 
     def _upsample_add(self, x, y):
         """Upsample and add two feature maps.
