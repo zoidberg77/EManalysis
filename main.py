@@ -58,13 +58,25 @@ def main():
         print('--- Starting the training process for the vae --- \n')
         vae_model = Vae(cfg).double()
         vae_dataset = Dataloader(cfg)
-        trainer = pl.Trainer(default_root_dir='datasets/vae/checkpoints', max_epochs=cfg.AUTOENCODER.EPOCHS,
+        trainer = pl.Trainer(default_root_dir=cfg.DATASET.ROOTD, max_epochs=cfg.AUTOENCODER.EPOCHS,
                              gpus=cfg.SYSTEM.NUM_GPUS)
         vae_datamodule = VaeDataModule(cfg=cfg, dataset=vae_dataset)
         trainer.fit(vae_model, vae_datamodule)
+        trainer.save_checkpoint(cfg.DATASET.ROOTD+"vae.ckpt")
         return
     elif cfg.MODE.PROCESS == "infer":
         print('--- Starting the inference for the features of the vae. --- \n')
+        with h5py.File(cfg.DATASET.ROOTD + "mito_samples.h5", "a") as mainf:
+            size_needed = len(mainf["id"])
+            mainf.create_dataset("pred", (size_needed,cfg.AUTOENCODER.LATENT_SPACE))
+
+        vae_model = Vae(cfg).double()
+        vae_model.load_from_checkpoint(checkpoint_path=cfg.DATASET.ROOTD+"vae.ckpt")
+        vae_dataset = Dataloader(cfg)
+        trainer = pl.Trainer(default_root_dir='datasets/vae/checkpoints', max_epochs=cfg.AUTOENCODER.EPOCHS,
+                             gpus=cfg.SYSTEM.NUM_GPUS)
+        vae_datamodule = VaeDataModule(cfg=cfg, dataset=vae_dataset)
+        trainer.test(vae_model, vae_datamodule)
         return
     elif cfg.MODE.PROCESS == "ptcprep":
         dl = Dataloader(cfg)
