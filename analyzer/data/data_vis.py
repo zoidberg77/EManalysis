@@ -144,6 +144,10 @@ def plot_cube(cube, img_dim=129, angle=320):
 	ax.voxels(x, y, z, filled, facecolors=facecolors, shade=False)
 	plt.show()
 
+def single_img_vis(img):
+	plt.imshow(img, cmap = plt.cm.gray)
+	plt.show()
+
 ### HELPER SECTION ###
 def zero_to_nan(values):
 	"""Replace every 0 with 'nan' and return a copy."""

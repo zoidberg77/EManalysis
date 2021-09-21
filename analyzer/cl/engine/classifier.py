@@ -1,7 +1,7 @@
 import torch
 import torch.nn.functional as F
 
-def knn_classifier(model, feat_data_loader, test_data_loader, device, classes, k_knn=200, t_knn=0.1):
+def knn_classifier(model, feat_data_loader, test_data_loader, device, k_knn=200, t_knn=0.1):
     '''kNN classifier as a monitor of progress by computing accuracy.'''
     model.eval()
     model.to(device)
@@ -18,6 +18,7 @@ def knn_classifier(model, feat_data_loader, test_data_loader, device, classes, k
         gt_labels_set = torch.cat(gt_labels_set, dim=0).contiguous()
 
         unique_labels = torch.unique(gt_labels_set)
+        classes = unique_labels.size(0)
 
         if unique_labels.size(0) != classes:
             raise ValueError('labels do not match the number of classes.')

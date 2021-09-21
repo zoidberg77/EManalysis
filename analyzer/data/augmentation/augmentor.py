@@ -5,6 +5,7 @@ from analyzer.data.augmentation.rotation import Rotate
 from analyzer.data.augmentation.color_jitter import ColorJitter
 from analyzer.data.augmentation.flip import Flip
 from analyzer.data.augmentation.cutblur import CutBlur
+from analyzer.data.augmentation.gaussian_blur import GaussianBlur
 from analyzer.data import PtcDataset
 
 class Augmentor():
@@ -26,8 +27,9 @@ class Augmentor():
     def define_augmentation_op(self):
         aug_list = list()
         aug_list.append(Rotate(rot90=True, p=1.0))
-        aug_list.append(ColorJitter((0, 0.4), (0, 0.4), (0, 0.4), (0, 0.1)))
+        # aug_list.append(ColorJitter((0, 0.4), (0, 0.4), (0, 0.4), (0, 0.1)))
         aug_list.append(Flip(do_ztrans=0))
+        aug_list.append(GaussianBlur())
         return aug_list
 
 class PTCAugmentor():
@@ -56,10 +58,5 @@ class PTCAugmentor():
                                     [-sinval, 0, cosval]])
 
         rotated_data = np.dot(single_ptc.reshape((-1, 3)), rotation_matrix)
-        # visptc(rotated_data)
-        # visptc(single_ptc.reshape((-1, 3)))
-        # rotated_data = rotated_data[None, :, :]
-        # print(rotated_data)
-        # print(rotated_data.shape)
 
         return rotated_data

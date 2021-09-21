@@ -28,7 +28,6 @@ PTC:
   FEATURE_NAME: 'mouseA/ptc_shapef'
 SSL:
   BATCH_SIZE: 16
-  USE_PREP_DATASET: '/n/boslfs02/LABS/lichtman_lab/EManalysis/datasets/mouseA/sw_vae_data_64.h5'
   OUTPUT_FOLDER: 'features/mouseA/'
   MONITOR_PATH: 'models/cl/mouseA/'
   USE_PREP_DATASET: 'datasets/mouseA/mito_samples.h5'

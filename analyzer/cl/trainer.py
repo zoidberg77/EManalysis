@@ -73,7 +73,7 @@ class CLTrainer():
 
             self.save_checkpoint(epoch)
 
-    def test(self, classes=5):
+    def test(self):
         if self.cfg.SSL.STATE_MODEL:
             print('cl model {} loaded and used for testing.'.format(self.cfg.SSL.STATE_MODEL))
             self.model.load_state_dict(torch.load(self.cfg.SSL.STATE_MODEL))
@@ -81,7 +81,8 @@ class CLTrainer():
         running_loss = list()
         self.logger = build_monitor(self.cfg, self.output_path, 'test')
 
-        acc = knn_classifier(self.model.encoder, self.train_dl, self.test_dl, self.device, classes, 8)
+        acc = knn_classifier(self.model.encoder, self.train_dl, self.test_dl, self.device, k_knn=5)
+        self.logger.update(0, 0, 0, 0, acc=acc)
 
     def save_checkpoint(self, idx: int):
         '''Save the model at certain checkpoints.'''
@@ -91,7 +92,6 @@ class CLTrainer():
         # 		 'lr_scheduler': self.lr_scheduler.state_dict()}
 
         state = self.model.state_dict()
-        #filename = 'checkpoint_%05d.pth.tar' % (idx + 1)
         filename = 'cl_model_{}.pt'.format(idx)
         filename = os.path.join(self.output_path, filename)
         torch.save(state, filename)

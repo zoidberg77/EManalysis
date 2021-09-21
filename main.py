@@ -117,7 +117,7 @@ def main():
     elif cfg.MODE.PROCESS == "cltest":
         print('--- Starting the testing process for the contrastive learning setup. --- \n')
         trainer = CLTrainer(cfg)
-        trainer.test(classes=13)
+        trainer.test()
     elif cfg.MODE.PROCESS == "clinfer":
         print('--- Extracting the features using the Contrastive Learning model. --- \n')
         trainer = CLTrainer(cfg)

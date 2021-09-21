@@ -41,7 +41,7 @@ class Logger(object):
 
         if self.log_txt is not None:
             if acc != 0.0:
-                self.log_txt.write('accuracy %d \n' % (acc))
+                self.log_txt.write('accuracy %.4f \n' % (acc))
             elif recon_loss != 0.0 and kld_loss != 0.0:
                 self.log_txt.write('[iteration %d] train_loss=%0.4f recon_loss=%0.4f kld_loss= %0.4f lr=%.5f\n epoch=%d \n' \
                 % (iter, loss, recon_loss, kld_loss, lr, epoch))
