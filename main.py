@@ -1,19 +1,20 @@
 import argparse
 import sys
 from glob import glob
-import h5py
-import torch
-import pytorch_lightning as pl
 
-from analyzer.config import get_cfg_defaults
-from analyzer.data import Dataloader, PtcDataset, PairDataset
-from analyzer.model.build_model import Clustermodel
-from analyzer.utils.eval_model import Evaluationmodel
-from analyzer.vae import train
-from analyzer.vae.model.utils.pt import generate_volume_ptc, point_cloud
-from analyzer.vae.model.random_ptc_ae import RandomPtcAe, RandomPtcDataModule
+import h5py
+import pytorch_lightning as pl
+from pytorch_lightning import loggers as pl_loggers
+
 from analyzer.cl.trainer import CLTrainer
+from analyzer.config import get_cfg_defaults
+from analyzer.data import Dataloader, PtcDataset
+from analyzer.model.build_model import Clustermodel
+from analyzer.vae import train
+from analyzer.vae.model.random_ptc_ae import RandomPtcAe, RandomPtcDataModule
+from analyzer.vae.model.utils.pt import point_cloud
 from analyzer.vae.model.vae import Vae, VaeDataModule
+
 
 # RUN THE SCRIPT LIKE: $ python main.py --cfg configs/process.yaml
 # Apply your specification within the .yaml file.
@@ -63,6 +64,7 @@ def main():
         vae_datamodule = VaeDataModule(cfg=cfg, dataset=vae_dataset)
         trainer.fit(vae_model, vae_datamodule)
         trainer.save_checkpoint(cfg.DATASET.ROOTD+"vae.ckpt")
+        vae_model.save_logging()
         return
     elif cfg.MODE.PROCESS == "infer":
         print('--- Starting the inference for the features of the vae. --- \n')

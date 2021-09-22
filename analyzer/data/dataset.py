@@ -505,7 +505,7 @@ class Dataloader():
                             chunks.resize((chunks.shape[0] + 1), axis=0)
                             ids.resize((ids.shape[0] + 1), axis=0)
                         np.expand_dims(sample_padding, 0)
-                        chunks[counter] = sample_padding
+                        chunks[counter] = sample_padding/sample_padding.max()
                         ids[counter] = region["id"]
                         counter += 1
 
@@ -516,7 +516,7 @@ class Dataloader():
                         chunks.resize((chunks.shape[0] + 1), axis=0)
                         ids.resize((ids.shape[0] + 1), axis=0)
                     np.expand_dims(sample_padding, 0)
-                    chunks[counter] = sample_padding
+                    chunks[counter] = sample_padding/sample_padding.max()
                     ids[counter] = region["id"]
                     counter += 1
 
