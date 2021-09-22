@@ -72,7 +72,7 @@ class Vae(pl.LightningModule):
 
         # encoding path
         self.down_layers = nn.ModuleList()
-        self.out_layer = torch.nn.Sigmoid
+        self.out_layer = torch.sigmoid
 
         for i in range(self.depth):
             kernel_size, padding = self._get_kernel_size(isotropy[i])
