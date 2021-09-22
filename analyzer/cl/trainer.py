@@ -55,6 +55,8 @@ class CLTrainer():
         counter = 0
         running_loss = list()
         self.logger = build_monitor(self.cfg, self.output_path, 'train')
+        if self.cfg.SSL.VALIDATION == True:
+            self.validate_logger = build_monitor(self.cfg, self.output_path, 'test')
 
         for epoch in range(0, self.epochs):
             for idx, ((x1, x2), _, _) in enumerate(self.train_dl):
@@ -72,17 +74,23 @@ class CLTrainer():
                 counter = counter + 1
 
             self.save_checkpoint(epoch)
+            if self.cfg.SSL.VALIDATION == True:
+                self.validate(self.validate_logger)
 
     def test(self):
         if self.cfg.SSL.STATE_MODEL:
             print('cl model {} loaded and used for testing.'.format(self.cfg.SSL.STATE_MODEL))
             self.model.load_state_dict(torch.load(self.cfg.SSL.STATE_MODEL))
-        counter = 0
-        running_loss = list()
         self.logger = build_monitor(self.cfg, self.output_path, 'test')
 
         acc = knn_classifier(self.model.encoder, self.train_dl, self.test_dl, self.device, k_knn=5)
         self.logger.update(0, 0, 0, 0, acc=acc)
+
+    def validate(self, logger=None):
+        self.dataset.cl_mode = 'test'
+        acc = knn_classifier(self.model.encoder, self.train_dl, self.test_dl, self.device, k_knn=5)
+        logger.update(0, 0, 0, 0, acc=acc)
+        self.dataset.cl_mode = 'train'
 
     def save_checkpoint(self, idx: int):
         '''Save the model at certain checkpoints.'''

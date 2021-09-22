@@ -9,7 +9,10 @@ def knn_classifier(model, feat_data_loader, test_data_loader, device, k_knn=200,
 
     with torch.no_grad():
         for idx, (sample, _, gt_labels) in enumerate(feat_data_loader):
-            features = model.forward(sample.to(device, non_blocking=True))
+            if device == 'cpu':
+                features = model.forward(sample.to(device, non_blocking=True))
+            else:
+                features = model.forward(sample.cuda(non_blocking=True))
             features = F.normalize(features, dim=1)
             feat_set.append(features.squeeze())
             gt_labels_set.append(gt_labels)

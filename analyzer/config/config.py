@@ -79,6 +79,7 @@ _C.SSL.OUTPUT_FOLDER = 'features/'
 _C.SSL.MONITOR_PATH = 'models/cl/'
 _C.SSL.LOG_INTERVAL = 10
 _C.SSL.STATE_MODEL = '' # models/ptc/human/run_2021-08-29/cl_model_10.pt
+_C.SSL.VALIDATION = False
 # -----------------------------------------------------------------------------
 # Dataset
 # -----------------------------------------------------------------------------

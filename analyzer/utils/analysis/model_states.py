@@ -108,15 +108,15 @@ sys.path.append(parent)
 # sb.relplot(data=human_df, x='iteration', y='loss', kind='line')
 # plt.show()
 
-human_log = parent + '/models/ptc/human/run_2021-08-31/log_2021-08-31_11-28-38_train/log.txt'
+human_log = parent + '/models/ptc/transfer/run_2021-09-15/log_2021-09-15_14-41-47_train/log.txt'
 human_df = read_log(human_log)
 print(human_df)
 fig, ax = plt.subplots(1,1)
 ax = human_df.plot(x='iteration', y='loss', ax=ax, legend=False, color='cornflowerblue')
 ax.set(xlabel='iteration step', ylabel='training loss [ChamferDistance]')
 ax_xticks = ax.get_xticks()
-ax.set_xticks([0, 500000, 800000])
+ax.set_xticks([0, 50000, 100000, 150000])
 ax_yticks = ax.get_yticks()
 ax.set_yticks([ax_yticks[1], ax_yticks[-2]])
-ax.set_yscale('log')
+#ax.set_yscale('log')
 plt.show()
