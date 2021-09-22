@@ -142,8 +142,6 @@ class Vae(pl.LightningModule):
     def step(self, batch, batch_idx):
         reconstruction, mu, log_var = self.forward(batch)
         loss, recon_loss, kld_loss = self.loss(reconstruction, batch, mu, log_var)
-        #self.log("recon_loss", recon_loss.item(), prog_bar=True)
-        #self.log("kld_loss", kld_loss.item(), prog_bar=True)
         self.logging_array.append({"recon_loss": recon_loss.items(), "kld_loss": kld_loss.items(), "loss": loss.items()})
         return loss, {"recon_loss": recon_loss, "kld_loss": kld_loss, "loss": loss}, reconstruction
 
@@ -151,7 +149,7 @@ class Vae(pl.LightningModule):
         raw_x, y = batch
         loss, logs, reconstruction = self.step(raw_x, batch_idx)
 
-        self.log_dict({f"train_{k}": v for k, v in logs.items()}, on_step=True, on_epoch=False)
+        self.log_dict({f"train_{k}": v for k, v in logs.items()}, on_step=True, on_epoch=False, prog_bar=True)
         return loss
 
     def validation_step(self, batch, batch_idx):
