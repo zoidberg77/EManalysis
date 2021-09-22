@@ -63,6 +63,7 @@ def main():
         vae_datamodule = VaeDataModule(cfg=cfg, dataset=vae_dataset)
         trainer.fit(vae_model, vae_datamodule)
         trainer.save_checkpoint(cfg.DATASET.ROOTD+"vae.ckpt")
+        vae_model.save_logging()
         return
     elif cfg.MODE.PROCESS == "infer":
         print('--- Starting the inference for the features of the vae. --- \n')

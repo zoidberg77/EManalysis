@@ -1,3 +1,4 @@
+import json
 from typing import List
 
 import h5py
@@ -16,7 +17,6 @@ from analyzer.vae.model.utils import model_init
 
 
 class Vae(pl.LightningModule):
-
     block_dict = {
         'residual': BasicBlock3d,
         'residual_se': BasicBlock3dSE,
@@ -107,6 +107,7 @@ class Vae(pl.LightningModule):
                 block(filters[j - 1], filters[j - 1], **shared_kwargs)])
             self.up_layers.append(layer)
 
+        self.logging_array = []
         # initialization
         model_init(self)
 
@@ -141,9 +142,10 @@ class Vae(pl.LightningModule):
     def step(self, batch, batch_idx):
         reconstruction, mu, log_var = self.forward(batch)
         loss, recon_loss, kld_loss = self.loss(reconstruction, batch, mu, log_var)
-        self.log("recon_loss", recon_loss.item(), prog_bar=True)
-        self.log("kld_loss", kld_loss.item(), prog_bar=True)
-        return loss, {"loss": loss}, reconstruction
+        #self.log("recon_loss", recon_loss.item(), prog_bar=True)
+        #self.log("kld_loss", kld_loss.item(), prog_bar=True)
+        self.logging_array.append({"recon_loss": recon_loss, "kld_loss": kld_loss, "loss": loss})
+        return loss, {"recon_loss": recon_loss, "kld_loss": kld_loss, "loss": loss}, reconstruction
 
     def training_step(self, batch, batch_idx):
         raw_x, y = batch
@@ -237,6 +239,10 @@ class Vae(pl.LightningModule):
         out = self.down_layers[-1](out)
         return out.size()[1:]
 
+    def save_logging(self):
+        with open(self.cfg.DATASET.ROOTD+"log.json", 'w') as fp:
+            json.dump(self.logging_array, fp)
+
 
 class VaeDataModule(pl.LightningDataModule):
     def __init__(self, cfg, dataset):
@@ -264,4 +270,3 @@ class VaeDataModule(pl.LightningDataModule):
 
     def test_dataloader(self):
         return DataLoader(self.dataset, batch_size=1, num_workers=self.cpus, shuffle=False)
-
