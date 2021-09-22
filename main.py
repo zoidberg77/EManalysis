@@ -59,9 +59,8 @@ def main():
         print('--- Starting the training process for the vae --- \n')
         vae_model = Vae(cfg).double()
         vae_dataset = Dataloader(cfg)
-        tb_logger = pl_loggers.TensorBoardLogger(cfg.DATASET.ROOTD+"jobs/")
         trainer = pl.Trainer(default_root_dir=cfg.DATASET.ROOTD, max_epochs=cfg.AUTOENCODER.EPOCHS,
-                             gpus=cfg.SYSTEM.NUM_GPUS, logger=tb_logger)
+                             gpus=cfg.SYSTEM.NUM_GPUS)
         vae_datamodule = VaeDataModule(cfg=cfg, dataset=vae_dataset)
         trainer.fit(vae_model, vae_datamodule)
         trainer.save_checkpoint(cfg.DATASET.ROOTD+"vae.ckpt")
