@@ -83,12 +83,12 @@ class CLTrainer():
             self.model.load_state_dict(torch.load(self.cfg.SSL.STATE_MODEL))
         self.logger = build_monitor(self.cfg, self.output_path, 'test')
 
-        acc = knn_classifier(self.model.encoder, self.train_dl, self.test_dl, self.device, k_knn=5)
+        acc = knn_classifier(self.model.encoder, self.train_dl, self.test_dl, self.device, k_knn=self.cfg.SSL.K_KNN)
         self.logger.update(0, 0, 0, 0, acc=acc)
 
     def validate(self, logger=None):
         self.dataset.cl_mode = 'test'
-        acc = knn_classifier(self.model.encoder, self.train_dl, self.test_dl, self.device, k_knn=5)
+        acc = knn_classifier(self.model.encoder, self.train_dl, self.test_dl, self.device, k_knn=self.cfg.SSL.K_KNN)
         logger.update(0, 0, 0, 0, acc=acc)
         self.dataset.cl_mode = 'train'
 

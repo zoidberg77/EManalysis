@@ -4,21 +4,21 @@ import torch.nn.functional as F
 def knn_classifier(model, feat_data_loader, test_data_loader, device, k_knn=200, t_knn=0.1):
     '''kNN classifier as a monitor of progress by computing accuracy.'''
     model.eval()
-    model.to(device)
     total_true, total_num, feat_set, gt_labels_set = 0.0, 0.0, list(), list()
 
     with torch.no_grad():
         for idx, (sample, _, gt_labels) in enumerate(feat_data_loader):
-            if device == 'cpu':
-                features = model.forward(sample.to(device, non_blocking=True))
-            else:
-                features = model.forward(sample.cuda(non_blocking=True))
+            features = model.forward(sample.to(device, non_blocking=True))
             features = F.normalize(features, dim=1)
             feat_set.append(features.squeeze())
             gt_labels_set.append(gt_labels)
 
-        feat_set = torch.cat(feat_set, dim=0).t().contiguous()
-        gt_labels_set = torch.cat(gt_labels_set, dim=0).contiguous()
+        if device == 'cuda':
+            feat_set = torch.cat(feat_set, dim=0).t().contiguous().cuda()
+            gt_labels_set = torch.cat(gt_labels_set, dim=0).contiguous().cuda()
+        else:
+            feat_set = torch.cat(feat_set, dim=0).t().contiguous()
+            gt_labels_set = torch.cat(gt_labels_set, dim=0).contiguous()
 
         unique_labels = torch.unique(gt_labels_set)
         classes = unique_labels.size(0)
@@ -34,6 +34,8 @@ def knn_classifier(model, feat_data_loader, test_data_loader, device, k_knn=200,
             for i in range(unique_labels.size(0)):
                 tmp = unique_labels[i].item()
                 gt_labels = torch.where(gt_labels == tmp, i, gt_labels)
+            if device == 'cuda':
+                gt_labels = gt_labels.cuda()
             feature = model.forward(sample.to(device, non_blocking=True))
             feature = F.normalize(feature, dim=1)
             pred_labels = knn_predict(feature.squeeze(), feat_set, gt_labels_set, classes, k_knn, t_knn)
