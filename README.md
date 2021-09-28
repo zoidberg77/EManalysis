@@ -8,7 +8,7 @@ The field of Connectomics aims to reconstruct the wiring diagram of the brain by
 
 
 <p align="center">
-  <img width="700" height="200" src="https://github.com/frommwonderland/EManalysis/blob/main/resources/croped_gt_5_em_220.png">
+  <img width="100%" height="200" src="https://github.com/frommwonderland/EManalysis/blob/main/resources/croped_gt_5_em_220.png">
 </p>
 
 ## Installation
