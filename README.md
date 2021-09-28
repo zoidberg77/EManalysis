@@ -2,14 +2,28 @@
   <b>EManalysis</b><br>
 </h1>
 
-<p align="justify">
-The field of Connectomics aims to reconstruct the wiring diagram of the brain by mapping the neural connections at a cellular level. Based on electronic microscopy (EM) data the goal of this repository is enabling analysis on human brain tissue, particularly on mitochondria. Besides having algorithms that enable dense segmentation and alignment, the need for classification and clustering is key. Therefore, this software enables to cluster mitochondria (or any segments you want to cluster) automatically without relying on powerful computational resources.
+<p align="center">
+    <a href="https://www.python.org/">
+      <img src="https://img.shields.io/badge/Python-3.8-ff69b4.svg" /></a>
+    <a href= "https://pytorch.org/">
+      <img src="https://img.shields.io/badge/PyTorch-1.8-2BAF2B.svg" /></a>
+    <a href= "https://github.com/zudi-lin/pytorch_connectomics/blob/master/LICENSE">
+      <img src="https://img.shields.io/badge/License-MIT-blue.svg" /></a>
 </p>
-
 
 <p align="center">
-  <img width="100%" height="200" src="https://github.com/frommwonderland/EManalysis/blob/main/resources/croped_gt_5_em_220.png">
+  <img width="100%" height="225" src="https://github.com/frommwonderland/EManalysis/blob/main/resources/croped_gt_5_em_220.png">
 </p>
+
+<hr/>
+
+<p align="justify">
+One of the major challenges in neuroscience is to understand the functional and structural foundation that is underlying in the brain and which is ultimately leading to human understanding of intelligence. One approach to resolve this problem is the emerging field of <b>connectomics</b> where neuroscience and artificial intelligence intertwine in order to analyze neuronal connections. A connectome is a complete map of a neuronal system, comprising all neuronal connections between its structures. The term connectome implies completeness of all neuronal connections, in the same way as a genome is a complete listing of all nucleotide sequences. The goal of connectomics is to create a complete representation of the brain’s wiring. The important role of network architecture as a structural substrate for the functioning of the brain constitutes the main reason for the field of connectomics.
+
+<p align="justify">
+Based on electronic microscopy (EM) data the goal of this repository is enabling analysis on human brain tissue, particularly on mitochondria. Besides having algorithms that enable dense segmentation and alignment, the need for classification and clustering is key. Therefore, this software enables to cluster mitochondria (or any segments you want to cluster) automatically without relying on powerful computational resources.
+</p>
+
 
 ## Installation
 Create a new conda environment:
@@ -26,10 +40,17 @@ pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
+## Environment
+
+The code is developed and tested under the following configurations.
+
+- Hardware: 1-8 Nvidia GPUs with at least 12G GPU memory (change ```SYSTEM.NUM_GPU``` accordingly based on the configuration of your machine)
+- Software: CentOS Linux 7.4 (Core), CUDA>=11.0, Python>=3.8, PyTorch>=1.8.0, YACS>=0.1.8
+
 ## Dataset
 The framework relies on both EM data and its related groundtruth mask of the segments (e.g. mitochondria) you want to cluster. The output are images with relabeled segments.
 
-### Structure
+## Structure
 The structure of the project is the following:
 Within the folder *analyzer* all the relevant code is stored for running the project, whereas *configs* holds various .yaml files for adjusting the relevant parameters and which specification or mode will be executed. The *datasets* folder stores  all relevant dataset files and further prepared datasets based on the original data (e.g. input volumes for the Autoencoder). Furthermore, there is a *features* storage where are computed features are stored for later usage. The *models* folder keeps all corresponding model saved. Additionally, within the *outputs* folder all labeled clustering results are stored.
 
