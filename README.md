@@ -2,12 +2,13 @@
   <b>EManalysis</b><br>
 </h1>
 
+<p align="justify">
 The field of Connectomics aims to reconstruct the wiring diagram of the brain by mapping the neural connections at a cellular level. Based on electronic microscopy (EM) data the goal of this repository is enabling analysis on human brain tissue, particularly on mitochondria. Besides having algorithms that enable dense segmentation and alignment, the need for classification and clustering is key. Therefore, this software enables to cluster mitochondria (or any segments you want to cluster) automatically without relying on powerful computational resources.
+</p>
 
-## Visualizing the results in 2D
 
 <p align="center">
-  <img width="500" height="500" src="https://github.com/frommwonderland/EManalysis/blob/main/resources/gt_5_em_220.png">
+  <img width="700" height="200" src="https://github.com/frommwonderland/EManalysis/blob/main/resources/croped_gt_5_em_220.png">
 </p>
 
 ## Installation
@@ -28,68 +29,104 @@ pip install -r requirements.txt
 ## Dataset
 The framework relies on both EM data and its related groundtruth mask of the segments (e.g. mitochondria) you want to cluster. The output are images with relabeled segments.
 
+### Structure
+The structure of the project is the following:
+Within the folder *analyzer* all the relevant code is stored for running the project, whereas *configs* holds various .yaml files for adjusting the relevant parameters and which specification or mode will be executed. The *datasets* folder stores  all relevant dataset files and further prepared datasets based on the original data (e.g. input volumes for the Autoencoder). Furthermore, there is a *features* storage where are computed features are stored for later usage. The *models* folder keeps all corresponding model saved. Additionally, within the *outputs* folder all labeled clustering results are stored.
+
 ## Usage
 Running the software after the installation is simply put by
 ```
 python main.py --cfg configs/process.yaml
 ```
-but there are a few points to consider. This software uses different features for the clustering process and these are computed in separate ways. The main component of the framework is the Variational Autoencoder ([VAE](https://github.com/AntixK/PyTorch-VAE)) where the latent space is used as representational features. In order to use the VAE, it is has to be trained beforehand. So the framework is consisting as two separate parts, where one is the training phase of the VAE and the other is the actual clustering. You have to make sure to tell the program which part you want to run.
 
-### Part 1: Training the Variational Autoencoder
-Before training the VAE, you have preprocess the data. This has two main reasons: Consistent input size & individual training samples.
+This software uses different features for the clustering process and these are computed in separate ways. The main components are the Deep Learning Architectures for learning theses features. There are three different frameworks available: **Variational Autoencoder** ([VAE](https://github.com/AntixK/PyTorch-VAE)), **Autoencoder based on Point Clouds** ([PtC-Ae](https://arxiv.org/abs/1612.00593)) and **Constrastive Learning** ([CL](https://arxiv.org/abs/2002.05709)). The latent space is used respectively as representational features. In order to use these frameworks, some steps have to be performed beforehand: *Preprocessing*, *Training* \& *Inference*
 
-- Preprocessing is done by either ...
-  - altering the configuration file
+After the computation of the learned features, the clustering process can be performed.
+
+### Step 1: Preprocessing
+Before training the various models, a preprocessing step has to be performed in order to adjust the data in a right way (consistent input size and format).
+For perfoming **preprocessing**, altering the configuration file will do the job:
   ``` yaml
   MODE:
-    PROCESS: 'preprocessing'
+    PROCESS: 'preprocessing' || 'ptcprep'
   ```
-  - from the command line by adding ``` --mode preprocessing ```
+- **'preprocessing'** will create a dataset which holds various 64 x 64 x 64 input volumes computed based on a combination of EM and label data.
+- **'ptcprep'** will create a dataset which transforms every unique segment into a point cloud.
 
-- Training the VAE is done by either ...
-  - altering the configuration file
+### Step 2: Training Process
+After the preparation of the trainig data, **training** different frameworks is done by  altering the configuration file in the following way:
   ``` yaml
   MODE:
-    PROCESS: 'train'
+    PROCESS: 'train' || 'ptctrain' || 'cltrain'
   ```
-  - from the command line by adding ``` --mode train```
+- **'train'**: Starts the training process of the Variational Autoencoder
+- **'ptctrain'**: Executes training an Autoencoder based on Point Clouds.
+- **'cltrain'**: Performs training based on the Constrastive Learning setup.
 
-- Inference of the latent representation which will be used as the features is done by either ...
-    - altering the configuration file
-    ``` yaml
-    MODE:
-      PROCESS: 'infer'
-    ```
-    - from the command line by adding ``` --mode infer```
+### Step 3: Inference
+Inference for computing the latent representation which will be used as features is done by adjusting the configuration file as:
+  ``` yaml
+  MODE:
+    PROCESS: 'infer' || 'ptcinfer' || 'clinfer'
+  ```
+  - **'infer'**: Inferring the features learned by the Variational Autoencoder
+  - **'ptcinfer'**: Inferring the features learned by an Autoencoder based on Point Clouds.
+  - **'clinfer'**: Inferring the features learned by a Constrastive Learning setup.
 
-Hyperparameter Tuning
+
+### Hyperparameter Tuning
+For all three frameworks different options can be adjusted which are shown below:
 ``` yaml
 AUTOENCODER:
   ARCHITECTURE: 'unet_3d'
-  REGION_LIMIT: None
-  CHUNKS_CPU: 4
-  UPPER_BOUND: 100000
-  LOWER_BOUND: 100
-  TARGET: (128, 128, 128)
+  TARGET: (64, 64, 64)
   EPOCHS: 5
   BATCH_SIZE: 2
-  OUTPUT_FOLDER: 'features/'
-  FEATURES: ['shape', 'texture']
   LATENT_SPACE: 100
-  LOG_INTERVAL: 10
+  MAX_MEAN: 0.001
+  MAX_VAR: 0.001
+  MAX_GRADIENT: 1.0
+  LARGE_OBJECT_SAMPLES: 2
+PTC:
+  BATCH_SIZE: 1
+  EPOCHS: 25
+  LR: 0.0001
+  WEIGHT_DECAY: 0.0001
+  LATENT_SPACE: 512
+  RECON_NUM_POINTS: 5000
+  SAMPLE_SIZE: 4096
+  INPUT_DATA: 'datasets/mouseA/pts.h5'
+SSL:
+  BATCH_SIZE: 16
+  EPOCHS: 25
+  OPTIMIZER_LR: 0.05
+  OPTIMIZER_WEIGHT_DECAY: 0.0005
+  OPTIMIZER_MOMENTUM: 0.9
+  K_KNN: 5
+  USE_PREP_DATASET: 'datasets/mouseA/mito_samples.h5'
 ```
+For more information, please check out the file */analyzer/config/config.py* where all default values are set. Please check the section structure and adjust the paths of where different information and savings are stored, so the program is able to find certain files.
 
-### Part 2: Clustering stage
-For the clustering stage, you have to set the algorithm and the features, you want to use. You find all the algorithms that are usable in the .yaml example below.
-Please choose one. You find also all the possible features. Please fill the list with all features, you actually want to use. 'textf' & 'shapef' are extracted from the
-Variational Autoencoder. It is also possible to weight the features by applying a weighted term to the features, please adapt this list accordingly.
-N_CLUSTER allows to adjust the number of clusters, that should be found.
+### Main Step: Clustering stage
+For running the clustering, apply
+``` yaml
+MODE:
+  PROCESS: ''
+```
+Furthermore, you have to can set the algorithm and the features, you want to use. You find all the algorithms that are usable in the .yaml example below, the default is *'kmeans'*.
+
+You find also all the possible features. Please fill the list with all features, that should be used for clustering.
+- [**'sizef'**, **'distf'**, **'circf'**, **'slenf'**]: These are all features computed with traditional Computer Vision algorithms. They are extracted on the fly by the program.
+- [**'shapef'**, **'ptcf'**, **'clf'**]: Extracted by VAE, PTCAE & CL accordingly. Please note that these features have to be present in *features/shapef.h5*
+
+It is also possible to weight the features by applying a weighted term to the features, please adapt this list accordingly. N_CLUSTER allows to adjust the number of clusters, that should be found. By GENERATE_MASKS you can tell the program is output labels (images) should be produced.
 ``` yaml
 CLUSTER:
-  ALG: 'kmeans'
-  FEAT_LIST: ['sizef', 'distf', 'shapef', 'textf', 'circf']
+  ALG: 'kmeans' || 'affprop' || 'specCl' || 'aggloCl' || 'dbscan' || 'hdbscan'
+  FEAT_LIST: ['sizef', 'distf', 'circf', 'slenf', 'shapef', 'ptcf', 'clf']
   WEIGHTSF: [1, 1, 1, 1, 1]
-  N_CLUSTER: 6
+  N_CLUSTER: 5
+  GENERATE_MASKS: True
 ```
 
 ## License
