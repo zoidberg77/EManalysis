@@ -59,11 +59,11 @@ def main():
         print('--- Starting the training process for the vae --- \n')
         vae_model = Vae(cfg).double()
         vae_dataset = Dataloader(cfg)
-        trainer = pl.Trainer(default_root_dir=cfg.DATASET.ROOTD, max_epochs=cfg.AUTOENCODER.EPOCHS,
+        trainer = pl.Trainer(default_root_dir=cfg.AUTOENCODER.MONITOR_PATH, max_epochs=cfg.AUTOENCODER.EPOCHS,
                              gpus=cfg.SYSTEM.NUM_GPUS)
         vae_datamodule = VaeDataModule(cfg=cfg, dataset=vae_dataset)
         trainer.fit(vae_model, vae_datamodule)
-        trainer.save_checkpoint(cfg.DATASET.ROOTD+"vae.ckpt")
+        trainer.save_checkpoint(cfg.AUTOENCODER.MONITOR_PATH+"vae.ckpt")
         vae_model.save_logging()
         return
     elif cfg.MODE.PROCESS == "infer":
@@ -73,9 +73,9 @@ def main():
             mainf.create_dataset("pred", (size_needed,cfg.AUTOENCODER.LATENT_SPACE))
 
         vae_model = Vae(cfg).double()
-        vae_model.load_from_checkpoint(checkpoint_path=cfg.DATASET.ROOTD+"vae.ckpt")
+        vae_model.load_from_checkpoint(checkpoint_path=cfg.AUTOENCODER.MONITOR_PATH+"vae.ckpt")
         vae_dataset = Dataloader(cfg)
-        trainer = pl.Trainer(default_root_dir='datasets/vae/checkpoints', max_epochs=cfg.AUTOENCODER.EPOCHS,
+        trainer = pl.Trainer(default_root_dir=cfg.AUTOENCODER.MONITOR_PATH+'checkpoints', max_epochs=cfg.AUTOENCODER.EPOCHS,
                              gpus=cfg.SYSTEM.NUM_GPUS)
         vae_datamodule = VaeDataModule(cfg=cfg, dataset=vae_dataset)
         trainer.test(vae_model, vae_datamodule)
