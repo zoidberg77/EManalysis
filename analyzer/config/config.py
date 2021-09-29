@@ -38,7 +38,7 @@ _C.AUTOENCODER.MODEL = '' # models/vae/human/run_2021-08-29/vae_ptc_model_10.pt
 # PointCloud based Learning
 # -----------------------------------------------------------------------------
 _C.PTC = CN()
-_C.PTC.ARCHITECTURE = 'ptc_ae'
+_C.PTC.ARCHITECTURE = 'ptc'
 _C.PTC.BATCH_SIZE = 1
 _C.PTC.EPOCHS = 10
 _C.PTC.LR = 0.0001

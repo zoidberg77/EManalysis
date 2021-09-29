@@ -22,6 +22,7 @@ AUTOENCODER:
   LARGE_OBJECT_SAMPLES: 2
   MONITOR_PATH: 'models/mouseA/'
 PTC:
+  ARCHITECTURE: 'ptc++'
   BATCH_SIZE: 1
   EPOCHS: 25
   INPUT_DATA: 'datasets/mouseA/pts.h5'
@@ -34,7 +35,7 @@ SSL:
   USE_PREP_DATASET: 'datasets/mouseA/mito_samples.h5'
   STATE_MODEL: 'models/cl/mouseA/run_2021-09-07/cl_model_3.pt'
 MODE:
-  PROCESS: 'cltest'
+  PROCESS: 'ptctrain'
 CLUSTER:
   ALG: 'kmeans'
   FEAT_LIST: ['sizef', 'distf', 'circf', 'shapef', 'texturef']

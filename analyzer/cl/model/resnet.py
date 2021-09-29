@@ -19,7 +19,6 @@ class ResNet3D(nn.Module):
     """ResNet backbone for 3D semantic/instance segmentation.
        The global average pooling and fully-connected layer are removed.
     """
-
     block_dict = {
         'residual': BasicBlock3d,
         'residual_se': BasicBlock3dSE,
@@ -66,7 +65,6 @@ class ResNet3D(nn.Module):
             filters[3], filters[4], blocks[3], 2, isotropy[4])
 
         self.avgpool = nn.AdaptiveAvgPool3d((1, 1, 1))
-        #print(self.avgpool.size[0])
         #self.fc = nn.Linear(filters[4], num_classes)
 
     def _make_layer(self, in_planes: int, planes: int, blocks: int,
@@ -190,6 +188,79 @@ class ResNet2D(nn.Module):
         x = self.fc(x)
 
         return x
+
+class ResNet3DMM(nn.Module):
+    '''ResNet backbone for 3D semantic/instance segmentation.
+       Performs up-sampling using transposed 3D convolutions.
+    '''
+    block_dict = {
+        'residual': BasicBlock3d,
+        'residual_se': BasicBlock3dSE,
+    }
+    num_stages = 5
+
+    def __init__(self,
+                 block_type: str = 'residual',
+                 num_classes: int = 10,
+                 in_channel: int = 1,
+                 filters: List[int] = [80, 64, 48, 36, 28],
+                 blocks: List[int] = [2, 2, 2, 2],
+                 isotropy: List[bool] = [False, False, False, True, True],
+                 pad_mode: str = 'replicate',
+                 act_mode: str = 'elu',
+                 norm_mode: str = 'bn',
+                 **_):
+        super().__init__()
+        assert len(filters) == self.num_stages
+        self.block = self.block_dict[block_type]
+        self.shared_kwargs = {
+            'pad_mode': pad_mode,
+            'act_mode': act_mode,
+            'norm_mode': norm_mode}
+        self.filters = filters
+
+        self.layer0 = trans_conv3d_norm_act(filters[0],
+                                            filters[1],
+                                            kernel_size=(3,3,3),
+                                            **self.shared_kwargs)
+        self.layer1 = trans_conv3d_norm_act(filters[1],
+                                            filters[2],
+                                            kernel_size=(3,3,3),
+                                            **self.shared_kwargs)
+        self.layer2 = trans_conv3d_norm_act(filters[2],
+                                            filters[3],
+                                            kernel_size=(1,1,1),
+                                            **self.shared_kwargs)
+        self.layer3 = trans_conv3d_norm_act(filters[3],
+                                            filters[4],
+                                            kernel_size=(1,1,1),
+                                            **self.shared_kwargs)
+
+    def _make_layer(self, in_planes: int, planes: int, blocks: int,
+                    stride: int = 1, isotropic: bool = False):
+        if stride == 2 and not isotropic:
+            stride = (1, 2, 2)
+        layers = []
+        layers.append(self.block(in_planes, planes, stride=stride,
+                                 isotropic=isotropic, **self.shared_kwargs, transpose=True))
+        for _ in range(1, blocks):
+            layers.append(self.block(planes, planes, stride=1,
+                                     isotropic=isotropic, **self.shared_kwargs, transpose=True))
+
+        return nn.Sequential(*layers)
+
+    def _forward_impl(self, x):
+        x = self.layer0(x)
+        x = self.layer1(x)
+        x = self.layer2(x)
+        x = self.layer3(x)
+        #x = self.layer4(x)
+        #x = self.avgpool(x)
+        return x
+
+    def forward(self, x):
+        return self._forward_impl(x)
+
 
 class BasicBlock(nn.Module):
     expansion = 1

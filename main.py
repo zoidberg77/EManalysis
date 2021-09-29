@@ -15,7 +15,6 @@ from analyzer.vae.model.random_ptc_ae import RandomPtcAe, RandomPtcDataModule
 from analyzer.vae.model.utils.pt import point_cloud
 from analyzer.vae.model.vae import Vae, VaeDataModule
 
-
 # RUN THE SCRIPT LIKE: $ python main.py --cfg configs/process.yaml
 # Apply your specification within the .yaml file.
 
@@ -63,7 +62,7 @@ def main():
                              gpus=cfg.SYSTEM.NUM_GPUS)
         vae_datamodule = VaeDataModule(cfg=cfg, dataset=vae_dataset)
         trainer.fit(vae_model, vae_datamodule)
-        trainer.save_checkpoint(cfg.AUTOENCODER.MONITOR_PATH+"vae.ckpt")
+        trainer.save_checkpoint(cfg.AUTOENCODER.MONITOR_PATH + "vae.ckpt")
         vae_model.save_logging()
         return
     elif cfg.MODE.PROCESS == "infer":
@@ -73,9 +72,9 @@ def main():
             mainf.create_dataset("pred", (size_needed,cfg.AUTOENCODER.LATENT_SPACE))
 
         vae_model = Vae(cfg).double()
-        vae_model.load_from_checkpoint(checkpoint_path=cfg.AUTOENCODER.MONITOR_PATH+"vae.ckpt")
+        vae_model.load_from_checkpoint(checkpoint_path=cfg.AUTOENCODER.MONITOR_PATH + "vae.ckpt")
         vae_dataset = Dataloader(cfg)
-        trainer = pl.Trainer(default_root_dir=cfg.AUTOENCODER.MONITOR_PATH+'checkpoints', max_epochs=cfg.AUTOENCODER.EPOCHS,
+        trainer = pl.Trainer(default_root_dir=cfg.AUTOENCODER.MONITOR_PATH + 'checkpoints', max_epochs=cfg.AUTOENCODER.EPOCHS,
                              gpus=cfg.SYSTEM.NUM_GPUS)
         vae_datamodule = VaeDataModule(cfg=cfg, dataset=vae_dataset)
         trainer.test(vae_model, vae_datamodule)

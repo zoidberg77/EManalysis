@@ -9,6 +9,7 @@ import datetime
 
 from analyzer.data.data_vis import visptc
 from analyzer.vae.model import unet
+from analyzer.vae.model.build import get_ptc_model
 from analyzer.vae.model.ptc_vae import PTCvae
 from chamferdist import ChamferDistance
 
@@ -254,7 +255,8 @@ class PtcTrainer():
         self.train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=self.cfg.PTC.BATCH_SIZE, shuffle=False)
         self.test_dl = torch.utils.data.DataLoader(test_dataset, batch_size=self.cfg.PTC.BATCH_SIZE, shuffle=False)
 
-        self.model = PTCvae(num_points=self.num_points, latent_space=self.cfg.PTC.LATENT_SPACE)
+        self.model = get_ptc_model(self.cfg)
+        #self.model = PTCvae(num_points=self.num_points, latent_space=self.cfg.PTC.LATENT_SPACE)
         if self.optimizer_type == "adam":
             self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.cfg.PTC.LR, weight_decay=self.cfg.PTC.WEIGHT_DECAY)
 
