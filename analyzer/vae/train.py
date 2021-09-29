@@ -229,7 +229,6 @@ class PtcTrainer():
         self.optimizer_type = optimizer_type
         self.dist = ChamferDistance()
         self.num_points = self.cfg.PTC.RECON_NUM_POINTS
-        #self.model_type = cfg.PTC.ARCHITECTURE
         self.vae_ptc_feature = self.cfg.PTC.FEATURE_NAME
         self.epochs = self.cfg.PTC.EPOCHS
         self.device = self.cfg.PTC.DEVICE
@@ -346,8 +345,8 @@ class PtcTrainer():
                     data, y = data
                     data = data.to(self.device).float()
 
-                    x = self.model.latent_representation(data)
-                    recon = self.model.latent_recon(x)
+                    x = self.model.encoding(data)
+                    recon = self.model.decoding(x)
                     self.save_ptcs(recon, y[0])
                     x = x.cpu().numpy()
 
