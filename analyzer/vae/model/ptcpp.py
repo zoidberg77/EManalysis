@@ -67,18 +67,20 @@ class PTCPP(nn.Module):
     def forward(self, x):
         x = self.encoding(x)
         x = self.decoding(x)
-        x = x[:,None,:,None]
-        x = x.view(x.size(0), x.size(1), -1, 3)
         return x
 
     def encoding(self, x):
         x = self.conv_in(x)
         x = self.pool(x)
         x = self.resnet(torch.unsqueeze(x, 0))
+        x = torch.flatten(x, start_dim=1)
         return x
 
     def decoding(self, x):
+        x = x[:, :, None, None, None]
         x = self.resnetmm(x)
         x = torch.flatten(x, start_dim=1)
         x = self.linear_decoder(x)
+        x = x[:,None,:,None]
+        x = x.view(x.size(0), x.size(1), -1, 3)
         return x

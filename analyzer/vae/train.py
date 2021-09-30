@@ -242,7 +242,7 @@ class PtcTrainer():
                 self.output_path = os.path.join(self.cfg.PTC.MONITOR_PATH, 'run_' + time_now[0])
             else:
                 self.output_path = os.path.join(self.cfg.PTC.MONITOR_PATH, 'run_' + time_now[0])
-                os.mkdir(self.output_path)
+                os.makedirs(self.output_path)
         elif self.cfg.MODE.PROCESS == 'ptcinfer':
             self.state_model = self.cfg.PTC.MODEL
             self.output_path = self.cfg.PTC.MODEL.rsplit('/', 1)[0]
@@ -374,20 +374,8 @@ class PtcTrainer():
         tmp = torch.squeeze(x).detach().numpy()
         visptc(tmp)
 
-    # def visualise_ptcs(self, model):
-    # 	model.eval()
-    # 	model.to(self.device)
-    #
-    # 	with torch.no_grad():
-    # 		for c, idx in enumerate(self.dataset.keys):
-    # 			data = torch.from_numpy(self.dataset[idx])
-    # 			data = data.unsqueeze(0).float()
-    # 			data.to(self.device)
-    # 			x = model.latent_representation(data).cpu().numpy()
-    # 			print(x.shape)
-    # 			if idx == 1:
-    # 				break
 
+###########################
 def random_ptc_infer(model, dataset):
     ptc_datamodule = RandomPtcDataModule(cfg=dataset.cfg, dataset=dataset)
     ptc_datamodule.setup()

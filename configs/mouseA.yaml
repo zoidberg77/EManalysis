@@ -25,9 +25,11 @@ PTC:
   ARCHITECTURE: 'ptc++'
   BATCH_SIZE: 1
   EPOCHS: 25
+  LATENT_SPACE: 80
   INPUT_DATA: 'datasets/mouseA/pts.h5'
   MONITOR_PATH: 'models/ptc/mouseA/'
   FEATURE_NAME: 'mouseA/ptc_shapef'
+  MODEL: 'models/ptc/mouseA/run_2021-09-29/vae_ptc_model_1.pt'
 SSL:
   BATCH_SIZE: 16
   OUTPUT_FOLDER: 'features/mouseA/'
@@ -35,7 +37,7 @@ SSL:
   USE_PREP_DATASET: 'datasets/mouseA/mito_samples.h5'
   STATE_MODEL: 'models/cl/mouseA/run_2021-09-07/cl_model_3.pt'
 MODE:
-  PROCESS: 'ptctrain'
+  PROCESS: 'ptcinfer'
 CLUSTER:
   ALG: 'kmeans'
   FEAT_LIST: ['sizef', 'distf', 'circf', 'shapef', 'texturef']

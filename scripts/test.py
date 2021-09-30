@@ -41,7 +41,7 @@ def main():
         print(cfg, '\n')
 
     ### section free to use.
-    #vis_reconstructed_ptc(cfg, path='models/ptc/human/run_2021-08-31/')
+    vis_reconstructed_ptc(cfg, path='models/ptc/mouseA/run_2021-09-29/')
     #vis_sampled_ptc(cfg, 'datasets/rat/mc_pts.h5')
 
     # from analyzer.data import Dataloader, PtcDataset, PairDataset
@@ -53,21 +53,15 @@ def main():
     #     obj = np.array(group[str(17920)])
     #     print(obj.shape)
     #     visptc(obj)
-    from analyzer.data.data_vis import single_img_vis, plot3dvol
-    idx = 7455
-    with h5py.File('datasets/mouseA/mito_samples.h5', 'r') as f:
-        print(len(list(f['id'])))
-        # sample = f['chunk'][idx]
-        # unique_label = int(f['id'][idx])
-        # if 'gt' in list(f.keys()):
-        #     gt_label = int(f['gt'][idx])
-        # else:
-        #     gt_label = None
-        # if sample.ndim > 3:
-        #     sample = np.squeeze(sample)
 
-    plot3dvol(sample)
-    single_img_vis(sample[:,:,10])
+
+    # from analyzer.data.data_vis import single_img_vis, plot3dvol
+    # idx = 7455
+    # with h5py.File('datasets/mouseA/mito_samples.h5', 'r') as f:
+    #     print(len(list(f['id'])))
+    #
+    # plot3dvol(sample)
+    # single_img_vis(sample[:,:,10])
 
 
 if __name__ == "__main__":
