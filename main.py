@@ -69,7 +69,13 @@ def main():
         print('--- Starting the inference for the features of the vae. --- \n')
         with h5py.File(cfg.DATASET.ROOTD + "mito_samples.h5", "a") as mainf:
             size_needed = len(mainf["id"])
-            mainf.create_dataset("pred", (size_needed,cfg.AUTOENCODER.LATENT_SPACE))
+            mainf.create_dataset("pred", (size_needed, cfg.AUTOENCODER.LATENT_SPACE))
+
+            with h5py.File(cfg.DATASET.ROOTF+'shapef.h5', 'w') as h5f:
+                size_needed = len(mainf["id"])
+                h5f.create_dataset("id", (size_needed, ))
+                h5f.create_dataset("shape", (size_needed, cfg.AUTOENCODER.LATENT_SPACE))
+
 
         vae_model = Vae(cfg).double()
         vae_model.load_from_checkpoint(checkpoint_path=cfg.AUTOENCODER.MONITOR_PATH + "vae.ckpt")
