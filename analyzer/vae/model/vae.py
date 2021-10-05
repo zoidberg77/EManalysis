@@ -175,6 +175,7 @@ class Vae(pl.LightningModule):
         raw_x, y = batch
         loss, logs, reconstruction = self.step(raw_x, batch_idx)
         self.log_dict({f"train_{k}": v for k, v in logs.items()}, on_step=True, on_epoch=False)
+        '''
         x = raw_x
         x = self.conv_in(x)
         down_x = [None] * (self.depth - 1)
@@ -191,7 +192,7 @@ class Vae(pl.LightningModule):
         with h5py.File(self.cfg.DATASET.ROOTF + "shapef.h5", "a") as featuref:
             featuref["id"][y] = obj_id
             featuref["shape"][y] = latent_space
-
+        '''
         return loss
 
     def _upsample_add(self, x, y):
