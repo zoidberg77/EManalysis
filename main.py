@@ -69,7 +69,7 @@ def main():
         print('--- Starting the inference for the features of the vae. --- \n')
         with h5py.File(cfg.DATASET.ROOTD + "mito_samples.h5", "a") as mainf:
             size_needed = len(mainf["id"])
-            mainf.create_dataset("pred", (size_needed, cfg.AUTOENCODER.LATENT_SPACE))
+            mainf.create_dataset("output", (size_needed, *cfg.AUTOENCODER.TARGET))
 
             with h5py.File(cfg.DATASET.ROOTF+'shapef.h5', 'w') as h5f:
                 size_needed = len(mainf["id"])

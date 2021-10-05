@@ -177,7 +177,7 @@ class Vae(pl.LightningModule):
         loss, logs, reconstruction, latent_space = self.step(raw_x, batch_idx)
         self.log_dict({f"train_{k}": v for k, v in logs.items()}, on_step=True, on_epoch=False)
         with h5py.File(self.cfg.DATASET.ROOTD + "mito_samples.h5", "a") as mainf:
-            mainf["pred"][y] = reconstruction
+            mainf["output"][y] = reconstruction
             obj_id = mainf["id"][y]
         with h5py.File(self.cfg.DATASET.ROOTF + "shapef.h5", "a") as featuref:
             featuref["id"][y] = obj_id
