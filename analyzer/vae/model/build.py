@@ -1,4 +1,4 @@
-from .ptc_vae import PTCvae
+from .ptc_vae import PTCvae, PointNet, PNAE
 from .random_ptc_ae import RandomPtcAe
 from .ptcpp import PTCPP
 
@@ -10,6 +10,8 @@ def get_ptc_model(cfg):
         model = RandomPtcAe(cfg).double()
     elif cfg.PTC.ARCHITECTURE == 'ptc++':
         model = PTCPP()
+    elif cfg.PTC.ARCHITECTURE == 'pnae':
+        model = PNAE()
     else:
         raise NotImplementedError
     return model

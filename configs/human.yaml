@@ -10,16 +10,18 @@ DATASET:
   ROOTD: 'datasets/human/'
   DATAINFO: 'features/human/data_info.json'
 PTC:
-  BATCH_SIZE: 1
-  EPOCHS: 200
+  ARCHITECTURE: 'pnae'
+  BATCH_SIZE: 2
+  EPOCHS: 100
   INPUT_DATA: 'datasets/human/pts.h5'
-  #SAMPLE_MODE: 'montecarlo'
-  #INPUT_DATA_SAMPLED: 'datasets/rat/mc_pts.h5'
+  SAMPLE_SIZE: 20000
+  SAMPLE_MODE: 'montecarlo'
+  INPUT_DATA_SAMPLED: 'datasets/human/mc_pts.h5'
   MONITOR_PATH: 'models/ptc/human/'
   FEATURE_NAME: 'human/ptc_shapef'
-  MODEL: 'models/ptc/human/run_2021-08-31/vae_ptc_model_60.pt'
+  #MODEL: 'models/ptc/human/run_2021-08-31/vae_ptc_model_60.pt'
 MODE:
-  PROCESS: 'ptcinfer'
+  PROCESS: 'ptctrain'
 CLUSTER:
   ALG: 'kmeans'
   FEAT_LIST: ['sizef', 'distf', 'circf', 'shapef', 'texturef']
