@@ -148,14 +148,14 @@ class Vae(pl.LightningModule):
 
     def training_step(self, batch, batch_idx):
         raw_x, y = batch
-        loss, logs, reconstruction, _ = self.step(raw_x, batch_idx)
+        loss, logs, reconstruction, latent_space = self.step(raw_x, batch_idx)
 
         self.log_dict({f"train_{k}": v for k, v in logs.items()}, on_step=True, on_epoch=False, prog_bar=True)
         return loss
 
     def validation_step(self, batch, batch_idx):
         raw_x, y = batch
-        loss, logs, reconstruction, _ = self.step(raw_x, batch_idx)
+        loss, logs, reconstruction, latent_space = self.step(raw_x, batch_idx)
         self.log_dict({f"val_{k}": v for k, v in logs.items()})
         return loss
 
