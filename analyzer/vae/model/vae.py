@@ -112,7 +112,6 @@ class Vae(pl.LightningModule):
         model_init(self)
 
     def forward(self, x):
-        x = x.double()
         x = self.conv_in(x)
         down_x = [None] * (self.depth - 1)
         for i in range(self.depth - 1):
@@ -176,7 +175,7 @@ class Vae(pl.LightningModule):
         raw_x, y = batch
         loss, logs, reconstruction = self.step(raw_x, batch_idx)
         self.log_dict({f"train_{k}": v for k, v in logs.items()}, on_step=True, on_epoch=False)
-        x = raw_x.double()
+        x = raw_x
         x = self.conv_in(x)
         down_x = [None] * (self.depth - 1)
         for i in range(self.depth - 1):
