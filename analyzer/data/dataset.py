@@ -545,7 +545,7 @@ class Dataloader():
                         with h5py.File(self.cfg.DATASET.ROOTD + file, "r") as f:
                             for id, chunk in zip(f["id"], f["chunk"]):
                                 ids[counter] = id
-                                chunks[counter] = chunk
+                                chunks[counter] = chunk.astype(np.float32)
                                 counter += 1
                         os.remove(self.cfg.DATASET.ROOTD + file)
 
