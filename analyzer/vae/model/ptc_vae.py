@@ -127,8 +127,8 @@ class PNAE(nn.Module):
 class PNDecoder(nn.Module):
     ''' PointNet but the opposite.'''
     def __init__(self,
-                 num_points: int = 4096,
-                 filters: List[int] = [512, 1024, 4096],
+                 num_points: int = 8000,
+                 filters: List[int] = [512, 1024, 4096, 8192],
                  latent: int = 100):
         super().__init__()
         self.num_points = num_points
@@ -140,7 +140,8 @@ class PNDecoder(nn.Module):
             nn.Linear(self.latent, self.filters[0]), nn.ReLU(),
             nn.Linear(self.filters[0], self.filters[1]), nn.ReLU(),
             nn.Linear(self.filters[1], self.filters[2]), nn.ReLU(),
-            nn.Linear(self.filters[2], (self.num_points * 3))
+            nn.Linear(self.filters[2], self.filters[3]), nn.ReLU(),
+            nn.Linear(self.filters[4], (self.num_points * 3))
         )
 
     def forward(self, x):
