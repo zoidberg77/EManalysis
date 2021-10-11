@@ -32,7 +32,7 @@ PTC:
   MODEL: 'models/ptc/mouseA/run_2021-09-29/vae_ptc_model_8.pt'
 SSL:
   BATCH_SIZE: 16
-  K_KNN: 16
+  K_KNN: 3
   OUTPUT_FOLDER: 'features/mouseA/'
   MONITOR_PATH: 'models/cl/mouseA/'
   USE_PREP_DATASET: 'datasets/mouseA/mito_samples.h5'

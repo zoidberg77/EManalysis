@@ -41,8 +41,9 @@ def main():
         print(cfg, '\n')
 
     ### section free to use.
-    vis_reconstructed_ptc(cfg, path='models/ptc/mouseA/run_2021-09-29/')
-    #vis_sampled_ptc(cfg, 'datasets/rat/mc_pts.h5')
+    #vis_reconstructed_ptc(cfg, path='models/ptc/mouseA/run_2021-09-29/')
+    #vis_original_ptc(cfg, 'datasets/human/mc_pts.h5')
+    vis_sampled_ptc(cfg, 'datasets/human/mc_pts.h5')
 
     # from analyzer.data import Dataloader, PtcDataset, PairDataset
     # ptcdl = PtcDataset(cfg)
@@ -59,6 +60,9 @@ def main():
     # idx = 7455
     # with h5py.File('datasets/mouseA/mito_samples.h5', 'r') as f:
     #     print(len(list(f['id'])))
+    #     uni, cs = np.unique(np.array(list(f['gt'])), return_counts=True)
+    #     print(uni)
+    #     print(cs)
     #
     # plot3dvol(sample)
     # single_img_vis(sample[:,:,10])

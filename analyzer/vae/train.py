@@ -281,7 +281,6 @@ class PtcTrainer():
                 running_loss.append(loss.item())
                 loss.backward()
                 self.optimizer.step()
-                break
 
                 if not i % self.cfg.PTC.LOG_INTERVAL:
                     print("[{}/{}] Train total loss: {} \n".format(i, int(\
