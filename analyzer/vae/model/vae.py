@@ -108,6 +108,7 @@ class Vae(pl.LightningModule):
             self.up_layers.append(layer)
 
         self.logging_array = []
+        self.inference = False
         # initialization
         model_init(self)
 
@@ -120,7 +121,9 @@ class Vae(pl.LightningModule):
 
         x = self.down_layers[-1](x)
         x = torch.flatten(x, start_dim=1)
-        latent_space = x
+        latent_space = None
+        if self.inference:
+            latent_space = x
 
         log_var = self.log_var(x)
         mu = self.mu(x)
@@ -137,24 +140,24 @@ class Vae(pl.LightningModule):
 
         x = self.conv_out(x)
         x = self.out_layer(x)
-        return x, mu, log_var
+        return x, mu, log_var, latent_space
 
     def step(self, batch, batch_idx):
-        reconstruction, mu, log_var = self.forward(batch)
+        reconstruction, mu, log_var, latent_space = self.forward(batch)
         loss, recon_loss, kld_loss = self.loss(reconstruction, batch, mu, log_var)
         self.logging_array.append({"recon_loss": recon_loss.item(), "kld_loss": kld_loss.item(), "loss": loss.item()})
-        return loss, {"recon_loss": recon_loss, "kld_loss": kld_loss, "loss": loss}, reconstruction
+        return loss, {"recon_loss": recon_loss, "kld_loss": kld_loss, "loss": loss}, reconstruction, latent_space
 
     def training_step(self, batch, batch_idx):
         raw_x, y = batch
-        loss, logs, reconstruction = self.step(raw_x, batch_idx)
+        loss, logs, reconstruction, _ = self.step(raw_x, batch_idx)
 
         self.log_dict({f"train_{k}": v for k, v in logs.items()}, on_step=True, on_epoch=False, prog_bar=True)
         return loss
 
     def validation_step(self, batch, batch_idx):
         raw_x, y = batch
-        loss, logs, reconstruction = self.step(raw_x, batch_idx)
+        loss, logs, reconstruction, _ = self.step(raw_x, batch_idx)
         self.log_dict({f"val_{k}": v for k, v in logs.items()})
         return loss
 
@@ -172,27 +175,18 @@ class Vae(pl.LightningModule):
         return loss, recons_loss, kld_loss
 
     def test_step(self, batch, batch_idx):
+        self.inference = True
         raw_x, y = batch
-        loss, logs, reconstruction = self.step(raw_x, batch_idx)
+        loss, logs, reconstruction, latent_space = self.step(raw_x, batch_idx)
         self.log_dict({f"train_{k}": v for k, v in logs.items()}, on_step=True, on_epoch=False)
-        '''
-        x = raw_x
-        x = self.conv_in(x)
-        down_x = [None] * (self.depth - 1)
-        for i in range(self.depth - 1):
-            x = self.down_layers[i](x)
-            down_x[i] = x
 
-        x = self.down_layers[-1](x)
-        x = torch.flatten(x, start_dim=1)
-        latent_space = x
         with h5py.File(self.cfg.DATASET.ROOTD + "mito_samples.h5", "a") as mainf:
             mainf["output"][y] = reconstruction
             obj_id = mainf["id"][y]
         with h5py.File(self.cfg.DATASET.ROOTF + "shapef.h5", "a") as featuref:
             featuref["id"][y] = obj_id
             featuref["shape"][y] = latent_space
-        '''
+
         return loss
 
     def _upsample_add(self, x, y):
