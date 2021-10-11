@@ -141,7 +141,7 @@ class PNDecoder(nn.Module):
             nn.Linear(self.filters[0], self.filters[1]), nn.ReLU(),
             nn.Linear(self.filters[1], self.filters[2]), nn.ReLU(),
             nn.Linear(self.filters[2], self.filters[3]), nn.ReLU(),
-            nn.Linear(self.filters[4], (self.num_points * 3))
+            nn.Linear(self.filters[3], (self.num_points * 3))
         )
 
     def forward(self, x):
