@@ -1,5 +1,5 @@
 SYSTEM:
-  NUM_CPUS: 2
+  NUM_CPUS: 8
   NUM_GPUS: 0
 DATASET:
   EM_PATH: 'datasets/mouseA/em_export/'
