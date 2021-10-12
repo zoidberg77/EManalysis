@@ -56,7 +56,7 @@ def main():
         return
     elif cfg.MODE.PROCESS == "train":
         print('--- Starting the training process for the vae --- \n')
-        vae_model = Vae(cfg).double()
+        vae_model = Vae(cfg)
         vae_dataset = Dataloader(cfg)
         trainer = pl.Trainer(default_root_dir=cfg.AUTOENCODER.MONITOR_PATH, max_epochs=cfg.AUTOENCODER.EPOCHS,
                              gpus=cfg.SYSTEM.NUM_GPUS)
@@ -77,7 +77,7 @@ def main():
                 h5f.create_dataset("shape", (size_needed, cfg.AUTOENCODER.LATENT_SPACE))
 
 
-        vae_model = Vae(cfg).double()
+        vae_model = Vae(cfg)
         vae_model.load_from_checkpoint(checkpoint_path=cfg.AUTOENCODER.MONITOR_PATH + "vae.ckpt")
         vae_dataset = Dataloader(cfg)
         trainer = pl.Trainer(default_root_dir=cfg.AUTOENCODER.MONITOR_PATH + 'checkpoints', max_epochs=cfg.AUTOENCODER.EPOCHS,
