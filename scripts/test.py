@@ -41,7 +41,7 @@ def main():
         print(cfg, '\n')
 
     ### section free to use.
-    #vis_reconstructed_ptc(cfg, path='models/ptc/mouseA/run_2021-09-29/')
+    #vis_reconstructed_ptc(cfg, path='models/ptc/human/run_2021-10-11/')
     #vis_original_ptc(cfg, 'datasets/human/mc_pts.h5')
     vis_sampled_ptc(cfg, 'datasets/human/mc_pts.h5')
 

@@ -1,6 +1,7 @@
 from .ptc_vae import PTCvae, PointNet, PNAE
 from .random_ptc_ae import RandomPtcAe
 from .ptcpp import PTCPP
+from .pnae import PNAE
 
 def get_ptc_model(cfg):
     '''Get the ptc model that is wanted.'''

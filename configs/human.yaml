@@ -11,7 +11,8 @@ DATASET:
   DATAINFO: 'features/human/data_info.json'
 PTC:
   ARCHITECTURE: 'pnae'
-  BATCH_SIZE: 2
+  LATENT_SPACE: 100
+  BATCH_SIZE: 16
   EPOCHS: 100
   INPUT_DATA: 'datasets/human/pts.h5'
   SAMPLE_SIZE: 20000
@@ -19,9 +20,9 @@ PTC:
   INPUT_DATA_SAMPLED: 'datasets/human/mc_pts.h5'
   MONITOR_PATH: 'models/ptc/human/'
   FEATURE_NAME: 'human/ptc_shapef'
-  #MODEL: 'models/ptc/human/run_2021-08-31/vae_ptc_model_60.pt'
+  MODEL: 'models/ptc/human/run_2021-10-11/vae_ptc_model_15.pt'
 MODE:
-  PROCESS: 'ptctrain'
+  PROCESS: 'ptcinfer'
 CLUSTER:
   ALG: 'kmeans'
   FEAT_LIST: ['sizef', 'distf', 'circf', 'shapef', 'texturef']
