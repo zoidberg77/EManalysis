@@ -5,7 +5,7 @@ import torch.nn.functional as F
 import numpy as np
 
 from .block import *
-from .ptc_vae import TNet
+from .pnae import TNet
 
 class PTCvae(nn.Module):
     '''point cloud autoencoder. https://github.com/charlesq34/pointnet-autoencoder that directly consumes point

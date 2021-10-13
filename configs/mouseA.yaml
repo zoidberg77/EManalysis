@@ -4,7 +4,7 @@ SYSTEM:
 DATASET:
   EM_PATH: 'datasets/mouseA/em_export/'
   LABEL_PATH: 'datasets/mouseA/mito_export_unique_id/'
-  GT_PATH: 'datasets/mouseA/mito_export_allgroups/'
+  GT_PATH: 'datasets/mouseA/mito_export_maingroups/'
   ROOTF: 'features/mouseA/'
   ROOTD: 'datasets/mouseA/'
   DATAINFO: 'features/mouseA/data_info.json'
