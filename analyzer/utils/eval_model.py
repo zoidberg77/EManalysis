@@ -14,7 +14,6 @@ from tqdm import tqdm
 
 from analyzer.model.utils.extracting import calc_props
 
-
 class Evaluationmodel():
     '''
 	Setups up the model for evaluation purposes after the clustering is finished
@@ -25,7 +24,6 @@ class Evaluationmodel():
 	:param rsl_vector: This is the resulting vector extracted from the clustering model.
 					   (n,) (np.array) with n beeing the number of samples.
 	'''
-
     def __init__(self, cfg, dl):
         self.cfg = cfg
         self.dl = dl
