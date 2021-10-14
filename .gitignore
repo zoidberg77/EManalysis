@@ -25,3 +25,5 @@ datasets/vae/checkpoints
 run.sh
 emanalysis.out
 configs/mouseA2.yaml
+*.sh
+tmpwdir
