@@ -59,7 +59,7 @@ def main():
         vae_model = Vae(cfg)
         vae_dataset = Dataloader(cfg)
         trainer = pl.Trainer(default_root_dir=cfg.AUTOENCODER.MONITOR_PATH, max_epochs=cfg.AUTOENCODER.EPOCHS,
-                             gpus=cfg.SYSTEM.NUM_GPUS)
+                             gpus=cfg.SYSTEM.NUM_GPUS, gradient_clip_val=0.5, stochastic_weight_avg=True)
         vae_datamodule = VaeDataModule(cfg=cfg, dataset=vae_dataset)
         trainer.fit(vae_model, vae_datamodule)
         trainer.save_checkpoint(cfg.AUTOENCODER.MONITOR_PATH + "vae.ckpt")

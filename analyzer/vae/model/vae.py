@@ -150,6 +150,7 @@ class Vae(pl.LightningModule):
 
     def training_step(self, batch, batch_idx):
         raw_x, y = batch
+        #print(raw_x.nonzero().shape, raw_x.max(), raw_x.min())
         loss, logs, reconstruction, _ = self.step(raw_x, batch_idx)
 
         self.log_dict({f"train_{k}": v for k, v in logs.items()}, on_step=True, on_epoch=False, prog_bar=True)
@@ -167,7 +168,7 @@ class Vae(pl.LightningModule):
     def loss(self, reconstruction, input, mu, log_var):
 
         recons_loss = torch.nn.functional.l1_loss(reconstruction, input, reduction="mean")
-        kld_weight = 1
+        kld_weight = 1/self.cfg.AUTOENCODER.BATCH_SIZE
         kld_loss = -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp())
         kld_loss /= self.cfg.AUTOENCODER.LATENT_SPACE
         kld_loss *= kld_weight
