@@ -58,7 +58,7 @@ def main():
         print('--- Starting the training process for the vae --- \n')
         vae_model = Vae(cfg)
         vae_dataset = Dataloader(cfg)
-        trainer = pl.Trainer(default_root_dir=cfg.AUTOENCODER.MONITOR_PATH, max_epochs=cfg.AUTOENCODER.EPOCHS,
+        trainer = pl.Trainer(default_root_dir=cfg.AUTOENCODER.MONITOR_PATH + 'checkpoints', max_epochs=cfg.AUTOENCODER.EPOCHS,
                              gpus=cfg.SYSTEM.NUM_GPUS, gradient_clip_val=0.5, stochastic_weight_avg=True)
         vae_datamodule = VaeDataModule(cfg=cfg, dataset=vae_dataset)
         trainer.fit(vae_model, vae_datamodule)
@@ -72,9 +72,10 @@ def main():
             if "output" not in mainf:
                 mainf.create_dataset("output", mainf["chunk"].shape)
 
-        with h5py.File(cfg.DATASET.ROOTF+'shapef.h5', 'w') as h5f:
-            h5f.create_dataset("id", (size_needed, ))
-            h5f.create_dataset("shape", (size_needed, cfg.AUTOENCODER.LATENT_SPACE))
+            with h5py.File(cfg.DATASET.ROOTF+'shapef.h5', 'w') as h5f:
+                h5f.create_dataset("id", (size_needed, ))
+                h5f.create_dataset("shape", (size_needed, cfg.AUTOENCODER.LATENT_SPACE))
+                h5f.create_dataset("output", mainf["chunk"].shape)
 
 
         vae_model = Vae(cfg)
@@ -84,6 +85,12 @@ def main():
                              gpus=cfg.SYSTEM.NUM_GPUS)
         vae_datamodule = VaeDataModule(cfg=cfg, dataset=vae_dataset)
         trainer.test(vae_model, vae_datamodule.test_dataloader())
+
+        with h5py.File(cfg.DATASET.ROOTD + "mito_samples.h5", "a") as mainf:
+            with h5py.File(cfg.DATASET.ROOTF+'shapef.h5', 'a') as h5f:
+                mainf["output"] = h5f["output"]
+                del h5f["output"]
+
         return
     elif cfg.MODE.PROCESS == "ptcprep":
         dl = Dataloader(cfg)

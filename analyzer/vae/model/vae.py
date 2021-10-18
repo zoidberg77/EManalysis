@@ -179,14 +179,16 @@ class Vae(pl.LightningModule):
         self.inference = True
         raw_x, y = batch
         loss, logs, reconstruction, latent_space = self.step(raw_x, batch_idx)
-        self.log_dict({f"train_{k}": v for k, v in logs.items()}, on_step=True, on_epoch=False)
+        self.log_dict({f"train_{k}": v for k, v in logs.items()}, on_step=True, on_epoch=False, prog_bar=True)
 
-        with h5py.File(self.cfg.DATASET.ROOTD + "mito_samples.h5", "a") as mainf:
-            mainf["output"][y] = reconstruction.cpu()
+        
+        with h5py.File(self.cfg.DATASET.ROOTD + "mito_samples.h5", "r") as mainf:
             obj_id = mainf["id"][y]
+        
         with h5py.File(self.cfg.DATASET.ROOTF + "shapef.h5", "a") as featuref:
             featuref["id"][y] = obj_id
             featuref["shape"][y] = latent_space.cpu()
+            featuref["output"][y] = reconstruction.cpu()
 
         return loss
 
@@ -248,7 +250,7 @@ class Vae(pl.LightningModule):
         return out.size()[1:]
 
     def save_logging(self):
-        with open(self.cfg.DATASET.ROOTD+"log.json", 'w') as fp:
+        with open(self.cfg.AUTOENCODER.MONITOR_PATH+"log.json", 'w') as fp:
             json.dump(self.logging_array, fp)
 
 
@@ -267,8 +269,6 @@ class VaeDataModule(pl.LightningDataModule):
         self.dataset = dataset
 
     def setup(self, stage=None):
-        print("here")
-        exit()
         train_length = int(0.7 * len(self.dataset))
         test_length = len(self.dataset) - train_length
         self.train_dataset, self.val_dataset = torch.utils.data.random_split(self.dataset, (train_length, test_length))
