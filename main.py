@@ -88,7 +88,8 @@ def main():
 
         with h5py.File(cfg.DATASET.ROOTD + "mito_samples.h5", "a") as mainf:
             with h5py.File(cfg.DATASET.ROOTF+'shapef.h5', 'a') as h5f:
-                mainf["output"] = h5f["output"]
+                for i, e in enumerate(h5f["output"]):
+                    mainf["output"][i] = e
                 del h5f["output"]
 
         return
