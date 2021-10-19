@@ -39,10 +39,10 @@ SSL:
   STATE_MODEL: 'models/cl/mouseA/run_2021-09-07/cl_model_3.pt'
   VALIDATION: True
 MODE:
-  PROCESS: 'ptcinfer'
+  PROCESS: ''
 CLUSTER:
   ALG: 'kmeans'
-  FEAT_LIST: ['sizef', 'distf', 'circf', 'shapef', 'texturef']
+  FEAT_LIST: ['sizef']
   WEIGHTSF: [1, 1, 1, 1, 1]
   N_CLUSTER: 5
   OUTPUTPATH: 'outputs/mouseA/'
