@@ -58,8 +58,8 @@ def main():
         print('--- Starting the training process for the vae --- \n')
         vae_model = Vae(cfg)
         vae_dataset = Dataloader(cfg)
-        trainer = pl.Trainer(default_root_dir=cfg.AUTOENCODER.MONITOR_PATH, max_epochs=cfg.AUTOENCODER.EPOCHS,
-                             gpus=cfg.SYSTEM.NUM_GPUS)
+        trainer = pl.Trainer(default_root_dir=cfg.AUTOENCODER.MONITOR_PATH + 'checkpoints', max_epochs=cfg.AUTOENCODER.EPOCHS,
+                             gpus=cfg.SYSTEM.NUM_GPUS, gradient_clip_val=0.5, stochastic_weight_avg=True)
         vae_datamodule = VaeDataModule(cfg=cfg, dataset=vae_dataset)
         trainer.fit(vae_model, vae_datamodule)
         trainer.save_checkpoint(cfg.AUTOENCODER.MONITOR_PATH + "vae.ckpt")
@@ -69,21 +69,29 @@ def main():
         print('--- Starting the inference for the features of the vae. --- \n')
         with h5py.File(cfg.DATASET.ROOTD + "mito_samples.h5", "a") as mainf:
             size_needed = len(mainf["id"])
-            mainf.create_dataset("output", mainf["chunk"].shape)
+            if "output" not in mainf:
+                mainf.create_dataset("output", mainf["chunk"].shape)
 
             with h5py.File(cfg.DATASET.ROOTF+'shapef.h5', 'w') as h5f:
-                size_needed = len(mainf["id"])
                 h5f.create_dataset("id", (size_needed, ))
                 h5f.create_dataset("shape", (size_needed, cfg.AUTOENCODER.LATENT_SPACE))
+                h5f.create_dataset("output", mainf["chunk"].shape)
 
 
         vae_model = Vae(cfg)
-        vae_model.load_from_checkpoint(checkpoint_path=cfg.AUTOENCODER.MONITOR_PATH + "vae.ckpt")
+        vae_model.load_from_checkpoint(checkpoint_path=cfg.AUTOENCODER.MONITOR_PATH + "vae.ckpt", cfg=cfg)
         vae_dataset = Dataloader(cfg)
         trainer = pl.Trainer(default_root_dir=cfg.AUTOENCODER.MONITOR_PATH + 'checkpoints', max_epochs=cfg.AUTOENCODER.EPOCHS,
                              gpus=cfg.SYSTEM.NUM_GPUS)
         vae_datamodule = VaeDataModule(cfg=cfg, dataset=vae_dataset)
-        trainer.test(vae_model, vae_datamodule)
+        trainer.test(vae_model, vae_datamodule.test_dataloader())
+
+        with h5py.File(cfg.DATASET.ROOTD + "mito_samples.h5", "a") as mainf:
+            with h5py.File(cfg.DATASET.ROOTF+'shapef.h5', 'a') as h5f:
+                for i, e in enumerate(h5f["output"]):
+                    mainf["output"][i] = e
+                del h5f["output"]
+
         return
     elif cfg.MODE.PROCESS == "ptcprep":
         dl = Dataloader(cfg)

@@ -121,13 +121,13 @@ class Vae(pl.LightningModule):
 
         x = self.down_layers[-1](x)
         x = torch.flatten(x, start_dim=1)
-        latent_space = None
-        if self.inference:
-            latent_space = x
 
         log_var = self.log_var(x)
         mu = self.mu(x)
         x = self.reparameterize(mu, log_var)
+        latent_space = None
+        if self.inference:
+            latent_space = x
         x = self.decoder_input(x)
 
         x = x.view(-1, *self.encoder_dim)
@@ -150,6 +150,7 @@ class Vae(pl.LightningModule):
 
     def training_step(self, batch, batch_idx):
         raw_x, y = batch
+        #print(raw_x.nonzero().shape, raw_x.max(), raw_x.min())
         loss, logs, reconstruction, _ = self.step(raw_x, batch_idx)
 
         self.log_dict({f"train_{k}": v for k, v in logs.items()}, on_step=True, on_epoch=False, prog_bar=True)
@@ -167,7 +168,7 @@ class Vae(pl.LightningModule):
     def loss(self, reconstruction, input, mu, log_var):
 
         recons_loss = torch.nn.functional.l1_loss(reconstruction, input, reduction="mean")
-        kld_weight = 1
+        kld_weight = 1/self.cfg.AUTOENCODER.BATCH_SIZE
         kld_loss = -0.5 * torch.sum(1 + log_var - mu.pow(2) - log_var.exp())
         kld_loss /= self.cfg.AUTOENCODER.LATENT_SPACE
         kld_loss *= kld_weight
@@ -178,14 +179,16 @@ class Vae(pl.LightningModule):
         self.inference = True
         raw_x, y = batch
         loss, logs, reconstruction, latent_space = self.step(raw_x, batch_idx)
-        self.log_dict({f"train_{k}": v for k, v in logs.items()}, on_step=True, on_epoch=False)
+        self.log_dict({f"train_{k}": v for k, v in logs.items()}, on_step=True, on_epoch=False, prog_bar=True)
 
-        with h5py.File(self.cfg.DATASET.ROOTD + "mito_samples.h5", "a") as mainf:
-            mainf["output"][y] = reconstruction
+        
+        with h5py.File(self.cfg.DATASET.ROOTD + "mito_samples.h5", "r") as mainf:
             obj_id = mainf["id"][y]
+        
         with h5py.File(self.cfg.DATASET.ROOTF + "shapef.h5", "a") as featuref:
             featuref["id"][y] = obj_id
-            featuref["shape"][y] = latent_space
+            featuref["shape"][y] = latent_space.cpu()
+            featuref["output"][y] = reconstruction.cpu()
 
         return loss
 
@@ -247,7 +250,7 @@ class Vae(pl.LightningModule):
         return out.size()[1:]
 
     def save_logging(self):
-        with open(self.cfg.DATASET.ROOTD+"log.json", 'w') as fp:
+        with open(self.cfg.AUTOENCODER.MONITOR_PATH+"log.json", 'w') as fp:
             json.dump(self.logging_array, fp)
 
 
@@ -259,9 +262,10 @@ class VaeDataModule(pl.LightningDataModule):
         self.batch_size = cfg.AUTOENCODER.BATCH_SIZE
         self.transform = transforms.Compose([
             transforms.ToTensor(),
-            transforms.Lambda(lambda x: x.double())
+            transforms.Lambda(lambda x: x.float())
             # transforms.Lambda(self.helper_pickle)
         ])
+
         self.dataset = dataset
 
     def setup(self, stage=None):
