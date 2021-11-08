@@ -117,6 +117,10 @@ class CLTrainer():
                     h5f['id'][i] = int(ids[0])
             h5f.close()
 
+    def classify(self):
+        '''classifing all single segments by kNN.'''
+        pass
+
     def save_checkpoint(self, idx: int):
         '''Save the model at certain checkpoints.'''
         # state = {'iteration': idx + 1,
