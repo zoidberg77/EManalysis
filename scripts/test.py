@@ -40,10 +40,19 @@ def main():
         print("Configuration details:")
         print(cfg, '\n')
 
+    # with h5py.File('features/mouseA/sizef.h5', 'r') as h5f:
+    #     ids = np.array(h5f['id'])
+    #     set = np.array(h5f['size'])
+    #     print(set.shape)
+    #     #print(ids)
+    #     id_values, id_counts = np.unique(ids, return_counts=True)
+    #     print(id_values.shape)
+    #     print(id_counts)
+
     ### section free to use.
     #vis_reconstructed_ptc(cfg, path='models/ptc/human/run_2021-10-11/')
     #vis_original_ptc(cfg, 'datasets/human/mc_pts.h5')
-    vis_sampled_ptc(cfg, 'datasets/human/mc_pts.h5')
+    #vis_sampled_ptc(cfg, 'datasets/human/mc_pts.h5')
 
     # from analyzer.data import Dataloader, PtcDataset, PairDataset
     # ptcdl = PtcDataset(cfg)

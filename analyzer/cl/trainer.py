@@ -92,6 +92,31 @@ class CLTrainer():
         logger.update(0, 0, 0, 0, acc=acc)
         self.dataset.cl_mode = 'train'
 
+    def infer_feat_vector(self):
+        '''infers the feature vector of every sample.'''
+        feat_data_loader = torch.utils.data.DataLoader(self.dataset)
+
+        if self.cfg.SSL.STATE_MODEL:
+            print('cl model {} loaded and used for testing.'.format(self.cfg.SSL.STATE_MODEL))
+            self.model.load_state_dict(torch.load(self.cfg.SSL.STATE_MODEL))
+            self.model.eval()
+        else:
+            raise ValueError('Please adjust the SSL.STATE_MODEL in config for infering.')
+
+        with h5py.File(os.path.join(self.cfg.SSL.OUTPUT_FOLDER, self.cfg.SSL.FEATURE_NAME), 'w') as h5f:
+            h5f.create_dataset(name='cl', shape=(len(self.dataset.keys), self.cfg.SSL.LATENT_SPACE))
+            h5f.create_dataset(name='id', shape=(len(self.dataset.keys),))
+
+            with torch.no_grad():
+                for idx, (sample, ids, gt_labels) in enumerate(feat_data_loader):
+                    features = self.model.forward(sample.to(device, non_blocking=True))
+                    features = F.normalize(features, dim=1)
+
+                    x = features.cpu().numpy()
+                    h5f['cl'][i] = x
+                    h5f['id'][i] = int(ids[0])
+            h5f.close()
+
     def save_checkpoint(self, idx: int):
         '''Save the model at certain checkpoints.'''
         # state = {'iteration': idx + 1,
