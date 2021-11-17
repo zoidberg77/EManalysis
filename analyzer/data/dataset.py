@@ -496,7 +496,7 @@ class Dataloader():
                                  z:z + self.target_size[0],
                                  x:x + self.target_size[1],
                                  y:y + self.target_size[2]]
-                        if np.count_nonzero(sample) / sample.size < 0.3:
+                        if np.count_nonzero(sample) / sample.size < 0.1:
                             continue
                         sample_padding = np.zeros(self.target_size)
 

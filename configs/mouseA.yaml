@@ -1,5 +1,5 @@
 SYSTEM:
-  NUM_CPUS: 8
+  NUM_CPUS: 4
   NUM_GPUS: 0
 DATASET:
   EM_PATH: 'datasets/mouseA/em_export/'
@@ -8,6 +8,7 @@ DATASET:
   ROOTF: 'features/mouseA/'
   ROOTD: 'datasets/mouseA/'
   DATAINFO: 'features/mouseA/data_info.json'
+  EXCLUDE_BORDER_OBJECTS: True
 AUTOENCODER:
   ARCHITECTURE: 'unet_3d'
   TARGET: (64, 64, 64)
@@ -19,7 +20,7 @@ AUTOENCODER:
   MAX_VAR: 0.001
   MAX_GRADIENT: 1.0
   LOG_INTERVAL: 10
-  LARGE_OBJECT_SAMPLES: 2
+  LARGE_OBJECT_SAMPLES: 5
   MONITOR_PATH: 'models/mouseA/'
 PTC:
   ARCHITECTURE: 'ptc++'
@@ -39,10 +40,10 @@ SSL:
   STATE_MODEL: 'models/cl/mouseA/run_2021-09-07/cl_model_3.pt'
   VALIDATION: True
 MODE:
-  PROCESS: ''
+  PROCESS: 'ptcinfer'
 CLUSTER:
   ALG: 'kmeans'
-  FEAT_LIST: ['sizef']
+  FEAT_LIST: ['sizef', 'distf', 'circf', 'shapef', 'texturef']
   WEIGHTSF: [1, 1, 1, 1, 1]
   N_CLUSTER: 5
   OUTPUTPATH: 'outputs/mouseA/'

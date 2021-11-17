@@ -146,18 +146,18 @@ sys.path.append(parent)
 # sb.relplot(data=human_df, x='iteration', y='loss', kind='line')
 # plt.show()
 
-# mouse_log = parent + '/models/ptc/mouseA/run_2021-09-29/log_2021-09-29_19-02-13_train/log.txt'
-# mouse_df = read_log_over_double_lines(mouse_log)
-# print(mouse_df)
-# fig, ax = plt.subplots(1,1)
-# ax = mouse_df.plot(x='iteration', y='loss', ax=ax, legend=False, color='cornflowerblue')
-# ax.set(xlabel='iteration step', ylabel='training loss [ChamferDistance]')
-# ax_xticks = ax.get_xticks()
-# ax.set_xticks([0, 50000, 100000, 150000])
-# ax_yticks = ax.get_yticks()
-# ax.set_yticks([ax_yticks[1], ax_yticks[-2]])
-# ax.set_yscale('log')
-# plt.show()
+mouse_log = parent + '/models/ptc/mouseA/run_2021-09-29/log_2021-09-29_19-02-13_train/log.txt'
+mouse_df = read_log_over_double_lines(mouse_log)
+print(mouse_df)
+fig, ax = plt.subplots(1,1)
+ax = mouse_df.plot(x='iteration', y='loss', ax=ax, legend=False, color='cornflowerblue')
+ax.set(xlabel='iteration step', ylabel='training loss [ChamferDistance]')
+ax_xticks = ax.get_xticks()
+ax.set_xticks([0, 50000, 100000, 150000])
+ax_yticks = ax.get_yticks()
+ax.set_yticks([ax_yticks[1], ax_yticks[-2]])
+ax.set_yscale('log')
+plt.show()
 
 ###############################################################################
 ### VAE section

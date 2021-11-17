@@ -2,6 +2,7 @@ import argparse
 import sys
 from glob import glob
 
+import numpy as np
 import h5py
 import pytorch_lightning as pl
 from pytorch_lightning import loggers as pl_loggers
@@ -52,6 +53,8 @@ def main():
 
     if cfg.MODE.PROCESS == "preprocessing":
         dl = Dataloader(cfg)
+        print(dl.prep_data_info())
+        exit()
         dl.extract_scale_mitos_samples()
         return
     elif cfg.MODE.PROCESS == "train":
@@ -87,11 +90,29 @@ def main():
         trainer.test(vae_model, vae_datamodule.test_dataloader())
 
         with h5py.File(cfg.DATASET.ROOTD + "mito_samples.h5", "a") as mainf:
-            with h5py.File(cfg.DATASET.ROOTF+'shapef.h5', 'a') as h5f:
-                for i, e in enumerate(h5f["output"]):
+            with h5py.File(cfg.DATASET.ROOTF+'shapef.h5', 'a') as shapef:
+                for i, e in enumerate(shapef["output"]):
                     mainf["output"][i] = e
-                del h5f["output"]
+                del shapef["output"]
+                samples = {}
+                for i, e in enumerate(shapef["id"]):
+                    samples[e] = shapef["shape"][i]
+                dl = Dataloader(cfg)
+                for e in dl.prep_data_info():
+                    k = e["id"]
+                    if k not in samples.keys():
+                        samples[k] = np.zeros((cfg.AUTOENCODER.LATENT_SPACE,))
 
+                del shapef["shape"]
+                del shapef["id"]
+                shapef.create_dataset("id", (len(samples.keys()), ))
+                shapef.create_dataset("shape", (len(samples.keys()), cfg.AUTOENCODER.LATENT_SPACE))
+
+                c = 0
+                for k,v in sorted(samples.items()):
+                    shapef["shape"][c] = v
+                    shapef["id"][c] = k
+                    c += 1
         return
     elif cfg.MODE.PROCESS == "ptcprep":
         dl = Dataloader(cfg)
@@ -148,7 +169,6 @@ def main():
     elif cfg.MODE.PROCESS == "clinfer":
         print('--- Extracting the features using the Contrastive Learning model. --- \n')
         trainer = CLTrainer(cfg)
-        trainer.infer_feat_vector()
     else:
         dl = Dataloader(cfg)
         model = Clustermodel(cfg, dl=dl)

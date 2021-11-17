@@ -337,7 +337,7 @@ class PtcTrainer():
 
         whole_ds = torch.utils.data.DataLoader(self.dataset)
         with h5py.File('features/{}.h5'.format(self.vae_ptc_feature), 'w') as h5f:
-            h5f.create_dataset(name='ptc', shape=(len(self.dataset.keys), self.cfg.PTC.LATENT_SPACE))
+            h5f.create_dataset(name='ptc_shape', shape=(len(self.dataset.keys), self.cfg.PTC.LATENT_SPACE))
             h5f.create_dataset(name='id', shape=(len(self.dataset.keys),))
 
             with torch.no_grad():
@@ -350,7 +350,7 @@ class PtcTrainer():
                     self.save_ptcs(recon, y[0])
                     x = x.cpu().numpy()
 
-                    h5f['ptc'][i] = x
+                    h5f['ptc_shape'][i] = x
                     h5f['id'][i] = int(y[0])
             h5f.close()
 

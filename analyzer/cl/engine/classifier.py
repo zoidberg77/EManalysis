@@ -1,23 +1,5 @@
-import os
 import torch
 import torch.nn.functional as F
-
-def knn_infer(cfg, model, feat_data_loader, device):
-    '''infers the feature vector of every sample.'''
-    model.eval()
-
-    with h5py.File(os.path.join(cfg.SSL.OUTPUT_FOLDER, cfg.SSL.FEATURE_NAME), 'w') as h5f:
-        h5f.create_dataset(name='cl', shape=(len(self.dataset.keys), cfg.SSL.LATENT_SPACE))
-        h5f.create_dataset(name='id', shape=(len(self.dataset.keys),))
-
-        with torch.no_grad():
-            for idx, (sample, ids, gt_labels) in enumerate(feat_data_loader):
-                features = model.forward(sample.to(device, non_blocking=True))
-                features = F.normalize(features, dim=1)
-
-                x = features.cpu().numpy()
-                h5f['cl'][i] = x
-                h5f['id'][i] = int(ids[0])
 
 def knn_classifier(model, feat_data_loader, test_data_loader, device, k_knn=200, t_knn=0.1):
     '''kNN classifier as a monitor of progress by computing accuracy.'''

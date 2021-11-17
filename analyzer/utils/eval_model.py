@@ -16,22 +16,22 @@ from analyzer.model.utils.extracting import calc_props
 
 class Evaluationmodel():
     '''
-    Setups up the model for evaluation purposes after the clustering is finished
-    and a groundtruth is there. You might also just decide to not use it in order to
-    keep it unsupervised.
-    :param cfg: configuration manager.
-    :param dl: Dataloader
-    :param rsl_vector: This is the resulting vector extracted from the clustering model.
-                       (n,) (np.array) with n beeing the number of samples.
-    '''
+	Setups up the model for evaluation purposes after the clustering is finished
+	and a groundtruth is there. You might also just decide to not use it in order to
+	keep it unsupervised.
+	:param cfg: configuration manager.
+	:param dl: Dataloader
+	:param rsl_vector: This is the resulting vector extracted from the clustering model.
+					   (n,) (np.array) with n beeing the number of samples.
+	'''
     def __init__(self, cfg, dl):
         self.cfg = cfg
         self.dl = dl
 
     def eval(self, rsl_vector):
         '''
-        Evaluation of the clustering by comparing the gt to the results.
-        '''
+		Evaluation of the clustering by comparing the gt to the results.
+		'''
         rsl_values, rsl_counts = np.unique(rsl_vector, return_counts=True)
         gt_values, gt_counts = np.unique(self.get_gt_vector(), return_counts=True)
         print('\nThe following shows how many datapoints each cluster consists of.')
@@ -48,9 +48,10 @@ class Evaluationmodel():
             return self.fast_create_gt_vector(fn)
         return self.create_gt_vector()
 
-    def eval_volume(self, rsl_vector, binary=False, positiv=0):
-        '''Compute accuracy by comparing each segment from the result to the ground truth.
+    def eval_volume(self, rsl_vector):
         '''
+		Compute accuracy by comparing each segment from the result to the ground truth.
+		'''
         if os.path.exists(os.path.join(self.cfg.SYSTEM.ROOT_DIR, self.cfg.DATASET.ROOTF, 'eval_data_info.json')) \
                 and os.stat(
             os.path.join(self.cfg.SYSTEM.ROOT_DIR, self.cfg.DATASET.ROOTF, 'eval_data_info.json')).st_size != 0:
@@ -70,11 +71,8 @@ class Evaluationmodel():
         rsl_values, rsl_counts = np.unique(rsl_vector, return_counts=True)
         gt_values, gt_counts = np.unique(self.get_gt_vector(), return_counts=True)
 
-        s_gt = np.array([gt_values for _, gt_values in sorted(zip(gt_counts, gt_values), reverse=True)])
-        s_rsl = np.array([rsl_values for _, rsl_values in sorted(zip(rsl_counts, rsl_values), reverse=True)])
-
-        if binary:
-            positiv_index = np.where(s_gt == positiv)[0].item()
+        s_gt = np.array([gt_values for _, gt_values in sorted(zip(gt_counts, gt_values))])
+        s_rsl = np.array([rsl_values for _, rsl_values in sorted(zip(rsl_counts, rsl_values))])
 
         correct = 0
         for idx in range(len(gt_fns)):
@@ -94,12 +92,8 @@ class Evaluationmodel():
                         else:
                             rsl_label_index = np.where(s_rsl == rsl[randompts[k][0], randompts[k][1]])[0].item()
                             break
-                    if binary:
-                        if self.eval_binary_vol(positiv_index, gt_label_index, rsl_label_index):
-                            correct = correct + 1
-                    else:
-                        if gt_label_index == rsl_label_index:
-                            correct = correct + 1
+                    if gt_label_index == rsl_label_index:
+                        correct = correct + 1
                 else:
                     continue
             if idx % 50 == 0:
@@ -108,18 +102,11 @@ class Evaluationmodel():
         accuracy = correct / np.sum(gt_counts)
         print('\nfound accuracy: ', accuracy)
 
-    def eval_binary_vol(self, positiv_index, gt_label_index, rsl_label_index):
-        '''Compute accuracy based on one specific label vs. rest.'''
-        if (gt_label_index == positiv_index and rsl_label_index == positiv_index) or (gt_label_index != positiv_index and rsl_label_index != positiv_index):
-            return True
-        else:
-            return False
-
     def create_gt_vector(self, fn='gt_vector.json', save=True):
         '''
-        This function should create a resulting label vector that is the ground truth.
-        :returns (n,) vector. n is the number of samples/segments.
-        '''
+		This function should create a resulting label vector that is the ground truth.
+		:returns (n,) vector. n is the number of samples/segments.
+		'''
         if os.path.exists(os.path.join(self.cfg.DATASET.ROOTF, fn)) \
                 and os.stat(os.path.join(self.cfg.DATASET.ROOTF, fn)).st_size != 0:
             with open(os.path.join(self.cfg.DATASET.ROOTF, fn), 'r') as f:
@@ -170,8 +157,9 @@ class Evaluationmodel():
         return gt_vector
 
     def prep_data_info(self, save=False):
-        '''Extracting the label and its centerpoints.
         '''
+		Extracting the label and its centerpoints.
+		'''
         fns = sorted(glob.glob(self.dl.labelpath + '*.' + self.cfg.DATASET.FILE_FORMAT))
 
         with multiprocessing.Pool(processes=multiprocessing.cpu_count()) as pool:
@@ -235,27 +223,6 @@ class Evaluationmodel():
                 with open(os.path.join(self.cfg.DATASET.ROOTF, 'gt_vector.json'), 'w') as f:
                     json.dump(gt_vector, f, cls=NumpyEncoder)
                     f.close()
-
-        values, counts = np.unique(gt_vector, return_counts=True)
-        if (values == 0).any():
-            print('Error: gt vector contains 0 as label.')
-        else:
-            print('values: ', values)
-            print('counts: ', counts)
-
-        return np.array(gt_vector)
-
-    def get_binary_gt_vector(self, positiv, fn='gt_binary_vector.json', save=True):
-        '''creates binary ground truth vector based on the positiv label.
-           :params positiv: (int) label that should be kept vs. rest.
-           :returns (n,) vector. n is the number of samples/segments.
-        '''
-        if os.path.exists(os.path.join(self.cfg.DATASET.ROOTF, fn)) \
-                and os.stat(os.path.join(self.cfg.DATASET.ROOTF, fn)).st_size != 0 and save:
-            with open(os.path.join(self.cfg.DATASET.ROOTF, fn), 'r') as f:
-                gt_vector = np.array(json.loads(f.read()))
-        else:
-            pass
 
         values, counts = np.unique(gt_vector, return_counts=True)
         if (values == 0).any():
