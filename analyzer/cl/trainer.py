@@ -1,8 +1,12 @@
 import os, sys
+import h5py
 import torch
 import datetime
 import numpy as np
 from tqdm import tqdm
+
+import torch
+import torch.nn.functional as F
 
 from analyzer.data.augmentation.augmentor import Augmentor
 from analyzer.cl.model import get_model
@@ -104,17 +108,17 @@ class CLTrainer():
             raise ValueError('Please adjust the SSL.STATE_MODEL in config for infering.')
 
         with h5py.File(os.path.join(self.cfg.SSL.OUTPUT_FOLDER, self.cfg.SSL.FEATURE_NAME), 'w') as h5f:
-            h5f.create_dataset(name='cl', shape=(len(self.dataset.keys), self.cfg.SSL.LATENT_SPACE))
-            h5f.create_dataset(name='id', shape=(len(self.dataset.keys),))
+            h5f.create_dataset(name='cl', shape=(len(self.dataset), self.cfg.SSL.LATENT_SPACE))
+            h5f.create_dataset(name='id', shape=(len(self.dataset),))
 
             with torch.no_grad():
                 for idx, (sample, ids, gt_labels) in enumerate(feat_data_loader):
-                    features = self.model.forward(sample.to(device, non_blocking=True))
-                    features = F.normalize(features, dim=1)
+                    features = self.model.infer(sample.to(self.device, non_blocking=True))
+                    #features = F.normalize(features, dim=1)
 
                     x = features.cpu().numpy()
-                    h5f['cl'][i] = x
-                    h5f['id'][i] = int(ids[0])
+                    h5f['cl'][idx] = x
+                    h5f['id'][idx] = int(ids[0])
             h5f.close()
 
     def classify(self):
