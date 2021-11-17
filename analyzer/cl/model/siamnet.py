@@ -25,6 +25,10 @@ class SiameseNet(nn.Module):
 
         return z1, p1, z2, p2
 
+    def infer(self, x):
+        x = self.encoder(x)
+        return torch.squeeze(x)
+
 class ProjectionHead(nn.Module):
     '''Projection Head. 3-layer MLP with hidden fc 2048-d.
     '''

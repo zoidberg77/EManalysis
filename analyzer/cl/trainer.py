@@ -1,8 +1,12 @@
 import os, sys
+import h5py
 import torch
 import datetime
 import numpy as np
 from tqdm import tqdm
+
+import torch
+import torch.nn.functional as F
 
 from analyzer.data.augmentation.augmentor import Augmentor
 from analyzer.cl.model import get_model
@@ -91,6 +95,35 @@ class CLTrainer():
         acc = knn_classifier(self.model.encoder, self.train_dl, self.test_dl, self.device, k_knn=self.cfg.SSL.K_KNN)
         logger.update(0, 0, 0, 0, acc=acc)
         self.dataset.cl_mode = 'train'
+
+    def infer_feat_vector(self):
+        '''infers the feature vector of every sample.'''
+        feat_data_loader = torch.utils.data.DataLoader(self.dataset)
+
+        if self.cfg.SSL.STATE_MODEL:
+            print('cl model {} loaded and used for testing.'.format(self.cfg.SSL.STATE_MODEL))
+            self.model.load_state_dict(torch.load(self.cfg.SSL.STATE_MODEL))
+            self.model.eval()
+        else:
+            raise ValueError('Please adjust the SSL.STATE_MODEL in config for infering.')
+
+        with h5py.File(os.path.join(self.cfg.SSL.OUTPUT_FOLDER, self.cfg.SSL.FEATURE_NAME), 'w') as h5f:
+            h5f.create_dataset(name='cl', shape=(len(self.dataset), self.cfg.SSL.LATENT_SPACE))
+            h5f.create_dataset(name='id', shape=(len(self.dataset),))
+
+            with torch.no_grad():
+                for idx, (sample, ids, gt_labels) in enumerate(feat_data_loader):
+                    features = self.model.infer(sample.to(self.device, non_blocking=True))
+                    #features = F.normalize(features, dim=1)
+
+                    x = features.cpu().numpy()
+                    h5f['cl'][idx] = x
+                    h5f['id'][idx] = int(ids[0])
+            h5f.close()
+
+    def classify(self):
+        '''classifing all single segments by kNN.'''
+        pass
 
     def save_checkpoint(self, idx: int):
         '''Save the model at certain checkpoints.'''
