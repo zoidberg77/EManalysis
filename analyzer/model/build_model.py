@@ -91,6 +91,8 @@ class Clustermodel():
                     feat = self.fe.compute_vae_shape()
                 elif fns == 'ptc_shapef':
                     feat = self.fe.compute_vae_ptc_shape()
+                elif fns == 'clf':
+                    feat = self.fe.compute_cl_shape()
                 elif fns == 'texturef':
                     feat = self.fe.compute_vae_texture()
                 elif fns == 'circf':

@@ -43,7 +43,7 @@ def main():
     ### section free to use.
     #vis_reconstructed_ptc(cfg, path='models/ptc/human/run_2021-10-11/')
     #vis_original_ptc(cfg, 'datasets/human/mc_pts.h5')
-    vis_sampled_ptc(cfg, 'datasets/human/mc_pts.h5')
+    #vis_sampled_ptc(cfg, 'datasets/human/mc_pts.h5')
 
     # from analyzer.data import Dataloader, PtcDataset, PairDataset
     # ptcdl = PtcDataset(cfg)
@@ -54,7 +54,6 @@ def main():
     #     obj = np.array(group[str(17920)])
     #     print(obj.shape)
     #     visptc(obj)
-
 
     # from analyzer.data.data_vis import single_img_vis, plot3dvol
     # idx = 7455
