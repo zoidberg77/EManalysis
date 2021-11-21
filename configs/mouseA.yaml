@@ -37,10 +37,10 @@ SSL:
   OUTPUT_FOLDER: 'features/mouseA/'
   MONITOR_PATH: 'models/cl/mouseA/'
   USE_PREP_DATASET: 'datasets/mouseA/mito_samples.h5'
-  STATE_MODEL: 'models/cl/mouseA/run_2021-09-07/cl_model_3.pt'
+  STATE_MODEL: 'models/cl/mouseA/run_2021-10-11/cl_model_3.pt'
   VALIDATION: True
 MODE:
-  PROCESS: 'ptcinfer'
+  PROCESS: 'clinfer'
 CLUSTER:
   ALG: 'kmeans'
   FEAT_LIST: ['sizef', 'distf', 'circf', 'shapef', 'texturef']

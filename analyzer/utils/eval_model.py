@@ -16,22 +16,22 @@ from analyzer.model.utils.extracting import calc_props
 
 class Evaluationmodel():
     '''
-	Setups up the model for evaluation purposes after the clustering is finished
-	and a groundtruth is there. You might also just decide to not use it in order to
-	keep it unsupervised.
-	:param cfg: configuration manager.
-	:param dl: Dataloader
-	:param rsl_vector: This is the resulting vector extracted from the clustering model.
-					   (n,) (np.array) with n beeing the number of samples.
-	'''
+    Setups up the model for evaluation purposes after the clustering is finished
+    and a groundtruth is there. You might also just decide to not use it in order to
+    keep it unsupervised.
+    :param cfg: configuration manager.
+    :param dl: Dataloader
+    :param rsl_vector: This is the resulting vector extracted from the clustering model.
+                       (n,) (np.array) with n beeing the number of samples.
+    '''
     def __init__(self, cfg, dl):
         self.cfg = cfg
         self.dl = dl
 
     def eval(self, rsl_vector):
         '''
-		Evaluation of the clustering by comparing the gt to the results.
-		'''
+        Evaluation of the clustering by comparing the gt to the results.
+        '''
         rsl_values, rsl_counts = np.unique(rsl_vector, return_counts=True)
         gt_values, gt_counts = np.unique(self.get_gt_vector(), return_counts=True)
         print('\nThe following shows how many datapoints each cluster consists of.')
@@ -50,8 +50,8 @@ class Evaluationmodel():
 
     def eval_volume(self, rsl_vector):
         '''
-		Compute accuracy by comparing each segment from the result to the ground truth.
-		'''
+        Compute accuracy by comparing each segment from the result to the ground truth.
+        '''
         if os.path.exists(os.path.join(self.cfg.SYSTEM.ROOT_DIR, self.cfg.DATASET.ROOTF, 'eval_data_info.json')) \
                 and os.stat(
             os.path.join(self.cfg.SYSTEM.ROOT_DIR, self.cfg.DATASET.ROOTF, 'eval_data_info.json')).st_size != 0:
@@ -75,6 +75,8 @@ class Evaluationmodel():
         s_rsl = np.array([rsl_values for _, rsl_values in sorted(zip(rsl_counts, rsl_values))])
 
         correct = 0
+        condition_dict = {key: np.zeros(4, dtype=np.uint32) for key in list(s_gt)}
+
         for idx in range(len(gt_fns)):
             gt = imageio.imread(gt_fns[idx])
             rsl = imageio.imread(rsl_fns[idx])
@@ -94,19 +96,34 @@ class Evaluationmodel():
                             break
                     if gt_label_index == rsl_label_index:
                         correct = correct + 1
+
+                    gt_key = s_gt[gt_label_index]
+                    rsl_key = s_gt[rsl_label_index]
+                    for key, value in condition_dict.items():
+                        if gt_key == key:
+                            if gt_label_index == rsl_label_index:
+                                value[0] += 1
+                            else:
+                                value[3] += 1
+                        else:
+                            if rsl_key == key:
+                                value[1] += 1
+                            else:
+                                value[2] += 1
                 else:
                     continue
             if idx % 50 == 0:
                 print('iteration through [{}/{}] done.'.format(idx, len(gt_fns)))
 
+        print('\nconditional dict: [TP - FP - TN - FN]\n', condition_dict)
         accuracy = correct / np.sum(gt_counts)
         print('\nfound accuracy: ', accuracy)
 
     def create_gt_vector(self, fn='gt_vector.json', save=True):
         '''
-		This function should create a resulting label vector that is the ground truth.
-		:returns (n,) vector. n is the number of samples/segments.
-		'''
+        This function should create a resulting label vector that is the ground truth.
+        :returns (n,) vector. n is the number of samples/segments.
+        '''
         if os.path.exists(os.path.join(self.cfg.DATASET.ROOTF, fn)) \
                 and os.stat(os.path.join(self.cfg.DATASET.ROOTF, fn)).st_size != 0:
             with open(os.path.join(self.cfg.DATASET.ROOTF, fn), 'r') as f:
@@ -158,8 +175,8 @@ class Evaluationmodel():
 
     def prep_data_info(self, save=False):
         '''
-		Extracting the label and its centerpoints.
-		'''
+        Extracting the label and its centerpoints.
+        '''
         fns = sorted(glob.glob(self.dl.labelpath + '*.' + self.cfg.DATASET.FILE_FORMAT))
 
         with multiprocessing.Pool(processes=multiprocessing.cpu_count()) as pool:

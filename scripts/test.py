@@ -66,6 +66,9 @@ def main():
     # plot3dvol(sample)
     # single_img_vis(sample[:,:,10])
 
+    # with h5py.File('datasets/mouseA/mito_samples.h5', 'r') as f:
+    #     print(len(f['id']))
+
 
 if __name__ == "__main__":
     main()

@@ -169,6 +169,7 @@ def main():
     elif cfg.MODE.PROCESS == "clinfer":
         print('--- Extracting the features using the Contrastive Learning model. --- \n')
         trainer = CLTrainer(cfg)
+        trainer.infer_feat_vector()
     else:
         dl = Dataloader(cfg)
         model = Clustermodel(cfg, dl=dl)
