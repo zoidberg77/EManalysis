@@ -99,8 +99,6 @@ class CLTrainer():
     def infer_feat_vector(self):
         '''infers the feature vector of every sample.'''
         feat_data_loader = torch.utils.data.DataLoader(self.dataset)
-        print('\n-------------------------')
-        print('length: ', len(feat_data_loader))
 
         if self.cfg.SSL.STATE_MODEL:
             print('cl model {} loaded and used for testing.'.format(self.cfg.SSL.STATE_MODEL))

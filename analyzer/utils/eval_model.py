@@ -202,13 +202,16 @@ class Evaluationmodel():
                 f.close()
         return result_dict
 
-    def fast_create_gt_vector(self, fn='gt_vector.json', save=True):
+    def fast_create_gt_vector(self, fn='gt_vector.json', save=True, binary=False, true_label='23300'):
         if os.path.exists(os.path.join(self.cfg.DATASET.ROOTF, fn)) \
                 and os.stat(os.path.join(self.cfg.DATASET.ROOTF, fn)).st_size != 0 and save:
             with open(os.path.join(self.cfg.DATASET.ROOTF, fn), 'r') as f:
                 gt_vector = np.array(json.loads(f.read()))
         else:
-            print('gt vector not found. Will be computed.')
+            if binary:
+                print('binary gt vector not found. Will be computed for label {} as true.'.format(true_label))
+            else:
+                print('gt vector not found. Will be computed.')
             gt_images = sorted(glob.glob(self.dl.gtpath + '*.' + self.cfg.DATASET.FILE_FORMAT))
             label_images = sorted(glob.glob(self.dl.labelpath + '*.' + self.cfg.DATASET.FILE_FORMAT))
 
@@ -233,7 +236,14 @@ class Evaluationmodel():
                         continue
 
                     coords = np.argwhere(label_image == label)[0]
-                    gt_vector[label] = gt_image[coords[0], coords[1]]
+                    if binary:
+                        if gt_image[coords[0], coords[1]] == true_label:
+                            gt_vector[label] = 1
+                        else:
+                            gt_vector[label] = 2
+                    else:
+                        gt_vector[label] = gt_image[coords[0], coords[1]]
+
 
             gt_vector = [value for key, value in sorted(gt_vector.items())]
             if save:

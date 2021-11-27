@@ -318,38 +318,6 @@ def compute_spatial_density(fns, n_block=10):
     return volumes, counts
 
 
-'''
-def compute_spatial_density(fns, n_block=10):
-
-    This function aims to calculate the spatial density of linear regions.
-
-    print('Starting to compute a spatial density estimation of mitochondria.')
-    vol_shape = imageio.imread(fns[0])
-
-    x_part = vol_shape.shape[0] / n_block
-    y_part = vol_shape.shape[1] / n_block
-    z_part = len(fns) / n_block
-
-    cubes = []
-
-    for z in tqdm(range(0, len(fns), int(z_part))):
-        vol = np.array([imageio.imread(fn) for fn in fns[z:z + int(z_part)]])
-        vol = np.moveaxis(vol, 0, -1)
-        z_center = (z + int(z_part)) / 2
-        for y in range(0, vol_shape.shape[1], int(y_part)):
-            y_center = (y + int(y_part)) / 2
-            for x in range(0, vol_shape.shape[0], int(x_part)):
-                cube = vol[x:x + int(x_part), y:y + int(y_part), :]
-                labels, label_counts = np.unique(cube, return_counts=True)
-                labels = labels[1:]
-                label_counts = label_counts[1:]
-                x_center = (x + int(x_part)) / 2
-                cubes.append([x_center, y_center, z_center, len(labels), np.sum(label_counts)])
-
-    return np.array(cubes)
-'''
-
-
 ### HELPER SECTION ###
 def calc_props(idx, fns, prop_list=['size', 'slices', 'centroid', 'circ', 'surface_to_volume']):
     '''
