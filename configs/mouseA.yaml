@@ -8,7 +8,7 @@ DATASET:
   ROOTF: 'features/mouseA/'
   ROOTD: 'datasets/mouseA/'
   DATAINFO: 'features/mouseA/data_info.json'
-  EXCLUDE_BORDER_OBJECTS: True
+  EXCLUDE_BORDER_OBJECTS: False
 AUTOENCODER:
   ARCHITECTURE: 'unet_3d'
   TARGET: (64, 64, 64)

@@ -40,6 +40,12 @@ def main():
         print("Configuration details:")
         print(cfg, '\n')
 
+    # from analyzer.data import Dataloader
+    # from analyzer.utils.eval_model import Evaluationmodel
+    # dl = Dataloader(cfg)
+    # eval = Evaluationmodel(cfg, dl=dl)
+    # eval.fast_create_gt_vector(fn='binary_axon_gt_vector.json', binary=True, true_label=23299)
+
     ### section free to use.
     #vis_reconstructed_ptc(cfg, path='models/ptc/human/run_2021-10-11/')
     #vis_original_ptc(cfg, 'datasets/human/mc_pts.h5')
@@ -68,6 +74,9 @@ def main():
 
     # with h5py.File('datasets/mouseA/mito_samples.h5', 'r') as f:
     #     print(len(f['id']))
+
+    from analyzer.model.utils.helper import average_feature_h5
+    average_feature_h5('features/mouseA/clf.h5', 'features/testtt.h5', 'cl', 23274, 80)
 
 
 if __name__ == "__main__":

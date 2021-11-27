@@ -146,17 +146,58 @@ sys.path.append(parent)
 # sb.relplot(data=human_df, x='iteration', y='loss', kind='line')
 # plt.show()
 
-mouse_log = parent + '/models/ptc/mouseA/run_2021-09-29/log_2021-09-29_19-02-13_train/log.txt'
+# mouse_log = parent + '/models/ptc/mouseA/run_2021-09-29/log_2021-09-29_19-02-13_train/log.txt'
+# mouse_df = read_log_over_double_lines(mouse_log)
+# print(mouse_df)
+# fig, ax = plt.subplots(1,1)
+# ax = mouse_df.plot(x='iteration', y='loss', ax=ax, legend=False, color='cornflowerblue')
+# ax.set(xlabel='iteration step', ylabel='training loss [ChamferDistance]')
+# ax_xticks = ax.get_xticks()
+# ax.set_xticks([0, 50000, 100000, 150000])
+# ax_yticks = ax.get_yticks()
+# ax.set_yticks([ax_yticks[1], ax_yticks[-2]])
+# ax.set_yscale('log')
+# plt.show()
+
+###############################################################################
+### CL section
+###############################################################################
+mouse_log = parent + '/models/cl/mouseA/run_2021-11-03/log_2021-11-03_11-46-10_train/log.txt'
 mouse_df = read_log_over_double_lines(mouse_log)
 print(mouse_df)
-fig, ax = plt.subplots(1,1)
-ax = mouse_df.plot(x='iteration', y='loss', ax=ax, legend=False, color='cornflowerblue')
-ax.set(xlabel='iteration step', ylabel='training loss [ChamferDistance]')
-ax_xticks = ax.get_xticks()
-ax.set_xticks([0, 50000, 100000, 150000])
-ax_yticks = ax.get_yticks()
-ax.set_yticks([ax_yticks[1], ax_yticks[-2]])
-ax.set_yscale('log')
+
+mouse_log_test = parent + '/models/cl/mouseA/run_2021-11-03/log_2021-11-03_11-46-10_test/log.txt'
+mouse_test = read_log(mouse_log_test, column_list=['acc'])
+print(mouse_test)
+
+
+fig, ax = plt.subplots(1, 3, figsize=(5000, 5))
+ax[0] = mouse_df.plot(x='iteration', y='loss', ax=ax[0], legend=False, color='cornflowerblue')
+ax[0].set_title('Training loss')
+ax[0].set(xlabel='iteration step')
+ax_xticks = ax[0].get_xticks()
+ax[0].set_xticks([ax_xticks[1], ax_xticks[-2]])
+ax_yticks = ax[0].get_yticks()
+ax[0].set_yticks([ax_yticks[1], ax_yticks[-2]])
+#ax.set_yscale('log')
+
+ax[1] = mouse_df.plot(x='iteration', y='lr', ax=ax[1], legend=False, color='cornflowerblue')
+ax[1].set_title('Learning rate')
+ax[1].set(xlabel='iteration step')
+ax_xticks = ax[1].get_xticks()
+ax[1].set_xticks([ax_xticks[1], ax_xticks[-2]])
+ax_yticks = ax[1].get_yticks()
+ax[1].set_yticks([ax_yticks[1], ax_yticks[-2]])
+#ax.set_yscale('log')
+
+ax[2] = mouse_test.plot(y='acc', ax=ax[2], legend=False, color='cornflowerblue')
+ax[2].set_title('accuracy')
+ax[2].set(xlabel='epoch')
+ax_xticks = ax[2].get_xticks()
+ax[2].set_xticks([ax_xticks[1], ax_xticks[-2]])
+# ax_yticks = ax.get_yticks()
+ax[2].set_yticks([0.0, 1.0])
+#ax.set_yscale('log')
 plt.show()
 
 ###############################################################################

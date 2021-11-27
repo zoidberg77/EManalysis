@@ -209,7 +209,7 @@ class Evaluationmodel():
                 f.close()
         return result_dict
 
-    def fast_create_gt_vector(self, fn='gt_vector.json', save=True, binary=False, true_label=23300):
+    def fast_create_gt_vector(self, fn='gt_vector.json', save=True, binary=False, true_label=23299):
         if os.path.exists(os.path.join(self.cfg.DATASET.ROOTF, fn)) \
                 and os.stat(os.path.join(self.cfg.DATASET.ROOTF, fn)).st_size != 0 and save:
             with open(os.path.join(self.cfg.DATASET.ROOTF, fn), 'r') as f:
@@ -254,7 +254,7 @@ class Evaluationmodel():
 
             gt_vector = [value for key, value in sorted(gt_vector.items())]
             if save:
-                with open(os.path.join(self.cfg.DATASET.ROOTF, 'gt_vector.json'), 'w') as f:
+                with open(os.path.join(self.cfg.DATASET.ROOTF, fn), 'w') as f:
                     json.dump(gt_vector, f, cls=NumpyEncoder)
                     f.close()
 
