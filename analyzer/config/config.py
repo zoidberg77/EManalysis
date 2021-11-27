@@ -122,6 +122,8 @@ _C.CLUSTER.OUTPUTPATH = os.path.join(os.path.dirname(os.path.dirname(os.path.dir
 _C.CLUSTER.NEUROGLANCER = False
 _C.CLUSTER.GENERATE_MASKS = False
 _C.CLUSTER.VISUALIZATION = False
+_C.CLUSTER.BINARY = False
+_C.CLUSTER.TRUE_LABEL = 23299
 
 def get_cfg_defaults():
     '''

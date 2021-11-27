@@ -33,19 +33,26 @@ class Evaluationmodel():
         Evaluation of the clustering by comparing the gt to the results.
         '''
         rsl_values, rsl_counts = np.unique(rsl_vector, return_counts=True)
-        gt_values, gt_counts = np.unique(self.get_gt_vector(), return_counts=True)
+        if self.cfg.CLUSTER.BINARY:
+            gt_values, gt_counts = np.unique(self.get_gt_vector(fn='binary_axon_gt_vector.json',
+                                             binary=self.cfg.CLUSTER.BINARY,
+                                             true_label=self.cfg.CLUSTER.TRUE_LABEL),
+                                             return_counts=True)
+        else:
+            gt_values, gt_counts = np.unique(self.get_gt_vector(), return_counts=True)
+
         print('\nThe following shows how many datapoints each cluster consists of.')
         print('result distribution vector {}'.format(rsl_counts))
         print('ground truth distribution vector {}'.format(gt_counts))
 
         # MUTUAL INFORMATION SCORE
-        gt_vector = self.get_gt_vector(fast=True)
-        score = normalized_mutual_info_score(gt_vector, rsl_vector)
-        print('mutual information score: {}'.format(score))
+        # gt_vector = self.get_gt_vector(fast=True)
+        # score = normalized_mutual_info_score(gt_vector, rsl_vector)
+        # print('mutual information score: {}'.format(score))
 
-    def get_gt_vector(self, fn='gt_vector.json', fast=True):
+    def get_gt_vector(self, fn='gt_vector.json', binary=False, true_label=0, fast=True):
         if fast:
-            return self.fast_create_gt_vector(fn)
+            return self.fast_create_gt_vector(fn, binary=binary, true_label=true_label)
         return self.create_gt_vector()
 
     def eval_volume(self, rsl_vector):
@@ -202,7 +209,7 @@ class Evaluationmodel():
                 f.close()
         return result_dict
 
-    def fast_create_gt_vector(self, fn='gt_vector.json', save=True, binary=False, true_label='23300'):
+    def fast_create_gt_vector(self, fn='gt_vector.json', save=True, binary=False, true_label=23300):
         if os.path.exists(os.path.join(self.cfg.DATASET.ROOTF, fn)) \
                 and os.stat(os.path.join(self.cfg.DATASET.ROOTF, fn)).st_size != 0 and save:
             with open(os.path.join(self.cfg.DATASET.ROOTF, fn), 'r') as f:

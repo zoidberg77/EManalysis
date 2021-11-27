@@ -176,7 +176,7 @@ class Clustermodel():
         Running the main clustering algoritm on the features (feature list) extracted.
         '''
         labels, feat = self.get_features()
-        clst_m = self.prep_cluster_matrix(labels, feat)
+        clst_m = self.prep_cluster_matrix(labels, feat, load=True)
         res_labels = self.model.fit_predict(clst_m)
         self.eval.eval(res_labels)
 
