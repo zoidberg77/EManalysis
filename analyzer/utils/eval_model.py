@@ -34,9 +34,7 @@ class Evaluationmodel():
         '''
         rsl_values, rsl_counts = np.unique(rsl_vector, return_counts=True)
         if self.cfg.CLUSTER.BINARY:
-            gt_values, gt_counts = np.unique(self.get_gt_vector(fn='binary_axon_gt_vector.json',
-                                             binary=self.cfg.CLUSTER.BINARY,
-                                             true_label=self.cfg.CLUSTER.TRUE_LABEL),
+            gt_values, gt_counts = np.unique(self.get_gt_vector(fn='binary_axon_gt_vector.json'),
                                              return_counts=True)
         else:
             gt_values, gt_counts = np.unique(self.get_gt_vector(), return_counts=True)
@@ -45,17 +43,14 @@ class Evaluationmodel():
         print('result distribution vector {}'.format(rsl_counts))
         print('ground truth distribution vector {}'.format(gt_counts))
 
-        # MUTUAL INFORMATION SCORE
-        # gt_vector = self.get_gt_vector(fast=True)
-        # score = normalized_mutual_info_score(gt_vector, rsl_vector)
-        # print('mutual information score: {}'.format(score))
+        return gt_values, gt_counts
 
-    def get_gt_vector(self, fn='gt_vector.json', binary=False, true_label=0, fast=True):
+    def get_gt_vector(self, fn='gt_vector.json', fast=True):
         if fast:
-            return self.fast_create_gt_vector(fn, binary=binary, true_label=true_label)
+            return self.fast_create_gt_vector(fn)
         return self.create_gt_vector()
 
-    def eval_volume(self, rsl_vector):
+    def eval_volume(self, rsl_vector, gt_values, gt_counts):
         '''
         Compute accuracy by comparing each segment from the result to the ground truth.
         '''
@@ -75,8 +70,8 @@ class Evaluationmodel():
         if not rsl_fns or not gt_fns:
             raise ValueError('Please make sure that ground truth and result images are there and the path is correct.')
 
+        rsl_vector = rsl_vector + 1
         rsl_values, rsl_counts = np.unique(rsl_vector, return_counts=True)
-        gt_values, gt_counts = np.unique(self.get_gt_vector(), return_counts=True)
 
         s_gt = np.array([gt_values for _, gt_values in sorted(zip(gt_counts, gt_values))])
         s_rsl = np.array([rsl_values for _, rsl_values in sorted(zip(rsl_counts, rsl_values))])
@@ -93,8 +88,14 @@ class Evaluationmodel():
                 randompts = value[2]
 
                 if slices[0] == idx:
-                    gt_label_index = np.where(s_gt == gt[randompts[0][0], randompts[0][1]])[0].item()
-                    rsl_label_index = 0
+                    if self.cfg.CLUSTER.BINARY:
+                        if gt[randompts[0][0], randompts[0][1]] == self.cfg.CLUSTER.TRUE_LABEL:
+                            gt_label_index = np.where(s_gt == gt[randompts[0][0], randompts[0][1]])[0].item()
+                        else:
+                            gt_label_index = np.where(s_gt == -1)[0].item()
+                    else:
+                        gt_label_index = np.where(s_gt == gt[randompts[0][0], randompts[0][1]])[0].item()
+                    rsl_label_index = -1
                     for k, coords in enumerate(randompts):
                         if np.where(s_rsl == rsl[randompts[k][0], randompts[k][1]])[0].size == 0:
                             continue
@@ -209,13 +210,13 @@ class Evaluationmodel():
                 f.close()
         return result_dict
 
-    def fast_create_gt_vector(self, fn='gt_vector.json', save=True, binary=False, true_label=23299):
+    def fast_create_gt_vector(self, fn='gt_vector.json', save=True):
         if os.path.exists(os.path.join(self.cfg.DATASET.ROOTF, fn)) \
                 and os.stat(os.path.join(self.cfg.DATASET.ROOTF, fn)).st_size != 0 and save:
             with open(os.path.join(self.cfg.DATASET.ROOTF, fn), 'r') as f:
                 gt_vector = np.array(json.loads(f.read()))
         else:
-            if binary:
+            if self.cfg.CLUSTER.BINARY:
                 print('binary gt vector not found. Will be computed for label {} as true.'.format(true_label))
             else:
                 print('gt vector not found. Will be computed.')
@@ -243,11 +244,11 @@ class Evaluationmodel():
                         continue
 
                     coords = np.argwhere(label_image == label)[0]
-                    if binary:
-                        if gt_image[coords[0], coords[1]] == true_label:
-                            gt_vector[label] = 1
+                    if self.cfg.CLUSTER.BINARY:
+                        if gt_image[coords[0], coords[1]] == self.cfg.CLUSTER.TRUE_LABEL:
+                            gt_vector[label] = self.cfg.CLUSTER.TRUE_LABEL
                         else:
-                            gt_vector[label] = 2
+                            gt_vector[label] = -1
                     else:
                         gt_vector[label] = gt_image[coords[0], coords[1]]
 

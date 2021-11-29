@@ -75,8 +75,17 @@ def main():
     # with h5py.File('datasets/mouseA/mito_samples.h5', 'r') as f:
     #     print(len(f['id']))
 
-    from analyzer.model.utils.helper import average_feature_h5
-    average_feature_h5('features/mouseA/clf.h5', 'features/testtt.h5', 'cl', 23274, 80)
+    # from analyzer.model.utils.helper import average_feature_h5
+    # average_feature_h5('features/clf.h5', 'features/testtt.h5', 'cl', 23274, 2048)
+
+    # import imageio
+    # from analyzer.data.data_vis import visvol
+    # em = imageio.imread('datasets/mouseA/em_export/em_export_s000.png')
+    # rsl = imageio.imread('outputs/mouseA/masks/cluster_mask_0.png')
+    # labels = imageio.imread('datasets/mouseA/mito_export_maingroups/mito_main_groups_export_s000.png')
+    #
+    # visvol(em, labels)
+    # visvol(em, rsl)
 
 
 if __name__ == "__main__":

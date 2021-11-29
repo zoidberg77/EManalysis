@@ -50,6 +50,8 @@ The code is developed and tested under the following configurations.
 ## Dataset
 The framework relies on both EM data and its related groundtruth mask of the segments (e.g. mitochondria) you want to cluster. The output are images with relabeled segments.
 
+**Download** links to the datasets will be published soon.
+
 ## Structure
 The structure of the project is the following:
 Within the folder *analyzer* all the relevant code is stored for running the project, whereas *configs* holds various .yaml files for adjusting the relevant parameters and which specification or mode will be executed. The *datasets* folder stores  all relevant dataset files and further prepared datasets based on the original data (e.g. input volumes for the Autoencoder). Furthermore, there is a *features* storage where are computed features are stored for later usage. The *models* folder keeps all corresponding model saved. Additionally, within the *outputs* folder all labeled clustering results are stored.

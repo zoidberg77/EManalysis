@@ -42,6 +42,7 @@ def visvol(vol, gt=None, add=None, filename='test', ff='png', save=False, dpi=50
 		if save == True:
 			fn = filename + '.' + ff
 			plt.savefig(fn, dpi=dpi, bbox_inches='tight', pad_inches = 0)
+		plt.show()
 		plt.close()
 
 def visptc(ptc):

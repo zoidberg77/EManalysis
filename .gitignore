@@ -8,6 +8,7 @@ features/
 #outputs/
 models/
 jobs/
+outputs/
 
 .ipynb_checkpoints
 notebooks/analyzer
