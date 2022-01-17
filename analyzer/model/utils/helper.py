@@ -190,3 +190,29 @@ def recompute_from_res_per_slice_h5(volfns, emfns, k, v, fp, limit=100):
 
             ds[idx] = cld_labels.astype(np.uint16)
             ds2[idx] = em/em.max()
+
+
+def average_feature_h5(input_h5, output_h5, h5_name, label_length, feat_length):
+    '''averaging features that were cut by sliding window appproach.'''
+    with h5py.File(output_h5, 'w') as h5f:
+        h5f.create_dataset(name=h5_name, shape=(label_length, feat_length))
+        h5f.create_dataset(name='id', shape=(label_length,))
+
+        with h5py.File(input_h5, 'r') as f:
+            id_vec = np.array(f['id'], dtype=np.int32)
+            feats = np.array(f[h5_name])
+            uniq = np.unique(np.array(f['id'], dtype=np.int32))
+
+            for i, label in enumerate(list(uniq)):
+                idx_vec = np.where(id_vec == label)
+                average_vec = np.zeros(shape=(feats[0].shape))
+                for idx in idx_vec[0]:
+                    average_vec += feats[idx]
+
+                feat_vec = average_vec / idx_vec[0].shape[0]
+
+                h5f[h5_name][i] = feat_vec
+                h5f['id'][i] = label
+
+                if i % 1000 == 0:
+                    print('[{}]/[{}] '.format(i, len(list(uniq))))

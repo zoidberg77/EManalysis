@@ -130,33 +130,6 @@ def main():
         trainer = train.PtcTrainer(cfg=cfg, dataset=ptcdl)
         trainer.save_latent_feature()
         return
-    elif cfg.MODE.PROCESS == "rptctrain":
-        print('--- Starting the training process for the vae based on point clouds(random). --- \n')
-        rptc_model = RandomPtcAe(cfg).double()
-        ptc_dataset = PtcDataset(cfg, sample_mode=cfg.PTC.SAMPLE_MODE,
-                                 sample_size=cfg.PTC.RECON_NUM_POINTS)
-        trainer = pl.Trainer(default_root_dir='datasets/vae/checkpoints', max_epochs=cfg.PTC.EPOCHS,
-                             gpus=cfg.SYSTEM.NUM_GPUS)
-        ptc_datamodule = RandomPtcDataModule(cfg=cfg, dataset=ptc_dataset)
-        trainer.fit(rptc_model, ptc_datamodule)
-        return
-    elif cfg.MODE.PROCESS == "rptcinfer":
-        print('--- Starting the inference process for the vae based on point clouds(random). --- \n')
-        last_checkpoint = glob('datasets/vae/checkpoints/lightning_logs/**/*.ckpt', recursive=True)[-1]
-        rptc_model = RandomPtcAe(cfg).load_from_checkpoint(last_checkpoint, cfg=cfg).double()
-        rptc_model.freeze()
-        ptc_dataset = PtcDataset(cfg, sample_mode=cfg.PTC.SAMPLE_MODE,
-                                 sample_size=cfg.PTC.RECON_NUM_POINTS)
-        trainer = pl.Trainer(default_root_dir='datasets/vae/checkpoints', max_epochs=cfg.PTC.EPOCHS,
-                             checkpoint_callback=False, gpus=cfg.SYSTEM.NUM_GPUS)
-        ptc_datamodule = RandomPtcDataModule(cfg=cfg, dataset=ptc_dataset)
-
-        with h5py.File(cfg.DATASET.ROOTF + 'ptc_shapef.h5', 'w') as f:
-            f.create_dataset(name='id', shape=(len(ptc_dataset),))
-            f.create_dataset(name='ptc_shape', shape=(len(ptc_dataset), 1024))
-            f.create_group('ptc_reconstruction')
-        trainer.test(model=rptc_model, test_dataloaders=ptc_datamodule.test_dataloader())
-        return
     elif cfg.MODE.PROCESS == "cltrain":
         print('--- Starting the training process for the contrastive learning setup. --- \n')
         trainer = CLTrainer(cfg)
@@ -169,6 +142,7 @@ def main():
     elif cfg.MODE.PROCESS == "clinfer":
         print('--- Extracting the features using the Contrastive Learning model. --- \n')
         trainer = CLTrainer(cfg)
+        trainer.infer_feat_vector()
     else:
         dl = Dataloader(cfg)
         model = Clustermodel(cfg, dl=dl)
