@@ -27,3 +27,5 @@ emanalysis.out
 configs/mouseA2.yaml
 *.sh
 tmpwdir
+*.out
+outputs/mouseA/masks/
