@@ -4,17 +4,21 @@ import random
 import numpy as np
 import h5py
 from scipy import stats
-from sklearn.preprocessing import normalize
-from tqdm import tqdm
-from sklearn.metrics import pairwise_distances
+from sklearn.preprocessing import MinMaxScaler
+from tqdm import tqdm, trange
+from sklearn.metrics import euclidean_distances
 import multiprocessing as mp
+from torchvision import transforms
+import torch
+
 
 def normalize_ptc(ptc):
     '''
     Function normalizes the ptc (Nxd) by min-max-scaling.
     :param ptc: (np.ndarray) size: Nxd
     '''
-    return normalize(ptc, axis=0, norm='max')
+    scaler = MinMaxScaler(feature_range=(-1, 1))
+    return scaler.fit_transform(ptc)
 
 class PtcDataset():
     '''
@@ -69,25 +73,20 @@ class PtcDataset():
             else:
                 print("calculating random points via bluenoise sampling")
                 with h5py.File(self.ptfn, 'r') as h5f:
-                    # clouds = [(str(key), np.array(cloud)) for key, cloud in h5f['ptcs'].items()]
-                    # #clouds = clouds[:10]
-                    # pool = mp.Pool(processes=cfg.SYSTEM.NUM_CPUS)
-                    # results = [pool.apply(self.calculate_blue_noise_samples, args=(key, cloud,)) for key, cloud in
-                    #            tqdm(clouds, total=len(clouds))]
-                    # with h5py.File(self.rptcfn, 'w') as random_points_file:
-                    #     for result in results:
-                    #         random_points_file[result[0]] = result[1]
                     with h5py.File(self.sampled_ptfn, 'w') as random_points_file:
-                        for k, c in tqdm(list(h5f['ptcs'].items()), total=len(h5f['ptcs'].items())):
-                            key = str(k)
-                            cloud = np.array(c)
+                        random_points_file.create_dataset("labels", shape=(len(list(h5f['ptcs'].keys())), ))
+                        random_points_file.create_dataset("ptcs", shape=(len(list(h5f['ptcs'].keys())), cfg.PTC.SAMPLE_SIZE, 3))
+                        i = 0
+                        for key in tqdm(list(h5f['ptcs'].keys())):
+                            cloud = np.array(h5f['ptcs'][key])
                             key, random_points = self.calculate_blue_noise_samples(key, cloud)
-                            random_points_file[key] = random_points
+                            random_points_file['labels'][i] = key
+                            random_points_file['ptcs'][i] = random_points
+                            i += 1
 
     def calculate_blue_noise_samples(self, key, cloud):
         '''helper for calculating blue noise.'''
         idxs = []
-        dists = pairwise_distances(cloud)
         possible_idx = list(np.arange(0, len(cloud)))
         start = random.sample(possible_idx, 1)[0]
         idxs.append(start)
@@ -96,7 +95,7 @@ class PtcDataset():
             if bnsp > len(possible_idx):
                 bnsp = len(possible_idx)
             candidates = np.random.randint(0, len(cloud), bnsp)
-            reduced_dists = dists[candidates, :][:, idxs]
+            reduced_dists = euclidean_distances(cloud[candidates, :], cloud[idxs, :])
             sums = np.sum(reduced_dists, axis=1)
             best_candidate = candidates[np.argmax(sums)]
             idxs.append(best_candidate)
@@ -105,16 +104,10 @@ class PtcDataset():
 
     def __len__(self):
         '''Required by torch to return the length of the dataset. Returns: (int).'''
-        if self.sample_mode == 'partial':
-            with h5py.File(self.ptfn, 'r') as h5f:
-                return len(list(h5f.get('ptcs').keys()))
-        elif self.sample_mode is not None:
-            #with h5py.File(self.rptcfn, 'r') as random_points_file:
-            with h5py.File(self.sampled_ptfn, 'r') as random_points_file:
-                return len(random_points_file.keys())
-        else:
-            with h5py.File(self.ptfn, 'r') as h5f:
-                return len(list(h5f.get('ptcs').keys()))
+        with h5py.File(self.sampled_ptfn, 'r') as random_points_file:
+            return len(random_points_file["ptcs"])
+
+
 
     def __getitem__(self, idx):
         '''
@@ -122,21 +115,11 @@ class PtcDataset():
         :param idx: (int) index of the object. Please note that this is NOT the actual label.
         :returns: object from the volume. (np.array)
         '''
-        with h5py.File(self.ptfn, 'r') as h5f:
-            group = h5f.get('ptcs')
-            idx = sorted(list(group.keys()))[idx]
-            ptc = np.array(group[idx])
-        if self.sample_mode == 'partial':
-                if ptc.shape[0] > self.sample_size:
-                    randome_indices = np.random.random_integers(ptc.shape[0] - 1, size=(self.sample_size))
-                    return np.expand_dims(ptc[randome_indices, :], axis=0), idx
-                return np.expand_dims(ptc, axis=0), idx
-        elif self.sample_mode is not None:
-            #with h5py.File(self.rptcfn, 'r') as random_points_file:
-            with h5py.File(self.sampled_ptfn, 'r') as random_points_file:
-                return np.expand_dims(random_points_file[str(idx)], axis=0), idx
-        else:
-            return np.expand_dims(ptc, axis=0), str(idx)
+
+        with h5py.File(self.sampled_ptfn, 'r') as random_points_file:
+            points = np.array(random_points_file["ptcs"][idx], dtype=np.float32)
+            return torch.from_numpy(points), random_points_file["labels"][idx]
+
 
     @property
     def keys(self):

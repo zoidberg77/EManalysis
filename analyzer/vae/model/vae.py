@@ -4,7 +4,7 @@ from typing import List
 import h5py
 import numpy as np
 import torch
-from chamferdist import ChamferDistance
+from analyzer.vae.model.ptc_ae import ChamferDistance
 from torch import nn
 from torch.nn import functional as F
 import pytorch_lightning as pl

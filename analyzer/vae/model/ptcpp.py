@@ -6,7 +6,6 @@ import torch.nn.functional as F
 from typing import Optional, Union, List
 
 from .block import *
-from .ptc_vae import TNet
 from analyzer.cl.model.resnet import ResNet3D, ResNet3DMM
 
 class PTCPP(nn.Module):
@@ -40,8 +39,8 @@ class PTCPP(nn.Module):
             'norm_mode': norm_mode}
 
         # --- encoding PointNet ---
-        self.input_transform = TNet(k=3)
-        self.feature_transform = TNet(k=self.pn_filters[1])
+        #self.input_transform = TNet(k=3)
+        #self.feature_transform = TNet(k=self.pn_filters[1])
 
         self.conv_in = nn.Sequential(
             conv2d_norm_act(self.in_channel, self.pn_filters[0], self.kernel_size, self.padding, **shared_kwargs),

@@ -1,13 +1,10 @@
-from .ptc_vae import PTCvae
 from .random_ptc_ae import RandomPtcAe
 from .ptcpp import PTCPP
 from .pnae import PNAE, PointNet
 
 def get_ptc_model(cfg):
     '''Get the ptc model that is wanted.'''
-    if cfg.PTC.ARCHITECTURE == 'ptc':
-        model = PTCvae(num_points=cfg.PTC.RECON_NUM_POINTS, latent_space=cfg.PTC.LATENT_SPACE)
-    elif cfg.PTC.ARCHITECTURE == 'random_ptc':
+    if cfg.PTC.ARCHITECTURE == 'random_ptc':
         model = RandomPtcAe(cfg).double()
     elif cfg.PTC.ARCHITECTURE == 'ptc++':
         model = PTCPP()
