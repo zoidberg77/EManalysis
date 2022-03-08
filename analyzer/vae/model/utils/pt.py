@@ -1,5 +1,6 @@
 import glob
 import os, sys
+from turtle import shape
 import numpy as np
 import multiprocessing
 import functools
@@ -11,6 +12,7 @@ import matplotlib.pyplot as plt
 import h5py
 from sklearn.preprocessing import normalize
 from tqdm import tqdm
+from functools import partial
 
 from analyzer.data.ptc_dataset import normalize_ptc
 
@@ -23,64 +25,31 @@ def point_cloud(cfg, dl, save=True):
 	'''
 	_, fns, _ = dl.get_fns()
 	print('Starting to compute the point representation extracted from {} images.'.format(len(fns)))
-	result_dict = {}
+	results = []
+	objs = dl.prep_data_info(save=True)
+	get_coords = partial(get_coords_from_slices, fns=fns)
+	with multiprocessing.Pool(cfg.SYSTEM.NUM_CPUS) as p:
+		results = p.map(get_coords, objs)
+	print("finished pointcloud calculation")
+	with h5py.File(cfg.PTC.INPUT_DATA, 'w') as h5f:
+		grp = h5f.create_group('ptcs')
+		for k, result in tqdm(results):
+			std_rs = normalize_ptc(result)
+			grp.create_dataset(str(k), data=std_rs)
 
-	with multiprocessing.Pool(processes=cfg.SYSTEM.NUM_CPUS) as pool:
-		tmp = list(tqdm(pool.imap(calc_point_repr, enumerate(fns)), total=len(fns)))
-
-	for dicts in tmp:
-		for key, value in dicts.items():
-			if key in result_dict:
-				result_dict[key][0] = np.vstack((result_dict[key][0], value[0]))
-			else:
-				result_dict.setdefault(key, [])
-				result_dict[key].append(value[0])
-
-	if save:
-		with h5py.File(cfg.PTC.INPUT_DATA, 'w') as h5f:
-			h5f.create_dataset('labels', data=list(result_dict.keys()))
-			grp = h5f.create_group('ptcs')
-			for result in result_dict.keys():
-				std_rs = normalize_ptc(result_dict[result][0])
-				grp.create_dataset(str(result), data=std_rs)
-			h5f.close()
-		print('saved point representations to {}.'.format(cfg.PTC.INPUT_DATA))
+	print('saved point representations to {}.'.format(cfg.PTC.INPUT_DATA))
 	print('point cloud generation finished.')
 
-def calc_point_repr(fns):
-	'''
-	Helper for calculating the point representation.
-	:param idx: This indicates the index of the image --> iterates therefor over the whole dataset.
-	:param fns: This is a concrete filename.
-	'''
-	idx, fns = fns
-	result = {}
-	# if idx >= 2:
-	# 	return result
-	if os.path.exists(fns):
-		tmp = imageio.imread(fns)
-		regions = regionprops(tmp, cache=False)
-
-		labels = list()
-		cont_list = list()
-		for props in regions:
-			labels.append(props.label)
-			#print('label of ptc: ', props.label)
-			seg = tmp.copy().astype(int)
-			seg[tmp != props.label] = 0
-
-			cs = measure.find_contours(seg, 0.8)
-			cs3d = np.hstack((cs[0], np.full((cs[0].shape[0], 1), idx, dtype=cs[0].dtype)))
-			cont_list.append(cs3d)
-
-		for l in range(len(labels)):
-			if labels[l] == 0:
-				continue
-			result.setdefault(labels[l], [])
-			result[labels[l]].append(cont_list[l])
-
-	return result
-
+def get_coords_from_slices(region, fns):
+	all_files = [fns[id] for id in region["slices"]]
+	volume = []
+	for img_file in all_files:
+		slice = imageio.imread(img_file)
+		slice[slice != region["id"]] = 0
+		volume.append(slice)
+	volume = np.array(volume)
+	coords = np.transpose(np.nonzero(volume))
+	return region["id"], coords
 
 # Additional stuff here.
 def get_surface_voxel(seg):
