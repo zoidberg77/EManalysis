@@ -15,6 +15,7 @@ from analyzer.vae import train
 from analyzer.vae.model.random_ptc_ae import RandomPtcAe, RandomPtcDataModule
 from analyzer.vae.model.utils.pt import point_cloud
 from analyzer.vae.model.vae import Vae, VaeDataModule
+from analyzer.vae.model.ptc_ae import FoldingNet, PtcAeDataModule
 
 # RUN THE SCRIPT LIKE: $ python main.py --cfg configs/process.yaml
 # Apply your specification within the .yaml file.
@@ -121,14 +122,32 @@ def main():
     elif cfg.MODE.PROCESS == "ptctrain":
         print('--- Starting the training process for the vae based on point clouds. --- \n')
         ptcdl = PtcDataset(cfg)
-        trainer = train.PtcTrainer(cfg=cfg, dataset=ptcdl, train_percentage=0.7, optimizer_type="adam")
-        trainer.train()
+        ptc_module = FoldingNet(cfg)
+        trainer = pl.Trainer(default_root_dir=cfg.PTC.MONITOR_PATH + 'checkpoints', max_epochs=cfg.PTC.EPOCHS,
+                             gpus=cfg.SYSTEM.NUM_GPUS)
+        ptc_datamodule = PtcAeDataModule(cfg=cfg, dataset=ptcdl)
+        trainer.fit(ptc_module, datamodule=ptc_datamodule)
+        trainer.save_checkpoint(cfg.PTC.MONITOR_PATH + "ptc_ae.ckpt")
         return
     elif cfg.MODE.PROCESS == "ptcinfer":
         print('--- Starting to infer the features of the autoencoder based on point clouds. --- \n')
+        size_needed = 0
+        with h5py.File(cfg.DATASET.ROOTD + "pts.h5", "r") as mainf:
+            size_needed = len(mainf["labels"])
+
+        with h5py.File(cfg.DATASET.ROOTF+'shapef.h5', 'w') as h5f:
+            h5f.create_dataset("id", (size_needed, ))
+            h5f.create_dataset("shape", (size_needed, cfg.PTC.LATENT_SPACE))
+            h5f.create_dataset("output", (size_needed, cfg.PTC.SAMPLE_SIZE, 3))
+
         ptcdl = PtcDataset(cfg)
-        trainer = train.PtcTrainer(cfg=cfg, dataset=ptcdl)
-        trainer.save_latent_feature()
+        ptc_module = FoldingNet(cfg)
+        ptc_module.load_from_checkpoint(checkpoint_path=cfg.PTC.MONITOR_PATH + "ptc_ae.ckpt", cfg=cfg)
+        trainer = pl.Trainer(default_root_dir=cfg.PTC.MONITOR_PATH + 'checkpoints', max_epochs=cfg.PTC.EPOCHS,
+                             gpus=cfg.SYSTEM.NUM_GPUS)
+        ptc_datamodule = PtcAeDataModule(cfg=cfg, dataset=ptcdl)
+        trainer.test(ptc_module, datamodule=ptc_datamodule)
+
         return
     elif cfg.MODE.PROCESS == "cltrain":
         print('--- Starting the training process for the contrastive learning setup. --- \n')
