@@ -10,7 +10,6 @@ import datetime
 from analyzer.data.data_vis import visptc
 from analyzer.vae.model import unet
 from analyzer.vae.model.build import get_ptc_model
-from analyzer.vae.model.ptc_vae import PTCvae
 from chamferdist import ChamferDistance
 
 from analyzer.vae.model.random_ptc_ae import RandomPtcDataModule
