@@ -8,9 +8,10 @@ import multiprocessing
 import functools
 import imageio
 import matplotlib.pyplot as plt
-from skimage.measure import label, regionprops
+from skimage.measure import label, regionprops, marching_cubes, mesh_surface_area
 from scipy.spatial import distance
 from tqdm import tqdm
+from functools import partial
 
 
 def compute_region_size(vol=None, dprc='full', fns=None, mode='3d'):
@@ -204,40 +205,56 @@ def compute_circularity(vol, dprc='full', fns=None):
     return (result_array)
 
 
-def compute_surface_to_volume(vol, dprc='full', fns=None):
+def compute_surface(fns, cfg):
     '''
     This function aims to calculate the surface to volume ratio of an object.
     '''
     print('Starting to compute a surface to volume estimation of mitochondria.')
-    result_dict = {}
-    if dprc == 'full':
-        fns = fns[:vol.shape[0]]
-
-    with multiprocessing.Pool(processes=multiprocessing.cpu_count()) as pool:
-        tmp = pool.starmap(functools.partial(calc_props, prop_list=['slices', 'surface_to_volume']), enumerate(fns))
-
-    for dicts in tmp:
-        for key, value in dicts.items():
-            if key in result_dict:
-                result_dict[key][0].append(value[0])
-                result_dict[key][1] += value[1][0]
-                result_dict[key][2] += value[1][1]
-            else:
-                result_dict.setdefault(key, [])
-                result_dict[key].append([value[0]])
-                result_dict[key].append([value[1][0]])
-                result_dict[key].append([value[1][1]])
-
     result_array = []
-    for result in result_dict.keys():
-        result_array.append({
-            'id': result,
-            'surface_to_volume': (result_dict[result][2][0] / result_dict[result][1][0]),
-        })
+    volume_list = {}
 
-    print('Surface to volume feature extraction finished. {} features extracted.'.format(len(result_array)))
+    with multiprocessing.Pool(processes=cfg.SYSTEM.NUM_CPUS) as pool:
+        results = pool.map(get_ids_in_slice, fns)
+                
+    
+    for result in results:
+        for key in result.keys():
+            if key in volume_list.keys():
+                volume_list[key].append(result[key])
+            else:
+                volume_list[key] = [result[key]]
+        
+    get_surface_area_temp = partial(get_surface_area, volume_list=volume_list)
+    with multiprocessing.Pool(processes=cfg.SYSTEM.NUM_CPUS) as pool:
+        result_array = pool.map(get_surface_area_temp, volume_list.keys())
+        
+        
+    print('Surface feature extraction finished. {} features extracted.'.format(len(result_array)))
     return (result_array)
 
+def get_ids_in_slice(fn):
+    volume_list = {}
+    tmp = imageio.imread(fn)
+    labels = np.unique(tmp)
+    for label in labels:
+        if label == 0:
+            continue
+        volume_list[label] = fn
+    return volume_list
+
+def get_surface_area(obj_id, volume_list):
+    gt_volume = []
+    
+    for fn in sorted(volume_list[obj_id]):
+        gt_slice = imageio.imread(fn)
+        gt_slice[gt_slice != int(obj_id)] = 0
+        gt_volume.append(gt_slice)
+
+    gt_volume = np.array(gt_volume)
+    verts, faces, normals, values = marching_cubes(gt_volume)
+    surface_area = mesh_surface_area(verts, faces)
+    result_dict = {'id': obj_id, 'surface': surface_area}
+    return result_dict
 
 def compute_skeleton(fns=None):
     '''

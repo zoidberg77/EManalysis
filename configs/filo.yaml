@@ -51,7 +51,7 @@ MODE:
   PROCESS: ''
 CLUSTER:
   ALG: 'kmeans'
-  FEAT_LIST: ['sizef', 'distf', 'circf', 'surface_to_volumef', 'slenf']
+  FEAT_LIST: ['sizef', 'distf', 'circf', 'surfacef', 'slenf']
   WEIGHTSF: [1,1,1,1,1]
   N_CLUSTER: 2
   OUTPUTPATH: 'outputs/'

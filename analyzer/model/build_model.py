@@ -97,8 +97,8 @@ class Clustermodel():
                     feat = self.fe.compute_vae_texture()
                 elif fns == 'circf':
                     feat = self.fe.compute_seg_circ()
-                elif fns == 'surface_to_volumef':
-                    feat = self.fe.compute_seg_surface_to_volume()
+                elif fns == 'surfacef':
+                    feat = self.fe.compute_seg_surface()
                 elif fns == 'slenf':
                     feat = self.fe.compute_seg_slength()
                 elif fns == 'spatial_densityf':

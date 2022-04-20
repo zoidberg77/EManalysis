@@ -90,9 +90,9 @@ class FeatureExtractor():
         '''Computes the circularity features from mitochondria volume.'''
         return compute_circularity(self.gtvol, fns=self.gtfns, dprc=self.dprc)
 
-    def compute_seg_surface_to_volume(self):
+    def compute_seg_surface(self):
         '''Computes the surface to volume ratio features from mitochondria volume.'''
-        return compute_surface_to_volume(self.gtvol, fns=self.gtfns, dprc=self.dprc)
+        return compute_surface(self.gtfns, self.cfg)
 
     def save_single_feat_h5(self, rsl_dict, filen='feature_vector'):
         '''
@@ -104,7 +104,6 @@ class FeatureExtractor():
         with h5py.File(self.cfg.DATASET.ROOTF + filen + '.h5', 'w') as h5f:
             h5f.create_dataset('id', data=labels)
             h5f.create_dataset(filen[:-1], data=values)
-            h5f.close()
 
         print('saved features to {}.'.format(self.cfg.DATASET.ROOTF + filen + '.h5'))
         return labels, values
@@ -118,7 +117,6 @@ class FeatureExtractor():
         with h5py.File(self.cfg.DATASET.ROOTF + filen + '.h5', 'w') as h5f:
             h5f.create_dataset('id', data=labels)
             h5f.create_dataset(filen, data=feat_array)
-            h5f.close()
         print('saved features to {}.'.format(self.cfg.DATASET.ROOTF + filen + '.h5'))
 
     def save_feat_dict(self, rsl_dict, filen='feature_vector.json'):
