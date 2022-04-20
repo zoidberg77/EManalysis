@@ -15,6 +15,5 @@ yacs
 pandas
 hdbscan
 open3d
-chamferdist
 neuroglancer
 pytorch-lightning

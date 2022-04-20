@@ -5,6 +5,7 @@ import numpy as np
 import h5py
 from scipy import stats
 from sklearn.preprocessing import normalize
+from sklearn.preprocessing import MinMaxScaler
 from tqdm import tqdm, trange
 from sklearn.metrics import euclidean_distances
 import multiprocessing as mp
@@ -17,7 +18,8 @@ def normalize_ptc(ptc):
     Function normalizes the ptc (Nxd) by min-max-scaling.
     :param ptc: (np.ndarray) size: Nxd
     '''
-    return normalize(ptc, axis=0, norm='max')
+    scaler = MinMaxScaler(feature_range=(-1, 1))
+    return scaler.fit_transform(ptc)
 
 class PtcDataset():
     '''
