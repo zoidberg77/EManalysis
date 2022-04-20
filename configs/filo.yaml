@@ -1,0 +1,59 @@
+SYSTEM:
+  NUM_CPUS: 8
+  NUM_GPUS: 1
+DATASET:
+  EM_PATH: 'datasets/em/'
+  LABEL_PATH: 'datasets/filo/'
+  GT_PATH: 'datasets/mouseA/mito_export_maingroups/'
+  ROOTF: 'features/'
+  ROOTD: 'datasets/'
+  DATAINFO: 'features/data_info.json'
+  EXCLUDE_BORDER_OBJECTS: False
+AUTOENCODER:
+  CHUNKS_CPU: 2
+  ARCHITECTURE: 'unet_3d'
+  TARGET: (64, 64, 64)
+  EPOCHS: 5
+  BATCH_SIZE: 2
+  FEATURES: ['shape', 'texture']
+  LATENT_SPACE: 10
+  MAX_MEAN: 0.001
+  MAX_VAR: 0.001
+  MAX_GRADIENT: 1.0
+  LOG_INTERVAL: 50
+  LARGE_OBJECT_SAMPLES: 5
+  MONITOR_PATH: 'models/'
+  UPPER_BOUND: 20000
+  LOWER_BOUND: 0
+PTC:
+  ARCHITECTURE: 'ptc++'
+  BATCH_SIZE: 16
+  EPOCHS: 50
+  LATENT_SPACE: 4
+  SAMPLE_SIZE: 2025
+  BLUE_NOISE_SAMPLE_POINTS: 100
+  SAMPLE_MODE: 'bluenoise'
+  INPUT_DATA: 'datasets/pts.h5'
+  MONITOR_PATH: 'models/ptc/'
+  FEATURE_NAME: 'ptc_shapef'
+  MODEL: 'models/ptc/vae_ptc_model.pt'
+  INPUT_DATA_SAMPLED: 'datasets/sampled_points.h5'
+  LOG_INTERVAL: 100
+SSL:
+  BATCH_SIZE: 16
+  K_KNN: 3
+  OUTPUT_FOLDER: 'features/mouseA/'
+  MONITOR_PATH: 'models/cl/mouseA/'
+  USE_PREP_DATASET: 'datasets/mouseA/mito_samples.h5'
+  STATE_MODEL: 'models/cl/mouseA/run_2021-10-11/cl_model_3.pt'
+  VALIDATION: True
+MODE:
+  PROCESS: ''
+CLUSTER:
+  ALG: 'kmeans'
+  FEAT_LIST: ['sizef', 'distf', 'circf', 'surface_to_volumef', 'slenf']
+  WEIGHTSF: [1,1,1,1,1]
+  N_CLUSTER: 2
+  OUTPUTPATH: 'outputs/'
+  GENERATE_MASKS: True
+  BINARY: True
