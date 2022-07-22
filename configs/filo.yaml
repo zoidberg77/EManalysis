@@ -2,7 +2,7 @@ SYSTEM:
   NUM_CPUS: 8
   NUM_GPUS: 1
 DATASET:
-  EM_PATH: 'datasets/em/'
+  EM_PATH: 'datasets/filo_em/'
   LABEL_PATH: 'datasets/filo/'
   GT_PATH: 'datasets/mouseA/mito_export_maingroups/'
   ROOTF: 'features/'
@@ -51,7 +51,8 @@ MODE:
   PROCESS: ''
 CLUSTER:
   ALG: 'kmeans'
-  FEAT_LIST: ['sizef', 'distf', 'circf', 'surfacef', 'slenf']
+  FEAT_LIST: ['surfacef']
+#FEAT_LIST: ['sizef', 'distf', 'circf', 'surfacef', 'slenf']
   WEIGHTSF: [1,1,1,1,1]
   N_CLUSTER: 2
   OUTPUTPATH: 'outputs/'

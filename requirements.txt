@@ -17,3 +17,5 @@ hdbscan
 open3d
 neuroglancer
 pytorch-lightning
+p_tqdm
+

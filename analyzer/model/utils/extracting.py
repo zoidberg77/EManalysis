@@ -1,6 +1,7 @@
 import os, sys
 import json
 import math
+from turtle import shape
 
 import h5py
 import numpy as np
@@ -12,6 +13,7 @@ from skimage.measure import label, regionprops, marching_cubes, mesh_surface_are
 from scipy.spatial import distance
 from tqdm import tqdm
 from functools import partial
+from p_tqdm import p_map
 
 
 def compute_region_size(vol=None, dprc='full', fns=None, mode='3d'):
@@ -209,12 +211,13 @@ def compute_surface(fns, cfg):
     '''
     This function aims to calculate the surface to volume ratio of an object.
     '''
-    print('Starting to compute a surface to volume estimation of mitochondria.')
+    print('Starting to compute a surface estimation of mitochondria.')
+
     result_array = []
     volume_list = {}
 
-    with multiprocessing.Pool(processes=cfg.SYSTEM.NUM_CPUS) as pool:
-        results = pool.map(get_ids_in_slice, fns)
+
+    results = p_map(get_ids_in_slice, fns, num_cpus=cfg.SYSTEM.NUM_CPUS)
                 
     
     for result in results:
@@ -223,12 +226,31 @@ def compute_surface(fns, cfg):
                 volume_list[key].append(result[key])
             else:
                 volume_list[key] = [result[key]]
-        
+
+    if os.path.exists(cfg.DATASET.ROOTF + "tempSurfacef" + '.h5'):
+        with h5py.File(cfg.DATASET.ROOTF + "tempSurfacef" + '.h5', 'r') as h5f:
+            if "surface" in h5f.keys():
+                for k in h5f["surface"].keys():
+                    volume_list.pop(int(k), None)
+    else:
+        with h5py.File(cfg.DATASET.ROOTF + "tempSurfacef" + '.h5', 'w') as temp_surfacef:
+            dg = temp_surfacef.create_group("surface")
+
     get_surface_area_temp = partial(get_surface_area, volume_list=volume_list)
-    with multiprocessing.Pool(processes=cfg.SYSTEM.NUM_CPUS) as pool:
-        result_array = pool.map(get_surface_area_temp, volume_list.keys())
-        
-        
+    result_array = []
+
+    print("Computing {} surfaces".format(len(volume_list.keys())))
+    with h5py.File(cfg.DATASET.ROOTF + "tempSurfacef" + '.h5', 'a') as temp_surfacef:
+        for i in range(0, len(volume_list.keys()), cfg.SYSTEM.NUM_CPUS*2):
+            result_array = p_map(get_surface_area_temp, list(volume_list.keys())[i:i+cfg.SYSTEM.NUM_CPUS*2], num_cpus=cfg.SYSTEM.NUM_CPUS)
+            for result in result_array:
+                dg = temp_surfacef["surface"]
+                dg.create_dataset(str(result['id']), data=result["surface"])
+    with h5py.File(cfg.DATASET.ROOTF + "tempSurfacef" + '.h5', 'r') as temp_surfacef:           
+        result_array = []
+        for k in temp_surfacef["surface"].keys():
+            result_array.append({'id': int(k), 'surface': float(temp_surfacef["surface"][k][()])})
+
     print('Surface feature extraction finished. {} features extracted.'.format(len(result_array)))
     return (result_array)
 
@@ -246,13 +268,22 @@ def get_surface_area(obj_id, volume_list):
     gt_volume = []
     
     for fn in sorted(volume_list[obj_id]):
-        gt_slice = imageio.imread(fn)
+        gt_slice = imageio.imread(str(fn))
         gt_slice[gt_slice != int(obj_id)] = 0
         gt_volume.append(gt_slice)
 
     gt_volume = np.array(gt_volume)
-    verts, faces, normals, values = marching_cubes(gt_volume)
-    surface_area = mesh_surface_area(verts, faces)
+    x, y, z = np.nonzero(gt_volume)
+    xl,xr = x.min(),x.max()
+    yl,yr = y.min(),y.max()
+    zl,zr = z.min(),z.max()
+    gt_volume = gt_volume[xl:xr+1, yl:yr+1, zl:zr+1]
+    surface_area = np.zeros((1,))
+    try:
+        verts, faces, normals, values = marching_cubes(gt_volume)
+        surface_area[0] = mesh_surface_area(verts, faces)
+    except:
+        pass
     result_dict = {'id': obj_id, 'surface': surface_area}
     return result_dict
 
